@@ -121,7 +121,8 @@ int main(void)
 		  HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
 
 #define SIGNIFICANT 4
-		  uint8_t buf[SIGNIFICANT + 3];
+		  uint8_t buf[SIGNIFICANT + 3+2];
+		  buf[SIGNIFICANT + 3] = '\0';
 		  if (data & 0b110)
 		  {
 			  // MAX 6675 not okay (wrong ID or TH not connected
@@ -149,8 +150,9 @@ int main(void)
 		  lcd_set_xy(0, 1);
 		  lcd_out((char *)buf);
 		  lcd_send((char)223, 1);
-//		  CDC_Transmit_FS(buf, sizeof(buf));
-//		  CDC_Transmit_FS((uint8_t *)"\r\n", 2);
+		  buf[SIGNIFICANT + 3] = '\r';
+		  buf[SIGNIFICANT + 3+1] = '\n';
+		  CDC_Transmit_FS(buf, sizeof(buf));
 		  for (int i = 0; i < sizeof(buf); i++)
 		  {
 			  buf[i] = 0;

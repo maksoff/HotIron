@@ -9,6 +9,7 @@ extern "C" {
 
 #include "main.h"
 
+//#define RUSSIAN_DISPLAY
 
 /////should be defined by user /////
 #define LCD_PORT GPIOB

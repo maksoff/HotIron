@@ -1,5 +1,6 @@
 #include "hd44780_driver.h"
 
+#ifdef RUSSIAN_DISPLAY
 int RussianFont(uint8_t RusWord){
 	switch (RusWord){
 		case 0xC0:		//�
@@ -205,7 +206,7 @@ int RussianFont(uint8_t RusWord){
 	return RusWord;
 
 }
-
+#endif
 
 void lcd_delay(void) {
 	const uint32_t period = HAL_RCC_GetSysClockFreq() / 10000; // 100us = 1/10000sec
@@ -355,10 +356,11 @@ void lcd_send(uint8_t byte, dat_or_comm dc)  {
 
 	if (dc) {
 		LCD_PORT->BSRR=LCD_CD_BS;
+#ifdef RUSSIAN_DISPLAY
 		if(byte>0xA0){
 			byte=RussianFont(byte);
 		}
-
+#endif
 	}
 
 	if (byte & 0x10) {
