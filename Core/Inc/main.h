@@ -32,6 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdbool.h"
 
 /* USER CODE END Includes */
 
@@ -60,8 +61,26 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
+#define hd_7_Pin GPIO_PIN_10
+#define hd_7_GPIO_Port GPIOB
+#define hd_6_Pin GPIO_PIN_11
+#define hd_6_GPIO_Port GPIOB
+#define hd_RS_Pin GPIO_PIN_12
+#define hd_RS_GPIO_Port GPIOB
+#define hd_E_Pin GPIO_PIN_13
+#define hd_E_GPIO_Port GPIOB
+#define hd_4_Pin GPIO_PIN_14
+#define hd_4_GPIO_Port GPIOB
+#define hd_5_Pin GPIO_PIN_15
+#define hd_5_GPIO_Port GPIOB
 #define USB_EN_Pin GPIO_PIN_15
 #define USB_EN_GPIO_Port GPIOA
+#define enc_s_Pin GPIO_PIN_7
+#define enc_s_GPIO_Port GPIOB
+#define enc_a_Pin GPIO_PIN_8
+#define enc_a_GPIO_Port GPIOB
+#define enc_b_Pin GPIO_PIN_9
+#define enc_b_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

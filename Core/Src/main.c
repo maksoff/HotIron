@@ -23,6 +23,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "usbd_cdc_if.h"
+//#include "hd44780_driver.h"
+#include "delay.h"
+#include "lcd.h"
 
 /* USER CODE END Includes */
 
@@ -43,7 +47,11 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim1;
+
 /* USER CODE BEGIN PV */
+
+LCD_HandleTypeDef lcd;
 
 /* USER CODE END PV */
 
@@ -51,7 +59,11 @@ SPI_HandleTypeDef hspi1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+
+void process_encoder();
+uint16_t encoder_value = 0;
 
 /* USER CODE END PFP */
 
@@ -75,6 +87,7 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
+
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -90,8 +103,10 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_SPI1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
+  delay_init(&htim1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,16 +114,61 @@ int main(void)
   uint32_t last_time = HAL_GetTick();
   uint16_t data;
 
+  LCD_PortType ports[] = {	hd_4_GPIO_Port,
+  	  	  					hd_5_GPIO_Port,
+							hd_6_GPIO_Port,
+							hd_7_GPIO_Port};
+  LCD_PinType pins[] = {	hd_4_Pin,
+	  	    				hd_5_Pin,
+							hd_6_Pin,
+							hd_7_Pin};
+  lcd = lcd_create(ports, pins,
+					hd_RS_GPIO_Port, hd_RS_Pin,
+					hd_E_GPIO_Port, hd_E_Pin,
+					LCD_4_BIT_MODE);
+
+  /* load symbols */
+
+  uint8_t symbols [] = {0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
+		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
+						0x4, 0xe, 0x1f, 0x0, 0x0, 0x0, 0x0, 0x0,   // UP
+						0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN
+					    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN
+						0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
+						0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT 2
+						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0 // heart
+  };
+  lcd_define_chars(&lcd, symbols);
+  lcd_set_xy(&lcd, 0, 0);
+  lcd_string(&lcd, "Just testing");
+  while (HAL_GetTick() - last_time < 1000);
+
+  volatile uint32_t last_ttime, ttemp, max_time = 0;
+
+#define STARTT do {	last_ttime = HAL_GetTick(); } while (0);
+
+#define STOPP do {\
+	ttemp = HAL_GetTick() - last_ttime;\
+	if (ttemp > max_time)\
+		max_time = ttemp;\
+	} while (0);
+
   while (1)
   {
+	  if (HAL_GetTick() - last_time > 2)
+	  {
+		  process_encoder();
+	  }
 	  if (HAL_GetTick() - last_time > 500)
 	  {
+		  STARTT;
 		  last_time = HAL_GetTick();
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
 
 #define SIGNIFICANT 4
-		  uint8_t buf[SIGNIFICANT + 3 + 2];
+		  uint8_t buf[SIGNIFICANT + 3+2];
+		  buf[SIGNIFICANT + 3] = '\0';
 		  if (data & 0b110)
 		  {
 			  // MAX 6675 not okay (wrong ID or TH not connected
@@ -133,9 +193,30 @@ int main(void)
 			  }
 			  buf[SIGNIFICANT] = '.';
 		  }
+		  lcd_set_xy(&lcd, 0, 1);
+		  lcd_string(&lcd, buf);
+		  lcd_write_data(&lcd, 223);
 		  buf[SIGNIFICANT + 3] = '\r';
-		  buf[SIGNIFICANT + 3 + 1] = '\n';
+		  buf[SIGNIFICANT + 3+1] = '\n';
 		  CDC_Transmit_FS(buf, sizeof(buf));
+		  for (int i = 0; i < sizeof(buf); i++)
+		  {
+			  buf[i] = 0;
+		  }
+
+		  uint16_t temp = (encoder_value>>1)&0xff;
+		  for (int i = 0; i < 5; i++)
+		  {
+			  buf[4-i] = temp % 10 + '0';
+			  temp /= 10;
+		  }
+		  buf[5] = (encoder_value>>1)&0xff;
+		  lcd_string(&lcd, buf);
+		  lcd_set_xy(&lcd, 15, 0);
+		  lcd_write_data(&lcd, (encoder_value>>1)&0xff);
+		  lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
+		  lcd_set_xy(&lcd, 15, 1);
+		  STOPP;
 	  }
 
     /* USER CODE END WHILE */
@@ -229,6 +310,52 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = HAL_RCC_GetSysClockFreq()/1000000-1;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -241,9 +368,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
+                          |hd_4_Pin|hd_5_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
@@ -255,6 +387,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : hd_7_Pin hd_6_Pin hd_RS_Pin hd_E_Pin
+                           hd_4_Pin hd_5_Pin */
+  GPIO_InitStruct.Pin = hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
+                          |hd_4_Pin|hd_5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : USB_EN_Pin */
   GPIO_InitStruct.Pin = USB_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -262,9 +403,51 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : enc_s_Pin enc_a_Pin enc_b_Pin */
+  GPIO_InitStruct.Pin = enc_s_Pin|enc_a_Pin|enc_b_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
+void process_encoder(void)
+{
+	static uint8_t old;
+	uint8_t new;
+	new = (HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin)?0b10:0 +
+		   HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin)?0b01:0);
+	switch(old)
+		{
+		case 2:
+			{
+			if(new == 3) encoder_value++;
+			if(new == 0) encoder_value--;
+			break;
+			}
+
+		case 0:
+			{
+			if(new == 2) encoder_value++;
+			if(new == 1) encoder_value--;
+			break;
+			}
+		case 1:
+			{
+			if(new == 0) encoder_value++;
+			if(new == 3) encoder_value--;
+			break;
+			}
+		case 3:
+			{
+			if(new == 1) encoder_value++;
+			if(new == 2) encoder_value--;
+			break;
+			}
+		}
+	old = new;
+}
 
 /* USER CODE END 4 */
 
