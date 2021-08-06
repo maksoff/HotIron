@@ -24,7 +24,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
-#include "hd44780_driver.h"
+//#include "hd44780_driver.h"
+#include "delay.h"
+#include "lcd.h"
 
 /* USER CODE END Includes */
 
@@ -45,7 +47,11 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim1;
+
 /* USER CODE BEGIN PV */
+
+LCD_HandleTypeDef lcd;
 
 /* USER CODE END PV */
 
@@ -53,6 +59,7 @@ SPI_HandleTypeDef hspi1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 void process_encoder();
@@ -80,6 +87,7 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
+
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -95,8 +103,10 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_SPI1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
+  delay_init(&htim1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,18 +114,61 @@ int main(void)
   uint32_t last_time = HAL_GetTick();
   uint16_t data;
 
-  lcd_init();
-  lcd_out("Just testing");
-  while (HAL_GetTick() - last_time < 3000);
+//  lcd_init();
+//  delay_us(1000);
+//  lcd_init(); // workaround for correct init // TODO clean this up!
+  LCD_PortType ports[] = {	hd_4_GPIO_Port,
+  	  	  					hd_5_GPIO_Port,
+							hd_6_GPIO_Port,
+							hd_7_GPIO_Port};
+  LCD_PinType pins[] = {	hd_4_Pin,
+	  	    				hd_5_Pin,
+							hd_6_Pin,
+							hd_7_Pin};
+  lcd = lcd_create(ports, pins,
+					hd_RS_GPIO_Port, hd_RS_Pin,
+					hd_E_GPIO_Port, hd_E_Pin,
+					LCD_4_BIT_MODE);
+
+  /* load symbols */
+
+  uint8_t symbols [] = {0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
+		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
+						0x4, 0xe, 0x1f, 0x0, 0x0, 0x0, 0x0, 0x0,   // UP
+						0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN
+					    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN
+						0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
+						0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT 2
+						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0 // heart
+  };
+  lcd_define_chars(&lcd, symbols);
+//  lcd_send(0x40, COMMAND);
+//  for (int i = 0; i < sizeof(symbols); i++)
+//	  lcd_send(symbols[i], DATA);
+  /* end load symbols */
+//  lcd_set_xy(0, 0);
+//  lcd_out("Just testing");
+  while (HAL_GetTick() - last_time < 1000);
+
+  volatile uint32_t last_ttime, ttemp, max_time = 0;
+
+#define STARTT do {	last_ttime = HAL_GetTick(); } while (0);
+
+#define STOPP do {\
+	ttemp = HAL_GetTick() - last_ttime;\
+	if (ttemp > max_time)\
+		max_time = ttemp;\
+	} while (0);
 
   while (1)
   {
-//	  if (HAL_GetTick() - last_time > 1)
-//	  {
+	  if (HAL_GetTick() - last_time > 2)
+	  {
 		  process_encoder();
-//	  }
+	  }
 	  if (HAL_GetTick() - last_time > 500)
 	  {
+		  STARTT;
 		  last_time = HAL_GetTick();
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
@@ -147,9 +200,9 @@ int main(void)
 			  }
 			  buf[SIGNIFICANT] = '.';
 		  }
-		  lcd_set_xy(0, 1);
-		  lcd_out((char *)buf);
-		  lcd_send((char)223, 1);
+//		  lcd_set_xy(0, 1);
+//		  lcd_out((char *)buf);
+//		  lcd_send((char)223, 1);
 		  buf[SIGNIFICANT + 3] = '\r';
 		  buf[SIGNIFICANT + 3+1] = '\n';
 		  CDC_Transmit_FS(buf, sizeof(buf));
@@ -158,14 +211,19 @@ int main(void)
 			  buf[i] = 0;
 		  }
 
-		  uint16_t temp = (encoder_value>>2)&0xff;
+		  uint16_t temp = (encoder_value>>1)&0xff;
 		  for (int i = 0; i < 5; i++)
 		  {
 			  buf[4-i] = temp % 10 + '0';
 			  temp /= 10;
 		  }
-		  buf[5] = (encoder_value >> 2)&0xff;
-		  lcd_out((char *) buf);
+		  buf[5] = (encoder_value>>1)&0xff;
+//		  lcd_out((char *) buf);
+//		  lcd_set_xy(15, 0);
+//		  lcd_send((encoder_value>>1)&0xff, DATA);
+//		  lcd_set_state(LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
+//		  lcd_set_xy(15, 1);
+		  STOPP;
 	  }
 
     /* USER CODE END WHILE */
@@ -259,6 +317,52 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = HAL_RCC_GetSysClockFreq()/1000000-1;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -278,7 +382,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
-                          |hd_4_Pin|hd_5_Pin, GPIO_PIN_RESET);
+                          |hd_4_Pin|hd_5_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
@@ -319,8 +423,8 @@ void process_encoder(void)
 {
 	static uint8_t old;
 	uint8_t new;
-	new = (0b01*HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin) +
-		   0b10*HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin));
+	new = (HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin)?0b10:0 +
+		   HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin)?0b01:0);
 	switch(old)
 		{
 		case 2:
