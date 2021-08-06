@@ -114,9 +114,6 @@ int main(void)
   uint32_t last_time = HAL_GetTick();
   uint16_t data;
 
-//  lcd_init();
-//  delay_us(1000);
-//  lcd_init(); // workaround for correct init // TODO clean this up!
   LCD_PortType ports[] = {	hd_4_GPIO_Port,
   	  	  					hd_5_GPIO_Port,
 							hd_6_GPIO_Port,
@@ -142,12 +139,8 @@ int main(void)
 						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0 // heart
   };
   lcd_define_chars(&lcd, symbols);
-//  lcd_send(0x40, COMMAND);
-//  for (int i = 0; i < sizeof(symbols); i++)
-//	  lcd_send(symbols[i], DATA);
-  /* end load symbols */
-//  lcd_set_xy(0, 0);
-//  lcd_out("Just testing");
+  lcd_set_xy(&lcd, 0, 0);
+  lcd_string(&lcd, "Just testing");
   while (HAL_GetTick() - last_time < 1000);
 
   volatile uint32_t last_ttime, ttemp, max_time = 0;
@@ -200,9 +193,9 @@ int main(void)
 			  }
 			  buf[SIGNIFICANT] = '.';
 		  }
-//		  lcd_set_xy(0, 1);
-//		  lcd_out((char *)buf);
-//		  lcd_send((char)223, 1);
+		  lcd_set_xy(&lcd, 0, 1);
+		  lcd_string(&lcd, buf);
+		  lcd_write_data(&lcd, 223);
 		  buf[SIGNIFICANT + 3] = '\r';
 		  buf[SIGNIFICANT + 3+1] = '\n';
 		  CDC_Transmit_FS(buf, sizeof(buf));
@@ -218,11 +211,11 @@ int main(void)
 			  temp /= 10;
 		  }
 		  buf[5] = (encoder_value>>1)&0xff;
-//		  lcd_out((char *) buf);
-//		  lcd_set_xy(15, 0);
-//		  lcd_send((encoder_value>>1)&0xff, DATA);
-//		  lcd_set_state(LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
-//		  lcd_set_xy(15, 1);
+		  lcd_string(&lcd, buf);
+		  lcd_set_xy(&lcd, 15, 0);
+		  lcd_write_data(&lcd, (encoder_value>>1)&0xff);
+		  lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
+		  lcd_set_xy(&lcd, 15, 1);
 		  STOPP;
 	  }
 
