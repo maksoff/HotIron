@@ -1,0 +1,9 @@
+hd44780_driver.c:5:6:lcd_delay	8	static
+hd44780_driver.c:103:6:lcd_set_4bit_mode	24	static
+hd44780_driver.c:166:6:lcd_send	16	static
+hd44780_driver.c:29:6:lcd_set_user_char	16	static
+hd44780_driver.c:38:6:lcd_set_xy	0	static
+hd44780_driver.c:49:6:lcd_out	8	static
+hd44780_driver.c:70:6:lcd_clear	8	static
+hd44780_driver.c:83:6:lcd_set_state	0	static
+hd44780_driver.c:18:6:lcd_init	8	static
