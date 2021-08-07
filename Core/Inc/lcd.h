@@ -106,7 +106,8 @@ LCD_HandleTypeDef lcd_create(
 		LCD_PortType rs_port, LCD_PinType rs_pin,
 		LCD_PortType en_port, LCD_PinType en_pin, LCD_ModeTypeDef mode);
 //void lcd_init(LCD_HandleTypeDef * lcd); - not actually needed, use create
-void lcd_string(LCD_HandleTypeDef * lcd, uint8_t * string); // uint8_t instead of char to comply with USB
+void lcd_out(LCD_HandleTypeDef * lcd, uint8_t * string); // uint8_t instead of char to comply with USB
+void lcd_string(LCD_HandleTypeDef * lcd, char * string); // char for strings
 void lcd_set_xy(LCD_HandleTypeDef * lcd, uint8_t x, uint8_t y);
 void lcd_mode(LCD_HandleTypeDef * lcd, LCD_ONOFF state, LCD_CURSOR cursor, LCD_BLINK blink);
 void lcd_define_char(LCD_HandleTypeDef * lcd, uint8_t code, uint8_t bitmap[]);

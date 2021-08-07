@@ -103,11 +103,22 @@ void Lcd_int(Lcd_HandleTypeDef * lcd, int number)
 /**
  * Write a string on the current position
  */
-void lcd_string(LCD_HandleTypeDef * lcd, uint8_t * string)
+void lcd_out(LCD_HandleTypeDef * lcd, uint8_t * string)
 {
 	while (*string)
 	{
 		lcd_write_data(lcd, *(string++));
+	}
+}
+
+/**
+ * Write a string on the current position
+ */
+void lcd_string(LCD_HandleTypeDef * lcd, char * string)
+{
+	while (*string)
+	{
+		lcd_write_data(lcd, (uint8_t)*(string++));
 	}
 }
 

@@ -135,8 +135,9 @@ int main(void)
 						0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN
 					    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN
 						0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
-						0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT 2
-						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0 // heart
+						0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT mirror
+						0x0, 0x4, 0x0, 0x4, 0x0, 0x4, 0x0, 0x0,    // 3 dots
+						//0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0 // heart
   };
   lcd_define_chars(&lcd, symbols);
   lcd_set_xy(&lcd, 0, 0);
@@ -152,6 +153,16 @@ int main(void)
 	if (ttemp > max_time)\
 		max_time = ttemp;\
 	} while (0);
+
+  /*
+#define STARTT do {	last_ttime = DWT->CYCCNT; } while (0);
+
+#define STOPP do {\
+	ttemp = DWT->CYCCNT - last_ttime;\
+	if (ttemp > max_time)\
+		max_time = ttemp;\
+	} while (0);
+	*/
 
   while (1)
   {
@@ -194,7 +205,7 @@ int main(void)
 			  buf[SIGNIFICANT] = '.';
 		  }
 		  lcd_set_xy(&lcd, 0, 1);
-		  lcd_string(&lcd, buf);
+		  lcd_out(&lcd, buf);
 		  lcd_write_data(&lcd, 223);
 		  buf[SIGNIFICANT + 3] = '\r';
 		  buf[SIGNIFICANT + 3+1] = '\n';
@@ -211,7 +222,7 @@ int main(void)
 			  temp /= 10;
 		  }
 		  buf[5] = (encoder_value>>1)&0xff;
-		  lcd_string(&lcd, buf);
+		  lcd_out(&lcd, buf);
 		  lcd_set_xy(&lcd, 15, 0);
 		  lcd_write_data(&lcd, (encoder_value>>1)&0xff);
 		  lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
