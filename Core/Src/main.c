@@ -69,7 +69,7 @@ struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
 	bool data_valid;
 	uint8_t ascii[7];  // converted to ASCII
-} MAX6675;
+} MAX6675 = {.data_valid = false, .temperature = 0};
 
 uint16_t pwm_value = 0;
 
@@ -228,7 +228,7 @@ void do_pwm(void)
 	static uint8_t state = 0;
 	switch (state) {
 	case 0:
-		if (diff == 0)
+		if (pwm_value == 0)
 		{
 			if (button.long_press)
 			{
@@ -332,6 +332,42 @@ void do_lcd(void)
 	lcd_set_xy(&lcd, 2, 0);
 }
 
+
+/**
+ * PID controller
+ * @param PV - process variable, with 1/4 grad resolution
+ * @param SP - set point, with 1/4 grad resolution
+ */
+uint8_t pid(uint16_t PV, uint16_t SP)
+{
+	const uint32_t P=1*32768;
+	const uint32_t I=0.0015*32768;
+	const uint32_t D=10*32768;
+	const uint32_t limit_top=100*4*32768;
+
+	static int32_t integral = 0;
+	static int32_t last_PV = -1;
+	if (last_PV < PV)
+		last_PV = PV; // first time, init this thing to avoid jump
+
+	int32_t error = SP-PV;
+	int32_t p = error * P;
+	integral += error;
+	if (integral > limit_top)
+		integral = limit_top;
+	if (integral < 0)
+		integral = 0;
+	int32_t i = integral * I;
+	int32_t d = (last_PV - PV)*D;
+	last_PV = PV;
+	int32_t out = (p+i+d)/4/32768;
+	if (out > 100)
+		out = 100;
+	if (out < 0)
+		out = 0;
+	return out;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -372,8 +408,6 @@ int main(void)
   delay_init(&htim1);
   init_lcd();
 
-  MAX6675.data_valid = false;
-  MAX6675.temperature = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
