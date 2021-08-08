@@ -68,6 +68,7 @@ LCD_PinType pins[] = {		hd_4_Pin,
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
 	bool data_valid;
+	uint8_t ascii[7];  // converted to ASCII
 } MAX6675;
 
 uint16_t pwm_value = 0;
@@ -84,6 +85,10 @@ static void MX_TIM2_Init(void);
 
 void process_encoder();
 uint16_t encoder_value = 0;
+struct sBUTTON {
+	bool pressed;
+	bool long_press;
+} button = {.pressed = false, .long_press = false};
 
 /* USER CODE END PFP */
 
@@ -135,12 +140,34 @@ void init_lcd(void)
 	  */
 }
 
-void do_input(void)
+void do_encoder(void)
 {
 	static uint32_t last_time = 0;
 	if (HAL_GetTick() - last_time < 1)
 		return;
 	process_encoder();
+	last_time = HAL_GetTick();
+}
+
+void do_button(void)
+{
+	const uint32_t time_for_long_press = 1000;
+	static uint32_t last_time = 0;
+	static bool last_button = false;
+	static uint32_t but_time = 0;
+	if (HAL_GetTick() - last_time < 20)
+		return;
+	button.pressed = !HAL_GPIO_ReadPin(enc_s_GPIO_Port, enc_s_Pin);
+	if (button.pressed)
+	{
+		if (!last_button)
+			but_time = HAL_GetTick();
+		if (HAL_GetTick() - but_time > time_for_long_press)
+			button.long_press = true;
+	}
+	else
+		button.long_press = false;
+	last_button = button.pressed;
 	last_time = HAL_GetTick();
 }
 
@@ -158,20 +185,71 @@ void do_max6675(void)
 	static uint32_t last_time = 0;
 	if (HAL_GetTick() - last_time < 500)
 		return;
+	last_time = HAL_GetTick();
 
 	uint16_t data;
 	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
 	MAX6675.data_valid = !(data & 0b110);
 	MAX6675.temperature = data >> 3;
-	last_time = HAL_GetTick();
+
+	if (MAX6675.data_valid)
+	{
+		uint32_t digit = 25*(MAX6675.temperature&0b11);
+		digit += (MAX6675.temperature>>2)*1000;
+		int8_t i = 6;
+		while (digit)
+		{
+			MAX6675.ascii[i--] = '0' + digit%10;
+			digit /= 10;
+		}
+		while (i >= 0)
+		{
+			if (i > 2)
+				MAX6675.ascii[i--] = '0';
+			else
+				MAX6675.ascii[i--] = ' ';
+		}
+		MAX6675.ascii[4] = '.';
+	}
+	else
+	{
+		for (int i = 0; i < sizeof(MAX6675); i ++)
+			MAX6675.ascii[i] = 'x';
+	}
+
 }
 
 void do_pwm(void)
 {
 	static uint16_t last_encoder = 0;
 	static volatile int16_t diff = 0;
-	if (!HAL_GPIO_ReadPin(enc_s_GPIO_Port, enc_s_Pin))
-		diff = 0;
+
+	// Check button
+	static uint8_t state = 0;
+	switch (state) {
+	case 0:
+		if (diff == 0)
+		{
+			if (button.long_press)
+			{
+				diff = 100 << 1; // full power
+				state = 1;
+			}
+		}
+		else if (button.pressed)
+		{
+			diff = 0; // zero power
+			state = 1;
+		}
+		break;
+	case 1: // wait button release
+		if (!button.pressed)
+			state = 0;
+		break;
+	default:
+		break;
+	}
+
 	if (MAX6675.temperature > (300<<2)) // hardcoded protect
 		diff = 0;
 	else
@@ -185,6 +263,73 @@ void do_pwm(void)
 	last_encoder = encoder_value;
 	pwm_value = diff>>1; // in %
 	TIM2->CCR1 = pwm_value*10;
+}
+
+void do_usb(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 250)
+		return;
+	last_time = HAL_GetTick();
+
+	uint8_t buf[13];
+	int i = 0;
+	for (i = 0; i < sizeof(MAX6675.ascii); i++)
+		buf[i] = MAX6675.ascii[i];
+	buf[i++] = ' ';
+
+	uint16_t temp = pwm_value;
+	for (int j = 0; j < 3; j++)
+	{
+		if ((!temp) && j)
+		{
+			buf[i+2-j] =' ';
+		}
+		else
+		{
+			buf[i+2-j] = temp % 10 + '0';
+			temp /= 10;
+		}
+	}
+
+	buf[11] = '\r';
+	buf[12] = '\n';
+
+	CDC_Transmit_FS(buf, sizeof(buf));
+}
+
+void do_lcd(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 100)
+		return;
+	last_time = HAL_GetTick();
+
+	// output temperature
+	lcd_set_xy(&lcd, 0, 1);
+	lcd_out(&lcd, MAX6675.ascii, sizeof(MAX6675.ascii));
+	lcd_write_data(&lcd, 223);
+
+	// output temperature
+	uint8_t buf[4];
+	uint16_t temp = pwm_value;
+	for (int i = 0; i < 3; i++)
+	{
+		if ((!temp) && i)
+		{
+			buf[2-i] =' ';
+		}
+		else
+		{
+			buf[2-i] = temp % 10 + '0';
+			temp /= 10;
+		}
+	}
+	buf[3] = '%';
+	lcd_set_xy(&lcd, 0, 0);
+	lcd_out(&lcd, buf, 4);
+	lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
+	lcd_set_xy(&lcd, 2, 0);
 }
 
 /* USER CODE END 0 */
@@ -233,10 +378,9 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t last_time = HAL_GetTick();
 
 
-
+#if 0
   /*********** TIME measurement macros ****************/
   volatile uint32_t last_ttime, ttemp, max_time = 0;
 
@@ -263,72 +407,18 @@ int main(void)
 #endif
 
   /*********** TIME measurement macros END*************/
+#endif
 
 
   while (1)
   {
-	  do_input();
+	  do_encoder();
+	  do_button();
 	  do_blink();
 	  do_max6675();
 	  do_pwm();
-
-	  //update display
-	  if (HAL_GetTick() - last_time > 250)
-	  {
-		  STARTT;
-		  last_time = HAL_GetTick();
-
-#define SIGNIFICANT 4
-		  uint8_t buf[SIGNIFICANT + 3+2];
-		  buf[SIGNIFICANT + 3] = '\0';
-		  if (!MAX6675.data_valid)
-		  {
-			  // MAX 6675 not okay (wrong ID or TH not connected
-			  for (int i = 0; i < sizeof(buf); i++)
-				  buf[i] = 'x';
-		  }
-		  else
-		  {
-			  //MAX 6675 okay, prepare data
-			  uint32_t digit = 25*(MAX6675.temperature&0b11);
-			  digit += (MAX6675.temperature>>2)*1000;
-			  int8_t i = SIGNIFICANT + 2;
-			  while (digit)
-			  {
-				  buf[i--] = '0' + digit%10;
-				  digit /= 10;
-			  }
-			  while (i > -1)
-			  {
-				  buf[i--] = '0';
-			  }
-			  buf[SIGNIFICANT] = '.';
-		  }
-		  lcd_set_xy(&lcd, 0, 1);
-		  lcd_out(&lcd, buf, SIGNIFICANT + 3);
-		  lcd_write_data(&lcd, 223);
-		  buf[SIGNIFICANT + 3] = '\r';
-		  buf[SIGNIFICANT + 3+1] = '\n';
-		  CDC_Transmit_FS(buf, sizeof(buf));
-		  for (int i = 0; i < sizeof(buf); i++)
-		  {
-			  buf[i] = 0;
-		  }
-
-		  uint16_t temp = pwm_value;
-		  for (int i = 0; i < 3; i++)
-		  {
-			  buf[2-i] = temp % 10 + '0';
-			  temp /= 10;
-		  }
-		  buf[3] = '%';
-		  lcd_set_xy(&lcd, 0, 0);
-		  lcd_out(&lcd, buf, 4);
-		  lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
-		  lcd_set_xy(&lcd, 2, 0);
-		  STOPP;
-	  }
-
+	  do_usb();
+	  do_lcd();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
