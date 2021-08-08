@@ -37,6 +37,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define HOT_TEMP (40) // 40 grad
+#define MAX_TEMP (400)
+#define STEP_TEMP (5)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -94,6 +97,31 @@ struct sBUTTON {
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+enum {
+	  sENTER,
+	  sUP,
+	  sDOWN,
+	  sUPDOWN,
+	  sHOT,
+	  sHOTmirror,
+	  s3dots,
+	  sHEART
+};
+
+void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
+{
+	for (int i = len - 1; i >= 0; i--)
+	{
+		if (digit || (i == (len-1)))
+		{
+			buf[i] = digit % 10 + '0';
+			digit /= 10;
+		}
+		else
+			buf[i] = ' ';
+	}
+}
 
 void init_lcd(void)
 {
@@ -332,6 +360,178 @@ void do_lcd(void)
 	lcd_set_xy(&lcd, 2, 0);
 }
 
+typedef enum {
+	START,
+	MENU_0,
+	MENU,
+	HEATPLATE_0,
+	HEATPLATE,
+	SETTINGS_0,
+	SETTINGS,
+	REFLOW,
+	MALFUNCTION,
+} eUISTATE;
+eUISTATE ui_state = START;
+
+void do_interface(void)
+{
+	void lcd_mini_clear(LCD_HandleTypeDef * lcd)
+	{
+		lcd_mode(lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
+		lcd_set_xy(lcd, 0, 0);
+		lcd_string(lcd, "            ");
+		lcd_set_xy(lcd, 0, 1);
+		lcd_string(lcd, "            ");
+	}
+	void heatplate(bool reset)
+	{
+		static uint16_t last_encoder = 0;
+		static volatile int16_t diff = 0;
+#define upper_limit (MAX_TEMP/STEP_TEMP*2)
+		if (reset)
+		{
+			last_encoder = encoder_value;
+			diff = 0;
+			return;
+		}
+
+		diff+=(int16_t)(encoder_value - last_encoder);
+		last_encoder = encoder_value;
+
+		if (diff < 0)
+			diff = 0;
+		if (diff > upper_limit)
+			diff = upper_limit; // between 0*2 and MAX_TEMP*2
+
+		if (button.pressed)
+			diff = 0;
+
+		uint8_t buf[3];
+		int2string(5*(diff>>1), buf, sizeof(buf));
+		lcd_set_xy(&lcd, 7, 0);
+		lcd_out(&lcd, buf, sizeof(buf));
+		lcd_write_data(&lcd, 223);
+		lcd_write_data(&lcd, 0x7E);
+		lcd_set_xy(&lcd, 9, 0);
+		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+
+	}
+
+	static uint32_t last_time = 0;
+	static uint8_t ticktack = 0;
+	static bool last_button = false;
+	if (HAL_GetTick() - last_time < 100)
+		return;
+	last_time = HAL_GetTick();
+
+	/*** Right always visible section ***/
+
+	lcd_set_xy(&lcd, 12, 0);
+	if (MAX6675.data_valid)
+	{
+		lcd_out(&lcd, MAX6675.ascii+1, 3);
+		lcd_write_data(&lcd, 223);
+	}
+	else
+	{
+		lcd_string(&lcd, "___");
+		ui_state = MALFUNCTION;
+	}
+	lcd_set_xy(&lcd, 15, 1);
+	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
+	{
+		if (ticktack < 5)
+			lcd_write_data(&lcd, sHOT);
+		else
+			lcd_write_data(&lcd, sHOTmirror);
+	}
+	else
+	{
+		lcd_write_data(&lcd, ' ');
+	}
+	if (++ticktack > 9)
+		ticktack = 0;
+
+	/************************************/
+
+	uint8_t enc_val = (encoder_value>>1)&0b1;
+
+
+	if (button.long_press)
+	{
+		// TODO disable pwm here
+		ui_state = START;
+	}
+
+	switch(ui_state)
+	{
+	case START:
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "Long press  ");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, "to stop     ");
+		lcd_set_xy(&lcd, 11, 1);
+		lcd_write_data(&lcd, sENTER);
+		lcd_set_xy(&lcd, 11, 1);
+		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+		if (!button.pressed && last_button)
+			ui_state = MENU_0;
+		last_button = button.pressed;
+		break;
+	case MENU_0:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, " Profile");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, " Heatplate");
+		lcd_set_xy(&lcd, 0, (encoder_value>>1)&0b1);
+		lcd_write_data(&lcd, 0x7E);
+		ui_state = MENU;
+		break;
+	case MENU:
+		lcd_set_xy(&lcd, 0, enc_val);
+		lcd_write_data(&lcd, 0x7E);
+		lcd_set_xy(&lcd, 0, 1 - enc_val);
+		lcd_write_data(&lcd, ' ');
+		if (!button.pressed && last_button)
+		{
+			ui_state = enc_val?HEATPLATE_0:SETTINGS_0;
+		}
+		last_button = button.pressed;
+		break;
+	case HEATPLATE_0:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, "Heatplate");
+		heatplate(true);
+		ui_state = HEATPLATE;
+		break;
+	case HEATPLATE:
+		heatplate(false);
+		break;
+	case SETTINGS_0:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "SETTINGS");
+		ui_state = SETTINGS;
+		break;
+	case SETTINGS:
+		break;
+	case REFLOW:
+		break;
+	case MALFUNCTION:
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "** Error! **");
+		lcd_set_xy(&lcd, 0, 1);
+		if (!MAX6675.data_valid)
+			lcd_string(&lcd, "Temp. Sensor");
+		break;
+	default:
+		ui_state = MALFUNCTION;
+		break;
+	}
+}
+
 
 /**
  * PID controller
@@ -450,9 +650,10 @@ int main(void)
 	  do_button();
 	  do_blink();
 	  do_max6675();
-	  do_pwm();
+	  //do_pwm();
 	  do_usb();
-	  do_lcd();
+	  //do_lcd();
+	  do_interface();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
