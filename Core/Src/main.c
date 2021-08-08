@@ -48,10 +48,30 @@
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 
 LCD_HandleTypeDef lcd;
+
+// ports & pins should be globally visible
+LCD_PortType ports[] = {	hd_4_GPIO_Port,
+  	  	  					hd_5_GPIO_Port,
+							hd_6_GPIO_Port,
+							hd_7_GPIO_Port};
+LCD_PinType pins[] = {		hd_4_Pin,
+	  	    				hd_5_Pin,
+							hd_6_Pin,
+							hd_7_Pin};
+
+
+struct sMAX6675 {
+	uint16_t temperature; // precise to 0.25 grad
+	bool data_valid;
+	uint8_t ascii[7];  // converted to ASCII
+} MAX6675;
+
+uint16_t pwm_value = 0;
 
 /* USER CODE END PV */
 
@@ -60,15 +80,257 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 void process_encoder();
 uint16_t encoder_value = 0;
+struct sBUTTON {
+	bool pressed;
+	bool long_press;
+} button = {.pressed = false, .long_press = false};
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void init_lcd(void)
+{
+	  lcd = lcd_create(ports, pins,
+						hd_RS_GPIO_Port, hd_RS_Pin,
+						hd_E_GPIO_Port, hd_E_Pin,
+						LCD_4_BIT_MODE);
+
+	  /* load symbols */
+
+	  uint8_t symbols [] = {
+	  	  	  				0x1, 0x1, 0x5, 0x9, 0x1f, 0x8, 0x4, 0x0,   // ENTER
+							0x4, 0xe, 0x1f, 0x0, 0x0, 0x0, 0x0, 0x0,   // UP
+							0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN
+						    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN
+							0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
+							0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT mirror
+							0x0, 0x4, 0x0, 0x4, 0x0, 0x4, 0x0, 0x0,    // 3 dots
+							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
+	//		  	  	  	  	0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
+	//		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
+	//						0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x15, 0x0,   // ellips
+	//						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart
+	  };
+	  lcd_define_chars(&lcd, symbols);
+	  lcd_set_xy(&lcd, 0, 0);
+	  lcd_string(&lcd, "made with \7 by");
+	  lcd_set_xy(&lcd, 0, 1);
+	  lcd_string(&lcd, "Maksim Jeskevic");
+	  HAL_Delay(3000);
+	  lcd_clear(&lcd);
+
+	  /* print all chars
+	  for (uint8_t i = 0; i < 8; i++)
+	  {
+		  lcd_set_xy(&lcd, 0, 0);
+		  for (uint8_t j = i*32; j < i*32+16; j++)
+			  lcd_write_data(&lcd, j);
+		  lcd_set_xy(&lcd, 0, 1);
+		  for (uint16_t j = i*32+16; j < i*32+32; j++)
+			  lcd_write_data(&lcd, (uint8_t)j);
+		  HAL_Delay(2000);
+	  }
+	  */
+}
+
+void do_encoder(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 1)
+		return;
+	process_encoder();
+	last_time = HAL_GetTick();
+}
+
+void do_button(void)
+{
+	const uint32_t time_for_long_press = 1000;
+	static uint32_t last_time = 0;
+	static bool last_button = false;
+	static uint32_t but_time = 0;
+	if (HAL_GetTick() - last_time < 20)
+		return;
+	button.pressed = !HAL_GPIO_ReadPin(enc_s_GPIO_Port, enc_s_Pin);
+	if (button.pressed)
+	{
+		if (!last_button)
+			but_time = HAL_GetTick();
+		if (HAL_GetTick() - but_time > time_for_long_press)
+			button.long_press = true;
+	}
+	else
+		button.long_press = false;
+	last_button = button.pressed;
+	last_time = HAL_GetTick();
+}
+
+void do_blink(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 500)
+		return;
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	last_time = HAL_GetTick();
+}
+
+void do_max6675(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 500)
+		return;
+	last_time = HAL_GetTick();
+
+	uint16_t data;
+	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
+	MAX6675.data_valid = !(data & 0b110);
+	MAX6675.temperature = data >> 3;
+
+	if (MAX6675.data_valid)
+	{
+		uint32_t digit = 25*(MAX6675.temperature&0b11);
+		digit += (MAX6675.temperature>>2)*1000;
+		int8_t i = 6;
+		while (digit)
+		{
+			MAX6675.ascii[i--] = '0' + digit%10;
+			digit /= 10;
+		}
+		while (i >= 0)
+		{
+			if (i > 2)
+				MAX6675.ascii[i--] = '0';
+			else
+				MAX6675.ascii[i--] = ' ';
+		}
+		MAX6675.ascii[4] = '.';
+	}
+	else
+	{
+		for (int i = 0; i < sizeof(MAX6675); i ++)
+			MAX6675.ascii[i] = 'x';
+	}
+
+}
+
+void do_pwm(void)
+{
+	static uint16_t last_encoder = 0;
+	static volatile int16_t diff = 0;
+
+	// Check button
+	static uint8_t state = 0;
+	switch (state) {
+	case 0:
+		if (diff == 0)
+		{
+			if (button.long_press)
+			{
+				diff = 100 << 1; // full power
+				state = 1;
+			}
+		}
+		else if (button.pressed)
+		{
+			diff = 0; // zero power
+			state = 1;
+		}
+		break;
+	case 1: // wait button release
+		if (!button.pressed)
+			state = 0;
+		break;
+	default:
+		break;
+	}
+
+	if (MAX6675.temperature > (300<<2)) // hardcoded protect
+		diff = 0;
+	else
+	{
+		diff+=(int16_t)(encoder_value - last_encoder);
+		if (diff < 0)
+			diff = 0;
+		if (diff > (100<<1))
+			diff = 100<<1;
+	}
+	last_encoder = encoder_value;
+	pwm_value = diff>>1; // in %
+	TIM2->CCR1 = pwm_value*10;
+}
+
+void do_usb(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 250)
+		return;
+	last_time = HAL_GetTick();
+
+	uint8_t buf[13];
+	int i = 0;
+	for (i = 0; i < sizeof(MAX6675.ascii); i++)
+		buf[i] = MAX6675.ascii[i];
+	buf[i++] = ' ';
+
+	uint16_t temp = pwm_value;
+	for (int j = 0; j < 3; j++)
+	{
+		if ((!temp) && j)
+		{
+			buf[i+2-j] =' ';
+		}
+		else
+		{
+			buf[i+2-j] = temp % 10 + '0';
+			temp /= 10;
+		}
+	}
+
+	buf[11] = '\r';
+	buf[12] = '\n';
+
+	CDC_Transmit_FS(buf, sizeof(buf));
+}
+
+void do_lcd(void)
+{
+	static uint32_t last_time = 0;
+	if (HAL_GetTick() - last_time < 100)
+		return;
+	last_time = HAL_GetTick();
+
+	// output temperature
+	lcd_set_xy(&lcd, 0, 1);
+	lcd_out(&lcd, MAX6675.ascii, sizeof(MAX6675.ascii));
+	lcd_write_data(&lcd, 223);
+
+	// output temperature
+	uint8_t buf[4];
+	uint16_t temp = pwm_value;
+	for (int i = 0; i < 3; i++)
+	{
+		if ((!temp) && i)
+		{
+			buf[2-i] =' ';
+		}
+		else
+		{
+			buf[2-i] = temp % 10 + '0';
+			temp /= 10;
+		}
+	}
+	buf[3] = '%';
+	lcd_set_xy(&lcd, 0, 0);
+	lcd_out(&lcd, buf, 4);
+	lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
+	lcd_set_xy(&lcd, 2, 0);
+}
 
 /* USER CODE END 0 */
 
@@ -87,7 +349,6 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -104,46 +365,37 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_SPI1_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   delay_init(&htim1);
+  init_lcd();
+
+  MAX6675.data_valid = false;
+  MAX6675.temperature = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t last_time = HAL_GetTick();
-  uint16_t data;
 
-  LCD_PortType ports[] = {	hd_4_GPIO_Port,
-  	  	  					hd_5_GPIO_Port,
-							hd_6_GPIO_Port,
-							hd_7_GPIO_Port};
-  LCD_PinType pins[] = {	hd_4_Pin,
-	  	    				hd_5_Pin,
-							hd_6_Pin,
-							hd_7_Pin};
-  lcd = lcd_create(ports, pins,
-					hd_RS_GPIO_Port, hd_RS_Pin,
-					hd_E_GPIO_Port, hd_E_Pin,
-					LCD_4_BIT_MODE);
 
-  /* load symbols */
-
-  uint8_t symbols [] = {0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
-		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
-						0x4, 0xe, 0x1f, 0x0, 0x0, 0x0, 0x0, 0x0,   // UP
-						0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN
-					    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN
-						0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
-						0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT 2
-						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0 // heart
-  };
-  lcd_define_chars(&lcd, symbols);
-  lcd_set_xy(&lcd, 0, 0);
-  lcd_string(&lcd, "Just testing");
-  while (HAL_GetTick() - last_time < 1000);
-
+#if 0
+  /*********** TIME measurement macros ****************/
   volatile uint32_t last_ttime, ttemp, max_time = 0;
+
+#define USE_DWT
+
+#ifdef USE_DWT
+#define STARTT do {	last_ttime = DWT->CYCCNT; } while (0);
+
+#define STOPP do {\
+	ttemp = DWT->CYCCNT - last_ttime;\
+	if (ttemp > max_time)\
+		max_time = ttemp;\
+	} while (0);
+
+#else
 
 #define STARTT do {	last_ttime = HAL_GetTick(); } while (0);
 
@@ -152,73 +404,21 @@ int main(void)
 	if (ttemp > max_time)\
 		max_time = ttemp;\
 	} while (0);
+#endif
+
+  /*********** TIME measurement macros END*************/
+#endif
+
 
   while (1)
   {
-	  if (HAL_GetTick() - last_time > 2)
-	  {
-		  process_encoder();
-	  }
-	  if (HAL_GetTick() - last_time > 500)
-	  {
-		  STARTT;
-		  last_time = HAL_GetTick();
-		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		  HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
-
-#define SIGNIFICANT 4
-		  uint8_t buf[SIGNIFICANT + 3+2];
-		  buf[SIGNIFICANT + 3] = '\0';
-		  if (data & 0b110)
-		  {
-			  // MAX 6675 not okay (wrong ID or TH not connected
-			  for (int i = 0; i < sizeof(buf); i++)
-				  buf[i] = 'x';
-		  }
-		  else
-		  {
-			  //MAX 6675 okay, prepare data
-			  data >>= 3;
-			  uint32_t digit = 25*(data&0b11);
-			  digit += (data>>2)*1000;
-			  int8_t i = SIGNIFICANT + 2;
-			  while (digit)
-			  {
-				  buf[i--] = '0' + digit%10;
-				  digit /= 10;
-			  }
-			  while (i > -1)
-			  {
-				  buf[i--] = '0';
-			  }
-			  buf[SIGNIFICANT] = '.';
-		  }
-		  lcd_set_xy(&lcd, 0, 1);
-		  lcd_string(&lcd, buf);
-		  lcd_write_data(&lcd, 223);
-		  buf[SIGNIFICANT + 3] = '\r';
-		  buf[SIGNIFICANT + 3+1] = '\n';
-		  CDC_Transmit_FS(buf, sizeof(buf));
-		  for (int i = 0; i < sizeof(buf); i++)
-		  {
-			  buf[i] = 0;
-		  }
-
-		  uint16_t temp = (encoder_value>>1)&0xff;
-		  for (int i = 0; i < 5; i++)
-		  {
-			  buf[4-i] = temp % 10 + '0';
-			  temp /= 10;
-		  }
-		  buf[5] = (encoder_value>>1)&0xff;
-		  lcd_string(&lcd, buf);
-		  lcd_set_xy(&lcd, 15, 0);
-		  lcd_write_data(&lcd, (encoder_value>>1)&0xff);
-		  lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
-		  lcd_set_xy(&lcd, 15, 1);
-		  STOPP;
-	  }
-
+	  do_encoder();
+	  do_button();
+	  do_blink();
+	  do_max6675();
+	  do_pwm();
+	  do_usb();
+	  do_lcd();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -356,6 +556,65 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = HAL_RCC_GetSysClockFreq()/1000-1;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+  HAL_TIM_MspPostInit(&htim2);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -412,40 +671,42 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void process_encoder(void)
-{
+void process_encoder(void) {
 	static uint8_t old;
 	uint8_t new;
-	new = (HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin)?0b10:0 +
-		   HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin)?0b01:0);
-	switch(old)
-		{
-		case 2:
-			{
-			if(new == 3) encoder_value++;
-			if(new == 0) encoder_value--;
+	new = (HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin) ? 0b10 : 0
+		 + HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin) ? 0b01 : 0);
+	switch (old) {
+		case 2: {
+			if (new == 3)
+				encoder_value++;
+			if (new == 0)
+				encoder_value--;
 			break;
-			}
-
-		case 0:
-			{
-			if(new == 2) encoder_value++;
-			if(new == 1) encoder_value--;
-			break;
-			}
-		case 1:
-			{
-			if(new == 0) encoder_value++;
-			if(new == 3) encoder_value--;
-			break;
-			}
-		case 3:
-			{
-			if(new == 1) encoder_value++;
-			if(new == 2) encoder_value--;
-			break;
-			}
 		}
+
+		case 0: {
+			if (new == 2)
+				encoder_value++;
+			if (new == 1)
+				encoder_value--;
+			break;
+		}
+		case 1: {
+			if (new == 0)
+				encoder_value++;
+			if (new == 3)
+				encoder_value--;
+			break;
+		}
+		case 3: {
+			if (new == 1)
+				encoder_value++;
+			if (new == 2)
+				encoder_value--;
+			break;
+		}
+	}
 	old = new;
 }
 
