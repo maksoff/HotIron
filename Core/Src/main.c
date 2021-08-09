@@ -52,6 +52,7 @@ SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 
@@ -84,10 +85,10 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
-void process_encoder();
-uint16_t encoder_value = 0;
+#define encoder_value (TIM3->CNT)
 struct sBUTTON {
 	bool pressed;
 	bool long_press;
@@ -168,15 +169,6 @@ void init_lcd(void)
 	  */
 }
 
-void do_encoder(void)
-{
-	static uint32_t last_time = 0;
-	if (HAL_GetTick() - last_time < 1)
-		return;
-	process_encoder();
-	last_time = HAL_GetTick();
-}
-
 void do_button(void)
 {
 	const uint32_t time_for_long_press = 1000;
@@ -208,6 +200,42 @@ void do_blink(void)
 	last_time = HAL_GetTick();
 }
 
+void get_max6675(void)
+{
+	uint16_t data;
+	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
+	MAX6675.data_valid = !(data & 0b110);
+	MAX6675.temperature = data >> 3;
+}
+
+void ascii_max6675(void)
+{
+	if (MAX6675.data_valid)
+		{
+			uint32_t digit = 25*(MAX6675.temperature&0b11);
+			digit += (MAX6675.temperature>>2)*1000;
+			int8_t i = 6;
+			while (digit)
+			{
+				MAX6675.ascii[i--] = '0' + digit%10;
+				digit /= 10;
+			}
+			while (i >= 0)
+			{
+				if (i > 2)
+					MAX6675.ascii[i--] = '0';
+				else
+					MAX6675.ascii[i--] = ' ';
+			}
+			MAX6675.ascii[4] = '.';
+		}
+		else
+		{
+			for (int i = 0; i < sizeof(MAX6675); i ++)
+				MAX6675.ascii[i] = 'x';
+		}
+}
+
 void do_max6675(void)
 {
 	static uint32_t last_time = 0;
@@ -215,36 +243,9 @@ void do_max6675(void)
 		return;
 	last_time = HAL_GetTick();
 
-	uint16_t data;
-	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
-	MAX6675.data_valid = !(data & 0b110);
-	MAX6675.temperature = data >> 3;
+	get_max6675();
 
-	if (MAX6675.data_valid)
-	{
-		uint32_t digit = 25*(MAX6675.temperature&0b11);
-		digit += (MAX6675.temperature>>2)*1000;
-		int8_t i = 6;
-		while (digit)
-		{
-			MAX6675.ascii[i--] = '0' + digit%10;
-			digit /= 10;
-		}
-		while (i >= 0)
-		{
-			if (i > 2)
-				MAX6675.ascii[i--] = '0';
-			else
-				MAX6675.ascii[i--] = ' ';
-		}
-		MAX6675.ascii[4] = '.';
-	}
-	else
-	{
-		for (int i = 0; i < sizeof(MAX6675); i ++)
-			MAX6675.ascii[i] = 'x';
-	}
-
+	ascii_max6675();
 }
 
 void do_pwm(void)
@@ -395,7 +396,7 @@ void do_interface(void)
 			return;
 		}
 
-		diff+=(int16_t)(encoder_value - last_encoder);
+		diff-=(int16_t)(encoder_value - last_encoder);
 		last_encoder = encoder_value;
 
 		if (diff < 0)
@@ -602,9 +603,11 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   delay_init(&htim1);
   init_lcd();
 
@@ -646,7 +649,6 @@ int main(void)
 
   while (1)
   {
-	  do_encoder();
 	  do_button();
 	  do_blink();
 	  do_max6675();
@@ -850,6 +852,55 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 10;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 10;
+  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -897,53 +948,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : enc_s_Pin enc_a_Pin enc_b_Pin */
-  GPIO_InitStruct.Pin = enc_s_Pin|enc_a_Pin|enc_b_Pin;
+  /*Configure GPIO pin : enc_s_Pin */
+  GPIO_InitStruct.Pin = enc_s_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(enc_s_GPIO_Port, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
-void process_encoder(void) {
-	static uint8_t old;
-	uint8_t new;
-	new = (HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin) ? 0b10 : 0
-		 + HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin) ? 0b01 : 0);
-	switch (old) {
-		case 2: {
-			if (new == 3)
-				encoder_value++;
-			if (new == 0)
-				encoder_value--;
-			break;
-		}
-
-		case 0: {
-			if (new == 2)
-				encoder_value++;
-			if (new == 1)
-				encoder_value--;
-			break;
-		}
-		case 1: {
-			if (new == 0)
-				encoder_value++;
-			if (new == 3)
-				encoder_value--;
-			break;
-		}
-		case 3: {
-			if (new == 1)
-				encoder_value++;
-			if (new == 2)
-				encoder_value--;
-			break;
-		}
-	}
-	old = new;
-}
 
 /* USER CODE END 4 */
 
