@@ -37,6 +37,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define HOT_TEMP (40) // 40 grad
+#define MAX_TEMP (400)
+#define STEP_TEMP (5)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,6 +52,7 @@ SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 
@@ -69,9 +73,10 @@ struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
 	bool data_valid;
 	uint8_t ascii[7];  // converted to ASCII
-} MAX6675;
+} MAX6675 = {.data_valid = false, .temperature = 0};
 
 uint16_t pwm_value = 0;
+uint16_t temperature_SP = 0;
 
 /* USER CODE END PV */
 
@@ -81,10 +86,10 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
-void process_encoder();
-uint16_t encoder_value = 0;
+#define encoder_value (TIM3->CNT)
 struct sBUTTON {
 	bool pressed;
 	bool long_press;
@@ -94,6 +99,31 @@ struct sBUTTON {
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+enum {
+	  sENTER,
+	  sUP,
+	  sDOWN,
+	  sUPDOWN,
+	  sHOT,
+	  sHOTmirror,
+	  s3dots,
+	  sDOT
+};
+
+void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
+{
+	for (int i = len - 1; i >= 0; i--)
+	{
+		if (digit || (i == (len-1)))
+		{
+			buf[i] = digit % 10 + '0';
+			digit /= 10;
+		}
+		else
+			buf[i] = ' ';
+	}
+}
 
 void init_lcd(void)
 {
@@ -112,7 +142,8 @@ void init_lcd(void)
 							0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
 							0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT mirror
 							0x0, 0x4, 0x0, 0x4, 0x0, 0x4, 0x0, 0x0,    // 3 dots
-							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
+							0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0,		// 1 dot
+//							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
 	//		  	  	  	  	0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
 	//		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
 	//						0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x15, 0x0,   // ellips
@@ -120,10 +151,10 @@ void init_lcd(void)
 	  };
 	  lcd_define_chars(&lcd, symbols);
 	  lcd_set_xy(&lcd, 0, 0);
-	  lcd_string(&lcd, "made with \7 by");
-	  lcd_set_xy(&lcd, 0, 1);
 	  lcd_string(&lcd, "Maksim Jeskevic");
-	  HAL_Delay(3000);
+	  lcd_set_xy(&lcd, 0, 1);
+	  lcd_string(&lcd, "         2021 08");
+	  HAL_Delay(1500);
 	  lcd_clear(&lcd);
 
 	  /* print all chars
@@ -138,15 +169,6 @@ void init_lcd(void)
 		  HAL_Delay(2000);
 	  }
 	  */
-}
-
-void do_encoder(void)
-{
-	static uint32_t last_time = 0;
-	if (HAL_GetTick() - last_time < 1)
-		return;
-	process_encoder();
-	last_time = HAL_GetTick();
 }
 
 void do_button(void)
@@ -180,6 +202,43 @@ void do_blink(void)
 	last_time = HAL_GetTick();
 }
 
+void get_max6675(void)
+{
+	uint16_t data;
+	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
+
+	MAX6675.data_valid = !(data & 0b110);
+	MAX6675.temperature = data >> 3;
+}
+
+void ascii_max6675(void)
+{
+	if (MAX6675.data_valid)
+		{
+			uint32_t digit = 25*(MAX6675.temperature&0b11);
+			digit += (MAX6675.temperature>>2)*1000;
+			int8_t i = 6;
+			while (digit)
+			{
+				MAX6675.ascii[i--] = '0' + digit%10;
+				digit /= 10;
+			}
+			while (i >= 0)
+			{
+				if (i > 2)
+					MAX6675.ascii[i--] = '0';
+				else
+					MAX6675.ascii[i--] = ' ';
+			}
+			MAX6675.ascii[4] = '.';
+		}
+		else
+		{
+			for (int i = 0; i < sizeof(MAX6675); i ++)
+				MAX6675.ascii[i] = 'x';
+		}
+}
+
 void do_max6675(void)
 {
 	static uint32_t last_time = 0;
@@ -187,36 +246,9 @@ void do_max6675(void)
 		return;
 	last_time = HAL_GetTick();
 
-	uint16_t data;
-	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
-	MAX6675.data_valid = !(data & 0b110);
-	MAX6675.temperature = data >> 3;
+	get_max6675();
 
-	if (MAX6675.data_valid)
-	{
-		uint32_t digit = 25*(MAX6675.temperature&0b11);
-		digit += (MAX6675.temperature>>2)*1000;
-		int8_t i = 6;
-		while (digit)
-		{
-			MAX6675.ascii[i--] = '0' + digit%10;
-			digit /= 10;
-		}
-		while (i >= 0)
-		{
-			if (i > 2)
-				MAX6675.ascii[i--] = '0';
-			else
-				MAX6675.ascii[i--] = ' ';
-		}
-		MAX6675.ascii[4] = '.';
-	}
-	else
-	{
-		for (int i = 0; i < sizeof(MAX6675); i ++)
-			MAX6675.ascii[i] = 'x';
-	}
-
+	ascii_max6675();
 }
 
 void do_pwm(void)
@@ -228,7 +260,7 @@ void do_pwm(void)
 	static uint8_t state = 0;
 	switch (state) {
 	case 0:
-		if (diff == 0)
+		if (pwm_value == 0)
 		{
 			if (button.long_press)
 			{
@@ -332,6 +364,229 @@ void do_lcd(void)
 	lcd_set_xy(&lcd, 2, 0);
 }
 
+typedef enum {
+	START,
+	MENU_0,
+	MENU,
+	HEATPLATE_0,
+	HEATPLATE,
+	SETTINGS_0,
+	SETTINGS,
+	REFLOW,
+	MALFUNCTION,
+} eUISTATE;
+eUISTATE ui_state = START;
+
+void do_interface(void)
+{
+	void lcd_mini_clear(LCD_HandleTypeDef * lcd)
+	{
+		lcd_mode(lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
+		lcd_set_xy(lcd, 0, 0);
+		lcd_string(lcd, "            ");
+		lcd_set_xy(lcd, 0, 1);
+		lcd_string(lcd, "            ");
+	}
+	void heatplate(bool reset)
+	{
+		static uint16_t last_encoder = 0;
+		static volatile int16_t diff = 0;
+#define upper_limit (MAX_TEMP/STEP_TEMP*2)
+		if (reset)
+		{
+			last_encoder = encoder_value;
+			diff = 0;
+			return;
+		}
+
+		diff-=(int16_t)(encoder_value - last_encoder);
+		last_encoder = encoder_value;
+
+		if (diff < 0)
+			diff = 0;
+		if (diff > upper_limit)
+			diff = upper_limit; // between 0*2 and MAX_TEMP*2
+
+		if (button.pressed)
+			diff = 0;
+
+		uint8_t buf[3];
+		int2string(5*(diff>>1), buf, sizeof(buf));
+		lcd_set_xy(&lcd, 7, 0);
+		lcd_out(&lcd, buf, sizeof(buf));
+		lcd_write_data(&lcd, 223);
+		lcd_write_data(&lcd, 0x7E);
+		lcd_set_xy(&lcd, 9, 0);
+		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+
+	}
+
+	static uint32_t last_time = 0;
+	static uint8_t ticktack = 0;
+	static bool last_button = false;
+	if (HAL_GetTick() - last_time < 100)
+		return;
+	last_time = HAL_GetTick();
+
+	/*** Right always visible section ***/
+
+	lcd_set_xy(&lcd, 12, 0);
+	if (MAX6675.data_valid)
+	{
+		lcd_out(&lcd, MAX6675.ascii+1, 3);
+		lcd_write_data(&lcd, 223);
+	}
+	else
+	{
+		lcd_string(&lcd, "___");
+		ui_state = MALFUNCTION;
+	}
+	lcd_set_xy(&lcd, 15, 1);
+	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
+	{
+		if (ticktack < 5)
+			lcd_write_data(&lcd, sHOT);
+		else
+			lcd_write_data(&lcd, sHOTmirror);
+	}
+	else
+	{
+		lcd_write_data(&lcd, ' ');
+	}
+	if (++ticktack > 9)
+		ticktack = 0;
+
+	/************************************/
+
+	uint8_t enc_val = (encoder_value>>1)&0b1;
+
+
+	if (button.long_press)
+	{
+		// TODO disable pwm here
+		ui_state = START;
+	}
+
+	switch(ui_state)
+	{
+	case START:
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "Long press  ");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, "to stop     ");
+		lcd_set_xy(&lcd, 11, 1);
+		lcd_write_data(&lcd, sENTER);
+		lcd_set_xy(&lcd, 11, 1);
+		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+		if (!button.pressed && last_button)
+			ui_state = MENU_0;
+		last_button = button.pressed;
+		break;
+	case MENU_0:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, " Profile");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, " Heatplate");
+		lcd_set_xy(&lcd, 0, (encoder_value>>1)&0b1);
+		lcd_write_data(&lcd, 0x7E);
+		ui_state = MENU;
+		break;
+	case MENU:
+		lcd_set_xy(&lcd, 0, enc_val);
+		lcd_write_data(&lcd, 0x7E);
+		lcd_set_xy(&lcd, 0, 1 - enc_val);
+		lcd_write_data(&lcd, ' ');
+		if (!button.pressed && last_button)
+		{
+			ui_state = enc_val?HEATPLATE_0:SETTINGS_0;
+		}
+		last_button = button.pressed;
+		break;
+	case HEATPLATE_0:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, "Heatplate");
+		heatplate(true);
+		ui_state = HEATPLATE;
+		break;
+	case HEATPLATE:
+		heatplate(false);
+		break;
+	case SETTINGS_0:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "SETTINGS");
+		ui_state = SETTINGS;
+		break;
+	case SETTINGS:
+		break;
+	case REFLOW:
+		break;
+	case MALFUNCTION:
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "** Error! **");
+		lcd_set_xy(&lcd, 0, 1);
+		if (!MAX6675.data_valid)
+			lcd_string(&lcd, "Temp. Sensor");
+		break;
+	default:
+		ui_state = MALFUNCTION;
+		break;
+	}
+}
+
+
+/**
+ * PID controller
+ * @param PV - process variable, with 1/4 grad resolution
+ * @param SP - set point, with 1/4 grad resolution
+ */
+uint8_t pid(uint16_t PV, uint16_t SP)
+{
+	static const int32_t P=1*32768;
+	static const int32_t I=0.0015*32768;
+	static const int32_t D=10*32768;
+	static const int32_t limit_top=100*4*32768;
+
+	static int32_t integral = 0;
+	static int32_t last_PV = -1;
+	if (last_PV < PV)
+		last_PV = PV; // first time, init this thing to avoid jump
+
+	int32_t error = SP-PV;
+	int32_t p = error * P;
+	integral += error;
+	if (integral > limit_top)
+		integral = limit_top;
+	if (integral < 0)
+		integral = 0;
+	int32_t i = integral * I;
+	int32_t d = (last_PV - PV)*D;
+	last_PV = PV;
+	int32_t out = (p+i+d)/4/32768;
+	if (out > 100)
+		out = 100;
+	if (out < 0)
+		out = 0;
+	return out;
+}
+
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef* htim)
+{
+	HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 1);
+	get_max6675();
+	HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 0);
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+	{
+		//HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 1);
+		uint16_t val = 10*pid(MAX6675.temperature, temperature_SP<<2);
+		TIM2->CCR1 = val;
+		//HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 0);
+	}
+	ascii_max6675();
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -366,14 +621,18 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  TIM2->CCR2 = 998;
+  TIM2->CCR3 = 499;
+  TIM2->DIER |= TIM_DIER_CC2IE|TIM_DIER_CC3IE;
+  HAL_TIM_Base_Start_IT(&htim2);
   delay_init(&htim1);
   init_lcd();
 
-  MAX6675.data_valid = false;
-  MAX6675.temperature = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -412,13 +671,13 @@ int main(void)
 
   while (1)
   {
-	  do_encoder();
 	  do_button();
 	  do_blink();
-	  do_max6675();
-	  do_pwm();
+	  //do_max6675();
+	  //do_pwm();
 	  do_usb();
-	  do_lcd();
+	  //do_lcd();
+	  do_interface();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -593,6 +852,10 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_OC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
@@ -607,10 +870,68 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
   HAL_TIM_MspPostInit(&htim2);
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 10;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 10;
+  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
 
 }
 
@@ -639,6 +960,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, debug_a_Pin|debug_b_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -647,9 +971,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : hd_7_Pin hd_6_Pin hd_RS_Pin hd_E_Pin
-                           hd_4_Pin hd_5_Pin */
+                           hd_4_Pin hd_5_Pin debug_a_Pin debug_b_Pin */
   GPIO_InitStruct.Pin = hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
-                          |hd_4_Pin|hd_5_Pin;
+                          |hd_4_Pin|hd_5_Pin|debug_a_Pin|debug_b_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -662,53 +986,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : enc_s_Pin enc_a_Pin enc_b_Pin */
-  GPIO_InitStruct.Pin = enc_s_Pin|enc_a_Pin|enc_b_Pin;
+  /*Configure GPIO pin : enc_s_Pin */
+  GPIO_InitStruct.Pin = enc_s_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(enc_s_GPIO_Port, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
-void process_encoder(void) {
-	static uint8_t old;
-	uint8_t new;
-	new = (HAL_GPIO_ReadPin(enc_a_GPIO_Port, enc_a_Pin) ? 0b10 : 0
-		 + HAL_GPIO_ReadPin(enc_b_GPIO_Port, enc_b_Pin) ? 0b01 : 0);
-	switch (old) {
-		case 2: {
-			if (new == 3)
-				encoder_value++;
-			if (new == 0)
-				encoder_value--;
-			break;
-		}
-
-		case 0: {
-			if (new == 2)
-				encoder_value++;
-			if (new == 1)
-				encoder_value--;
-			break;
-		}
-		case 1: {
-			if (new == 0)
-				encoder_value++;
-			if (new == 3)
-				encoder_value--;
-			break;
-		}
-		case 3: {
-			if (new == 1)
-				encoder_value++;
-			if (new == 2)
-				encoder_value--;
-			break;
-		}
-	}
-	old = new;
-}
 
 /* USER CODE END 4 */
 
