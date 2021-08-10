@@ -40,6 +40,13 @@
 #define HOT_TEMP (40) // 40 grad
 #define MAX_TEMP (400)
 #define STEP_TEMP (5)
+
+
+#define DEBUG_A1 HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 1)
+#define DEBUG_B1 HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 1)
+#define DEBUG_A0 HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 0)
+#define DEBUG_B0 HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 0)
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -209,6 +216,8 @@ void get_max6675(void)
 
 	MAX6675.data_valid = !(data & 0b110);
 	MAX6675.temperature = data >> 3;
+	if (!(MAX6675.data_valid))
+		MAX6675.temperature = 0xfff;
 }
 
 void ascii_max6675(void)
@@ -411,7 +420,8 @@ void do_interface(void)
 			diff = 0;
 
 		uint8_t buf[3];
-		int2string(5*(diff>>1), buf, sizeof(buf));
+		temperature_SP = 5*(diff>>1);
+		int2string(temperature_SP, buf, sizeof(buf));
 		lcd_set_xy(&lcd, 7, 0);
 		lcd_out(&lcd, buf, sizeof(buf));
 		lcd_write_data(&lcd, 223);
@@ -574,15 +584,14 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef* htim)
 {
-	HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 1);
 	get_max6675();
-	HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 0);
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
 	{
-		//HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 1);
-		uint16_t val = 10*pid(MAX6675.temperature, temperature_SP<<2);
+		if (!(MAX6675.data_valid))
+			temperature_SP = 0;
+		pwm_value = pid(MAX6675.temperature, temperature_SP<<2);
+		uint16_t val = 10*pwm_value;
 		TIM2->CCR1 = val;
-		//HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 0);
 	}
 	ascii_max6675();
 }
@@ -626,8 +635,8 @@ int main(void)
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-  TIM2->CCR2 = 998;
-  TIM2->CCR3 = 499;
+  TIM2->CCR2 = 998; // timer for PID interrupt + temperature update
+  TIM2->CCR3 = 499; // timer for temperature update
   TIM2->DIER |= TIM_DIER_CC2IE|TIM_DIER_CC3IE;
   HAL_TIM_Base_Start_IT(&htim2);
   delay_init(&htim1);
