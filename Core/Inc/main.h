@@ -83,6 +83,10 @@ void Error_Handler(void);
 #define enc_a_GPIO_Port GPIOB
 #define enc_b_Pin GPIO_PIN_5
 #define enc_b_GPIO_Port GPIOB
+#define debug_a_Pin GPIO_PIN_8
+#define debug_a_GPIO_Port GPIOB
+#define debug_b_Pin GPIO_PIN_9
+#define debug_b_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

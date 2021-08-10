@@ -76,6 +76,7 @@ struct sMAX6675 {
 } MAX6675 = {.data_valid = false, .temperature = 0};
 
 uint16_t pwm_value = 0;
+uint16_t temperature_SP = 0;
 
 /* USER CODE END PV */
 
@@ -107,7 +108,7 @@ enum {
 	  sHOT,
 	  sHOTmirror,
 	  s3dots,
-	  sHEART
+	  sDOT
 };
 
 void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
@@ -141,7 +142,8 @@ void init_lcd(void)
 							0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
 							0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT mirror
 							0x0, 0x4, 0x0, 0x4, 0x0, 0x4, 0x0, 0x0,    // 3 dots
-							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
+							0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0,		// 1 dot
+//							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
 	//		  	  	  	  	0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
 	//		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
 	//						0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x15, 0x0,   // ellips
@@ -149,10 +151,10 @@ void init_lcd(void)
 	  };
 	  lcd_define_chars(&lcd, symbols);
 	  lcd_set_xy(&lcd, 0, 0);
-	  lcd_string(&lcd, "made with \7 by");
-	  lcd_set_xy(&lcd, 0, 1);
 	  lcd_string(&lcd, "Maksim Jeskevic");
-	  HAL_Delay(3000);
+	  lcd_set_xy(&lcd, 0, 1);
+	  lcd_string(&lcd, "         2021 08");
+	  HAL_Delay(1500);
 	  lcd_clear(&lcd);
 
 	  /* print all chars
@@ -204,6 +206,7 @@ void get_max6675(void)
 {
 	uint16_t data;
 	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
+
 	MAX6675.data_valid = !(data & 0b110);
 	MAX6675.temperature = data >> 3;
 }
@@ -541,10 +544,10 @@ void do_interface(void)
  */
 uint8_t pid(uint16_t PV, uint16_t SP)
 {
-	const uint32_t P=1*32768;
-	const uint32_t I=0.0015*32768;
-	const uint32_t D=10*32768;
-	const uint32_t limit_top=100*4*32768;
+	static const int32_t P=1*32768;
+	static const int32_t I=0.0015*32768;
+	static const int32_t D=10*32768;
+	static const int32_t limit_top=100*4*32768;
 
 	static int32_t integral = 0;
 	static int32_t last_PV = -1;
@@ -567,6 +570,21 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 	if (out < 0)
 		out = 0;
 	return out;
+}
+
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef* htim)
+{
+	HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 1);
+	get_max6675();
+	HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 0);
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+	{
+		//HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 1);
+		uint16_t val = 10*pid(MAX6675.temperature, temperature_SP<<2);
+		TIM2->CCR1 = val;
+		//HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 0);
+	}
+	ascii_max6675();
 }
 
 /* USER CODE END 0 */
@@ -608,6 +626,10 @@ int main(void)
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  TIM2->CCR2 = 998;
+  TIM2->CCR3 = 499;
+  TIM2->DIER |= TIM_DIER_CC2IE|TIM_DIER_CC3IE;
+  HAL_TIM_Base_Start_IT(&htim2);
   delay_init(&htim1);
   init_lcd();
 
@@ -651,7 +673,7 @@ int main(void)
   {
 	  do_button();
 	  do_blink();
-	  do_max6675();
+	  //do_max6675();
 	  //do_pwm();
 	  do_usb();
 	  //do_lcd();
@@ -830,6 +852,10 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_OC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
@@ -841,6 +867,15 @@ static void MX_TIM2_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -925,6 +960,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, debug_a_Pin|debug_b_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -933,9 +971,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : hd_7_Pin hd_6_Pin hd_RS_Pin hd_E_Pin
-                           hd_4_Pin hd_5_Pin */
+                           hd_4_Pin hd_5_Pin debug_a_Pin debug_b_Pin */
   GPIO_InitStruct.Pin = hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
-                          |hd_4_Pin|hd_5_Pin;
+                          |hd_4_Pin|hd_5_Pin|debug_a_Pin|debug_b_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
