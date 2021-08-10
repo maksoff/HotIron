@@ -77,12 +77,16 @@ void Error_Handler(void);
 #define hd_5_GPIO_Port GPIOB
 #define USB_EN_Pin GPIO_PIN_15
 #define USB_EN_GPIO_Port GPIOA
-#define enc_s_Pin GPIO_PIN_7
+#define enc_s_Pin GPIO_PIN_3
 #define enc_s_GPIO_Port GPIOB
-#define enc_a_Pin GPIO_PIN_8
+#define enc_a_Pin GPIO_PIN_4
 #define enc_a_GPIO_Port GPIOB
-#define enc_b_Pin GPIO_PIN_9
+#define enc_b_Pin GPIO_PIN_5
 #define enc_b_GPIO_Port GPIOB
+#define debug_a_Pin GPIO_PIN_8
+#define debug_a_GPIO_Port GPIOB
+#define debug_b_Pin GPIO_PIN_9
+#define debug_b_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
