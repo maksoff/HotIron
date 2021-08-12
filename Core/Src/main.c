@@ -24,10 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
-//#include "hd44780_driver.h"
 #include "delay.h"
 #include "lcd.h"
-
 #include "string.h"
 
 /* USER CODE END Includes */
@@ -77,6 +75,16 @@ LCD_PinType pins[] = {		hd_4_Pin,
 							hd_6_Pin,
 							hd_7_Pin};
 
+enum {
+	OK = 0,
+	TEMP_SP = 1<<0,
+	TEMP_PV = 1<<1,
+	HEATER = 1<<2,
+	MAX6675_invalid = 1<<3,
+	FATAL = 1 << 7
+};
+
+uint8_t error = OK;
 
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
@@ -103,16 +111,6 @@ const sSTEPS steps_arr[] = {
 		{.temp = 150, .time=100},
 		{.temp = 210, .time=30},
 };
-
-struct sREFLOW {
-	int32_t preheat_temp;
-	int32_t preheat_time;
-	int32_t reflow_temp;
-	int32_t reflow_time;
-} REFLOWSET = {.preheat_temp = 270, .preheat_time=300,
-		.reflow_temp = 150, .reflow_time=300};
-//= {.preheat_temp = 150, .preheat_time=100,
-//			.reflow_temp = 210, .reflow_time=30};
 
 /* USER CODE END PV */
 
@@ -180,10 +178,10 @@ void init_lcd(void)
 							0x0, 0x4, 0x0, 0x4, 0x0, 0x4, 0x0, 0x0,    // 3 dots
 							0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0,		// 1 dot
 //							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
-	//		  	  	  	  	0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
-	//		  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
-	//						0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x15, 0x0,   // ellips
-	//						0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart
+//			  	  	  	  	0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
+//			  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
+//							0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x15, 0x0,   // ellips
+//							0x0, 0x0, 0xa, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart
 	  };
 	  lcd_define_chars(&lcd, symbols);
 	  lcd_set_xy(&lcd, 0, 0);
@@ -192,19 +190,6 @@ void init_lcd(void)
 	  lcd_string(&lcd, "         2021 08");
 	  HAL_Delay(1500);
 	  lcd_clear(&lcd);
-
-	  /* print all chars
-	  for (uint8_t i = 0; i < 8; i++)
-	  {
-		  lcd_set_xy(&lcd, 0, 0);
-		  for (uint8_t j = i*32; j < i*32+16; j++)
-			  lcd_write_data(&lcd, j);
-		  lcd_set_xy(&lcd, 0, 1);
-		  for (uint16_t j = i*32+16; j < i*32+32; j++)
-			  lcd_write_data(&lcd, (uint8_t)j);
-		  HAL_Delay(2000);
-	  }
-	  */
 }
 
 void do_button(void)
@@ -277,96 +262,12 @@ void ascii_max6675(void)
 		}
 }
 
-void do_max6675(void)
-{
-	static uint32_t last_time = 0;
-	if (HAL_GetTick() - last_time < 500)
-		return;
-	last_time = HAL_GetTick();
-
-	get_max6675();
-
-	ascii_max6675();
-}
-
-//void do_pwm(void)
-//{
-//	static uint16_t last_encoder = 0;
-//	static volatile int16_t diff = 0;
-//
-//	// Check button
-//	static uint8_t state = 0;
-//	switch (state) {
-//	case 0:
-//		if (pwm_value == 0)
-//		{
-//			if (button.long_press)
-//			{
-//				diff = 100 << 1; // full power
-//				state = 1;
-//			}
-//		}
-//		else if (button.pressed)
-//		{
-//			diff = 0; // zero power
-//			state = 1;
-//		}
-//		break;
-//	case 1: // wait button release
-//		if (!button.pressed)
-//			state = 0;
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	if (MAX6675.temperature > (300<<2)) // hardcoded protect
-//		diff = 0;
-//	else
-//	{
-//		diff+=(int16_t)(encoder_value - last_encoder);
-//		if (diff < 0)
-//			diff = 0;
-//		if (diff > (100<<1))
-//			diff = 100<<1;
-//	}
-//	last_encoder = encoder_value;
-//	pwm_value = diff>>1; // in %
-//	TIM2->CCR1 = pwm_value*10;
-//}
-
 void do_usb(void)
 {
-//	static uint32_t last_time = 0;
-//	if (HAL_GetTick() - last_time < 500)
-//		return;
-//	last_time = HAL_GetTick();
 	if (!tick)
 		return;
 	tick = false; // sync with ticks
 
-//	uint8_t buf[13];
-//	int i = 0;
-//	for (i = 0; i < sizeof(MAX6675.ascii); i++)
-//		buf[i] = MAX6675.ascii[i];
-//	buf[i++] = ' ';
-//
-//	uint16_t temp = pwm_value;
-//	for (int j = 0; j < 3; j++)
-//	{
-//		if ((!temp) && j)
-//		{
-//			buf[i+2-j] =' ';
-//		}
-//		else
-//		{
-//			buf[i+2-j] = temp % 10 + '0';
-//			temp /= 10;
-//		}
-//	}
-//
-//	buf[11] = '\r';
-//	buf[12] = '\n';
 	uint8_t buf[200];
 	uint16_t n = snprintf((char*)buf, 200,
 			"Tick: %lu, PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r",
@@ -382,40 +283,6 @@ void do_usb(void)
 	CDC_Transmit_FS(buf, n);
 }
 
-//void do_lcd(void)
-//{
-//	static uint32_t last_time = 0;
-//	if (HAL_GetTick() - last_time < 100)
-//		return;
-//	last_time = HAL_GetTick();
-//
-//	// output temperature
-//	lcd_set_xy(&lcd, 0, 1);
-//	lcd_out(&lcd, MAX6675.ascii, sizeof(MAX6675.ascii));
-//	lcd_write_data(&lcd, 223);
-//
-//	// output temperature
-//	uint8_t buf[4];
-//	uint16_t temp = pwm_value;
-//	for (int i = 0; i < 3; i++)
-//	{
-//		if ((!temp) && i)
-//		{
-//			buf[2-i] =' ';
-//		}
-//		else
-//		{
-//			buf[2-i] = temp % 10 + '0';
-//			temp /= 10;
-//		}
-//	}
-//	buf[3] = '%';
-//	lcd_set_xy(&lcd, 0, 0);
-//	lcd_out(&lcd, buf, 4);
-//	lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
-//	lcd_set_xy(&lcd, 2, 0);
-//}
-
 typedef enum {
 	START,
 	MENU_0,
@@ -429,8 +296,16 @@ typedef enum {
 } eUISTATE;
 eUISTATE ui_state = START;
 
+/**
+ * Function for the main interface, also for error states and co.
+ */
 void do_interface(void)
 {
+	static sSTEPS steps [10]; // steps for reflow
+
+	/**
+	 * clears left part of the display
+	 */
 	void lcd_mini_clear(LCD_HandleTypeDef * lcd)
 	{
 		lcd_mode(lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
@@ -439,6 +314,10 @@ void do_interface(void)
 		lcd_set_xy(lcd, 0, 1);
 		lcd_string(lcd, "            ");
 	}
+
+	/**
+	 * "heatplate mode" - just constant heating
+	 */
 	void heatplate(bool reset)
 	{
 		static uint16_t last_encoder = 0;
@@ -463,17 +342,20 @@ void do_interface(void)
 			diff = 0;
 
 		uint8_t buf[3];
-		temperature_SP = 5*(diff>>1);
+		temperature_SP = STEP_TEMP*(diff>>1);
 		int2string(temperature_SP, buf, sizeof(buf));
 		lcd_set_xy(&lcd, 7, 0);
 		lcd_out(&lcd, buf, sizeof(buf));
-		lcd_write_data(&lcd, 223);
-		lcd_write_data(&lcd, 0x7E);
+		lcd_write_data(&lcd, 223); // grad
+		lcd_write_data(&lcd, 0x7E); // arrow right
 		lcd_set_xy(&lcd, 9, 0);
 		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
 
 	}
 
+	/**
+	 * do heat/wait in steps
+	 */
 	void do_reflow(bool reset)
 	{
 		static uint32_t last_time = 0;
@@ -531,88 +413,11 @@ void do_interface(void)
 		}
 	}
 
-	void _do_reflow(bool reset)
-	{
-		typedef enum {
-			WARMUP,
-			PREHEAT,
-			REFLOWUP,
-			REFLOW,
-			COOLDOWN
-		} eREFLOW;
-		static eREFLOW state_reflow = WARMUP;
-		if (reset)
-			state_reflow = WARMUP;
-
-		static uint32_t last_time = 0;
-
-		int32_t dt = ((int32_t)(temperature_SP<<2)) -
-					 ((int32_t)MAX6675.temperature);
-
-		switch (state_reflow)
-		{
-		case WARMUP:
-			temperature_SP = REFLOWSET.preheat_temp;
-			if ((dt > -(4<<2)) && (dt < (4<<2)))
-			{
-				last_time = HAL_GetTick();
-				state_reflow = PREHEAT;
-			}
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "Warm up     ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "+00:00      ");
-			break;
-		case PREHEAT:
-			temperature_SP = REFLOWSET.preheat_temp;
-			if (HAL_GetTick() - last_time > REFLOWSET.preheat_time*1000)
-			{
-				temperature_SP = REFLOWSET.reflow_temp;
-				state_reflow = REFLOWUP;
-			}
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "Preheat     ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "-00:10      ");
-			break;
-		case REFLOWUP:
-			temperature_SP = REFLOWSET.reflow_temp;
-			if ((dt > -(4<<2)) && (dt < (4<<2)))
-			{
-				last_time = HAL_GetTick();
-				state_reflow = REFLOW;
-			}
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "Reflow (up) ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "+00:10      ");
-			break;
-		case REFLOW:
-			temperature_SP = REFLOWSET.reflow_temp;
-			if (HAL_GetTick() - last_time > REFLOWSET.reflow_time*1000)
-			{
-				temperature_SP = 0;
-				state_reflow = COOLDOWN;
-			}
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "Reflow      ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "-00:10      ");
-			break;
-		case COOLDOWN:
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "Cooldown    ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "+00:10      ");
-			break;
-		default:
-			//todo ERROR
-			break;
-		}
-	}
-
+	/**
+	 * this happens every 100 ms
+	 */
 	static uint32_t last_time = 0;
-	static uint8_t ticktack = 0;
+	static uint8_t ticktack = 0; // using for blink "hot"
 	static bool last_button = false;
 	if (HAL_GetTick() - last_time < 100)
 		return;
@@ -630,17 +435,22 @@ void do_interface(void)
 	{
 		lcd_string(&lcd, "___");
 		temperature_SP = 0;
+		error = MAX6675_invalid;
 		ui_state = MALFUNCTION;
 	}
 
-	if ((MAX6675.temperature > (MAX_TEMP<<2)) ||
-			(temperature_SP > MAX_TEMP))
-	{
-		temperature_SP = 0;
-		ui_state = MALFUNCTION;
-	}
-
-	lcd_set_xy(&lcd, 15, 1);
+	lcd_set_xy(&lcd, 12, 1);
+	// first symbol
+	if (button.long_press)
+		lcd_write_data(&lcd, 0xDB);
+	else if (button.pressed)
+		lcd_write_data(&lcd, 0xA5);
+	else
+		lcd_write_data(&lcd, ' ');
+	// second symbol
+	lcd_write_data(&lcd, ' ');
+	// third symbol
+	lcd_write_data(&lcd, ' ');
 	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
 	{
 		if (ticktack < 5)
@@ -654,6 +464,23 @@ void do_interface(void)
 	}
 	if (++ticktack > 9)
 		ticktack = 0;
+
+	/* Check errors --------------------------------------------*/
+
+	if (MAX6675.temperature > ((MAX_TEMP + STEP_TEMP)<<2))
+	{
+		temperature_SP = 0;
+		error = TEMP_PV;
+		ui_state = MALFUNCTION;
+	}
+
+	if (temperature_SP > MAX_TEMP)
+	{
+		temperature_SP = 0;
+		error = TEMP_SP;
+		ui_state = MALFUNCTION;
+	}
+
 
 	/************************************/
 
@@ -729,13 +556,24 @@ void do_interface(void)
 		do_reflow(false);
 		break;
 	case MALFUNCTION:
+		temperature_SP = 0;
 		lcd_set_xy(&lcd, 0, 0);
-		lcd_string(&lcd, "** Error! **");
+		lcd_string(&lcd, " * Error! * ");
 		lcd_set_xy(&lcd, 0, 1);
-		if (!MAX6675.data_valid)
+		if (error & MAX6675_invalid)
 			lcd_string(&lcd, "Temp. Sensor");
+		else if (error & TEMP_SP)
+			lcd_string(&lcd, "SP too high ");
+		else if (error & TEMP_PV)
+			lcd_string(&lcd, "T too high  ");
+		else if (error & HEATER)
+			lcd_string(&lcd, "heater power");
+		else
+			lcd_string(&lcd, "fatal error ");
+
 		break;
 	default:
+		error = FATAL;
 		ui_state = MALFUNCTION;
 		break;
 	}
@@ -868,9 +706,9 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   TIM2->CCR2 = 998; // timer for PID interrupt + temperature update
   TIM2->CCR3 = 499; // timer for temperature update
-  TIM2->DIER |= TIM_DIER_CC2IE|TIM_DIER_CC3IE;
+  TIM2->DIER |= TIM_DIER_CC2IE|TIM_DIER_CC3IE; // interrupt enable
   HAL_TIM_Base_Start_IT(&htim2);
-  delay_init(&htim1);
+  delay_init(&htim1); // inits the library for us delay
   init_lcd();
 
   /* USER CODE END 2 */
@@ -911,10 +749,10 @@ int main(void)
 
   while (1)
   {
-	  do_button();
-	  do_blink();
-	  do_usb();
-	  do_interface();
+	  do_button(); // update button status
+	  do_blink(); // led heartbeat
+	  do_usb();  // output debug information
+	  do_interface(); // here happens the magic
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
