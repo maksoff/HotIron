@@ -28,6 +28,8 @@
 #include "delay.h"
 #include "lcd.h"
 
+#include "string.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,7 +40,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define HOT_TEMP (40) // 40 grad
-#define MAX_TEMP (400)
+#define MAX_TEMP (330)
 #define STEP_TEMP (5)
 
 
@@ -84,6 +86,20 @@ struct sMAX6675 {
 
 uint16_t pwm_value = 0;
 uint16_t temperature_SP = 0;
+struct sPID {
+	int32_t P;
+	int32_t I;
+	int32_t D;
+} PID;
+bool tick = false;
+
+struct sREFLOW {
+	int32_t preheat_temp;
+	int32_t preheat_time;
+	int32_t reflow_temp;
+	int32_t reflow_time;
+} REFLOWSET = {.preheat_temp = 150, .preheat_time=100,
+			.reflow_temp = 210, .reflow_time=30};
 
 /* USER CODE END PV */
 
@@ -260,118 +276,132 @@ void do_max6675(void)
 	ascii_max6675();
 }
 
-void do_pwm(void)
-{
-	static uint16_t last_encoder = 0;
-	static volatile int16_t diff = 0;
-
-	// Check button
-	static uint8_t state = 0;
-	switch (state) {
-	case 0:
-		if (pwm_value == 0)
-		{
-			if (button.long_press)
-			{
-				diff = 100 << 1; // full power
-				state = 1;
-			}
-		}
-		else if (button.pressed)
-		{
-			diff = 0; // zero power
-			state = 1;
-		}
-		break;
-	case 1: // wait button release
-		if (!button.pressed)
-			state = 0;
-		break;
-	default:
-		break;
-	}
-
-	if (MAX6675.temperature > (300<<2)) // hardcoded protect
-		diff = 0;
-	else
-	{
-		diff+=(int16_t)(encoder_value - last_encoder);
-		if (diff < 0)
-			diff = 0;
-		if (diff > (100<<1))
-			diff = 100<<1;
-	}
-	last_encoder = encoder_value;
-	pwm_value = diff>>1; // in %
-	TIM2->CCR1 = pwm_value*10;
-}
+//void do_pwm(void)
+//{
+//	static uint16_t last_encoder = 0;
+//	static volatile int16_t diff = 0;
+//
+//	// Check button
+//	static uint8_t state = 0;
+//	switch (state) {
+//	case 0:
+//		if (pwm_value == 0)
+//		{
+//			if (button.long_press)
+//			{
+//				diff = 100 << 1; // full power
+//				state = 1;
+//			}
+//		}
+//		else if (button.pressed)
+//		{
+//			diff = 0; // zero power
+//			state = 1;
+//		}
+//		break;
+//	case 1: // wait button release
+//		if (!button.pressed)
+//			state = 0;
+//		break;
+//	default:
+//		break;
+//	}
+//
+//	if (MAX6675.temperature > (300<<2)) // hardcoded protect
+//		diff = 0;
+//	else
+//	{
+//		diff+=(int16_t)(encoder_value - last_encoder);
+//		if (diff < 0)
+//			diff = 0;
+//		if (diff > (100<<1))
+//			diff = 100<<1;
+//	}
+//	last_encoder = encoder_value;
+//	pwm_value = diff>>1; // in %
+//	TIM2->CCR1 = pwm_value*10;
+//}
 
 void do_usb(void)
 {
-	static uint32_t last_time = 0;
-	if (HAL_GetTick() - last_time < 250)
+//	static uint32_t last_time = 0;
+//	if (HAL_GetTick() - last_time < 500)
+//		return;
+//	last_time = HAL_GetTick();
+	if (!tick)
 		return;
-	last_time = HAL_GetTick();
+	tick = false; // sync with ticks
 
-	uint8_t buf[13];
-	int i = 0;
-	for (i = 0; i < sizeof(MAX6675.ascii); i++)
-		buf[i] = MAX6675.ascii[i];
-	buf[i++] = ' ';
+//	uint8_t buf[13];
+//	int i = 0;
+//	for (i = 0; i < sizeof(MAX6675.ascii); i++)
+//		buf[i] = MAX6675.ascii[i];
+//	buf[i++] = ' ';
+//
+//	uint16_t temp = pwm_value;
+//	for (int j = 0; j < 3; j++)
+//	{
+//		if ((!temp) && j)
+//		{
+//			buf[i+2-j] =' ';
+//		}
+//		else
+//		{
+//			buf[i+2-j] = temp % 10 + '0';
+//			temp /= 10;
+//		}
+//	}
+//
+//	buf[11] = '\r';
+//	buf[12] = '\n';
+	uint8_t buf[200];
+	uint16_t n = sprintf((char*)buf,
+			"Tick: %lu, PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r",
+						HAL_GetTick()/1000,
+						MAX6675.temperature>>2,
+						((MAX6675.temperature)&0b11)*25,
+						temperature_SP,
+						pwm_value,
+						PID.P,
+						PID.I,
+						PID.D);
 
-	uint16_t temp = pwm_value;
-	for (int j = 0; j < 3; j++)
-	{
-		if ((!temp) && j)
-		{
-			buf[i+2-j] =' ';
-		}
-		else
-		{
-			buf[i+2-j] = temp % 10 + '0';
-			temp /= 10;
-		}
-	}
-
-	buf[11] = '\r';
-	buf[12] = '\n';
-
-	CDC_Transmit_FS(buf, sizeof(buf));
+	CDC_Transmit_FS(buf, n);
 }
 
-void do_lcd(void)
-{
-	static uint32_t last_time = 0;
-	if (HAL_GetTick() - last_time < 100)
-		return;
-	last_time = HAL_GetTick();
-
-	// output temperature
-	lcd_set_xy(&lcd, 0, 1);
-	lcd_out(&lcd, MAX6675.ascii, sizeof(MAX6675.ascii));
-	lcd_write_data(&lcd, 223);
-
-	// output temperature
-	uint8_t buf[4];
-	uint16_t temp = pwm_value;
-	for (int i = 0; i < 3; i++)
-	{
-		if ((!temp) && i)
-		{
-			buf[2-i] =' ';
-		}
-		else
-		{
-			buf[2-i] = temp % 10 + '0';
-			temp /= 10;
-		}
-	}
-	buf[3] = '%';
-	lcd_set_xy(&lcd, 0, 0);
-	lcd_out(&lcd, buf, 4);
-	lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
-	lcd_set_xy(&lcd, 2, 0);
-}
+//void do_lcd(void)
+//{
+//	static uint32_t last_time = 0;
+//	if (HAL_GetTick() - last_time < 100)
+//		return;
+//	last_time = HAL_GetTick();
+//
+//	// output temperature
+//	lcd_set_xy(&lcd, 0, 1);
+//	lcd_out(&lcd, MAX6675.ascii, sizeof(MAX6675.ascii));
+//	lcd_write_data(&lcd, 223);
+//
+//	// output temperature
+//	uint8_t buf[4];
+//	uint16_t temp = pwm_value;
+//	for (int i = 0; i < 3; i++)
+//	{
+//		if ((!temp) && i)
+//		{
+//			buf[2-i] =' ';
+//		}
+//		else
+//		{
+//			buf[2-i] = temp % 10 + '0';
+//			temp /= 10;
+//		}
+//	}
+//	buf[3] = '%';
+//	lcd_set_xy(&lcd, 0, 0);
+//	lcd_out(&lcd, buf, 4);
+//	lcd_mode(&lcd, LCD_ENABLE, CURSOR_ENABLE, NO_BLINK);
+//	lcd_set_xy(&lcd, 2, 0);
+//}
 
 typedef enum {
 	START,
@@ -431,6 +461,86 @@ void do_interface(void)
 
 	}
 
+	void do_reflow(bool reset)
+	{
+		typedef enum {
+			WARMUP,
+			PREHEAT,
+			REFLOWUP,
+			REFLOW,
+			COOLDOWN
+		} eREFLOW;
+		static eREFLOW state_reflow = WARMUP;
+		if (reset)
+			state_reflow = WARMUP;
+
+		static uint32_t last_time = 0;
+
+		int32_t dt = ((int32_t)(temperature_SP<<2)) -
+					 ((int32_t)MAX6675.temperature);
+
+		switch (state_reflow)
+		{
+		case WARMUP:
+			temperature_SP = REFLOWSET.preheat_temp;
+			if ((dt > -(4<<2)) && (dt < (4<<2)))
+			{
+				last_time = HAL_GetTick();
+				state_reflow = PREHEAT;
+			}
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Warm up     ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "+00:00      ");
+			break;
+		case PREHEAT:
+			temperature_SP = REFLOWSET.preheat_temp;
+			if (HAL_GetTick() - last_time > REFLOWSET.preheat_time*1000)
+			{
+				temperature_SP = REFLOWSET.reflow_temp;
+				state_reflow = REFLOWUP;
+			}
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Preheat     ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "-00:10      ");
+			break;
+		case REFLOWUP:
+			temperature_SP = REFLOWSET.reflow_temp;
+			if ((dt > -(4<<2)) && (dt < (4<<2)))
+			{
+				last_time = HAL_GetTick();
+				state_reflow = REFLOW;
+			}
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Reflow (up) ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "+00:10      ");
+			break;
+		case REFLOW:
+			temperature_SP = REFLOWSET.reflow_temp;
+			if (HAL_GetTick() - last_time > REFLOWSET.reflow_time*1000)
+			{
+				temperature_SP = 0;
+				state_reflow = COOLDOWN;
+			}
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Reflow      ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "-00:10      ");
+			break;
+		case COOLDOWN:
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Cooldown    ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "+00:10      ");
+			break;
+		default:
+			//todo ERROR
+			break;
+		}
+	}
+
 	static uint32_t last_time = 0;
 	static uint8_t ticktack = 0;
 	static bool last_button = false;
@@ -473,8 +583,8 @@ void do_interface(void)
 
 	if (button.long_press)
 	{
-		// TODO disable pwm here
 		ui_state = START;
+		temperature_SP = 0;
 	}
 
 	switch(ui_state)
@@ -530,8 +640,14 @@ void do_interface(void)
 		ui_state = SETTINGS;
 		break;
 	case SETTINGS:
+		lcd_mini_clear(&lcd);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "REFLOW");
+		ui_state = REFLOW;
+		do_reflow(true);
 		break;
 	case REFLOW:
+		do_reflow(false);
 		break;
 	case MALFUNCTION:
 		lcd_set_xy(&lcd, 0, 0);
@@ -555,13 +671,13 @@ void do_interface(void)
 uint8_t pid(uint16_t PV, uint16_t SP)
 {
 	static const int32_t P=1*32768;
-	static const int32_t I=0.0015*32768;
+	static const int32_t I=0.0016*32768;
 	static const int32_t D=10*32768;
 	static const int32_t limit_top=100*4*32768;
 
 	static int32_t integral = 0;
 	static int32_t last_PV = -1;
-	if (last_PV < PV)
+	if (last_PV < 0)
 		last_PV = PV; // first time, init this thing to avoid jump
 
 	int32_t error = SP-PV;
@@ -573,12 +689,17 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 		integral = 0;
 	int32_t i = integral * I;
 	int32_t d = (last_PV - PV)*D;
+	if (d > 0)
+		d = 0;
 	last_PV = PV;
 	int32_t out = (p+i+d)/4/32768;
 	if (out > 100)
 		out = 100;
 	if (out < 0)
 		out = 0;
+	PID.P = p/4/32768;
+	PID.I = i/4/32768;
+	PID.D = d/4/32768;
 	return out;
 }
 
@@ -592,6 +713,7 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef* htim)
 		pwm_value = pid(MAX6675.temperature, temperature_SP<<2);
 		uint16_t val = 10*pwm_value;
 		TIM2->CCR1 = val;
+		tick = true;
 	}
 	ascii_max6675();
 }
@@ -682,10 +804,7 @@ int main(void)
   {
 	  do_button();
 	  do_blink();
-	  //do_max6675();
-	  //do_pwm();
 	  do_usb();
-	  //do_lcd();
 	  do_interface();
     /* USER CODE END WHILE */
 
