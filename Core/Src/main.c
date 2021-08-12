@@ -40,7 +40,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define HOT_TEMP (40) // 40 grad
-#define MAX_TEMP (330)
+#define MAX_TEMP (275)
 #define STEP_TEMP (5)
 
 
@@ -93,13 +93,26 @@ struct sPID {
 } PID;
 bool tick = false;
 
+
+typedef struct {
+	int32_t temp;
+	uint32_t time;
+} sSTEPS;
+
+const sSTEPS steps_arr[] = {
+		{.temp = 150, .time=100},
+		{.temp = 210, .time=30},
+};
+
 struct sREFLOW {
 	int32_t preheat_temp;
 	int32_t preheat_time;
 	int32_t reflow_temp;
 	int32_t reflow_time;
-} REFLOWSET = {.preheat_temp = 150, .preheat_time=100,
-			.reflow_temp = 210, .reflow_time=30};
+} REFLOWSET = {.preheat_temp = 270, .preheat_time=300,
+		.reflow_temp = 150, .reflow_time=300};
+//= {.preheat_temp = 150, .preheat_time=100,
+//			.reflow_temp = 210, .reflow_time=30};
 
 /* USER CODE END PV */
 
@@ -355,7 +368,7 @@ void do_usb(void)
 //	buf[11] = '\r';
 //	buf[12] = '\n';
 	uint8_t buf[200];
-	uint16_t n = sprintf((char*)buf,
+	uint16_t n = snprintf((char*)buf, 200,
 			"Tick: %lu, PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r",
 						HAL_GetTick()/1000,
 						MAX6675.temperature>>2,
@@ -463,6 +476,63 @@ void do_interface(void)
 
 	void do_reflow(bool reset)
 	{
+		static uint32_t last_time = 0;
+		volatile static uint8_t pos = 0;
+		if (reset)
+			pos = 0;
+
+		int32_t dt = ((int32_t)(temperature_SP<<2)) -
+					 ((int32_t)MAX6675.temperature);
+
+		if (pos >= (2*sizeof(steps_arr)/sizeof(steps_arr[0])))
+		{
+			temperature_SP = 0;
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Cooldown    ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "+00:10      ");
+			return;
+		}
+		if (pos%2 == 0)
+		{
+			// we are going to temperature
+			temperature_SP = steps_arr[pos>>1].temp;
+			if ((dt > -(4<<2)) && (dt < (4<<2)))
+			{
+				last_time = HAL_GetTick();
+				pos++;
+				temperature_SP = steps_arr[pos>>1].temp;
+			}
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "#");
+			lcd_write_data(&lcd, (pos>>1)+'1');
+			lcd_string(&lcd, ": up      ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "+00:00      ");
+		}
+		else
+		{
+			// we are waiting for timeout
+			temperature_SP = steps_arr[pos>>1].temp;
+			if (HAL_GetTick() - last_time > steps_arr[pos>>1].time*1000)
+			{
+				pos++;
+				if (pos < (2*sizeof(steps_arr)/sizeof(steps_arr[0])))
+					temperature_SP = steps_arr[pos>>1].temp;
+				else
+					temperature_SP = 0;
+			}
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "#");
+			lcd_write_data(&lcd, (pos>>1)+'1');
+			lcd_string(&lcd, ": hold    ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "-00:00      ");
+		}
+	}
+
+	void _do_reflow(bool reset)
+	{
 		typedef enum {
 			WARMUP,
 			PREHEAT,
@@ -559,8 +629,17 @@ void do_interface(void)
 	else
 	{
 		lcd_string(&lcd, "___");
+		temperature_SP = 0;
 		ui_state = MALFUNCTION;
 	}
+
+	if ((MAX6675.temperature > (MAX_TEMP<<2)) ||
+			(temperature_SP > MAX_TEMP))
+	{
+		temperature_SP = 0;
+		ui_state = MALFUNCTION;
+	}
+
 	lcd_set_xy(&lcd, 15, 1);
 	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
 	{
@@ -671,9 +750,27 @@ void do_interface(void)
 uint8_t pid(uint16_t PV, uint16_t SP)
 {
 	static const int32_t P=1*32768;
-	static const int32_t I=0.0016*32768;
+	static const int32_t I=0.00153*32768;
 	static const int32_t D=10*32768;
 	static const int32_t limit_top=100*4*32768;
+
+	int32_t deltaT(uint16_t PV)
+	{
+#define size 4
+		static int32_t arr[size];
+		static bool first_time = true;
+		if (first_time)
+		{
+			first_time = false;
+			for (int i = 0; i < size; i++)
+				arr[i] = PV;
+		}
+		int32_t temp = arr[0];
+		for (int i = 1; i < size; i++)
+			arr[i-1] = arr[i];
+		arr[size-1] = PV;
+		return (temp - PV)/size;
+	}
 
 	static int32_t integral = 0;
 	static int32_t last_PV = -1;
@@ -682,13 +779,25 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 
 	int32_t error = SP-PV;
 	int32_t p = error * P;
-	integral += error;
+	if (error > 0)
+	{
+		integral += error;
+		if (error < 4*4) // almost here, but we need some boost
+			integral += error*8;
+	}
+	else
+	{
+		integral += error/4; // cool down is slower
+		if (error > -4*4)
+			integral += error*16; // almost here, we need boost!
+	}
 	if (integral > limit_top)
 		integral = limit_top;
 	if (integral < 0)
 		integral = 0;
 	int32_t i = integral * I;
-	int32_t d = (last_PV - PV)*D;
+	//int32_t d = (last_PV - PV)*D;
+	int32_t d = deltaT(PV)*D;
 	if (d > 0)
 		d = 0;
 	last_PV = PV;
