@@ -80,11 +80,12 @@ enum {
 	TEMP_SP = 1<<0,
 	TEMP_PV = 1<<1,
 	HEATER = 1<<2,
-	MAX6675_invalid = 1<<3,
-	FATAL = 1 << 7
+	I_LIMIT = 1<<3,
+	MAX6675_invalid = 1<<4,
+	FATAL = 1 << 6
 };
 
-uint8_t error = OK;
+uint8_t global_error = OK;
 
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
@@ -185,7 +186,7 @@ void init_lcd(void)
 	  };
 	  lcd_define_chars(&lcd, symbols);
 	  lcd_set_xy(&lcd, 0, 0);
-	  lcd_string(&lcd, "Maksim Jeskevic");
+	  lcd_string(&lcd, "Maksim Jeskevic ");
 	  lcd_set_xy(&lcd, 0, 1);
 	  lcd_string(&lcd, "         2021 08");
 	  HAL_Delay(1500);
@@ -211,6 +212,7 @@ void do_button(void)
 	else
 		button.long_press = false;
 	last_button = button.pressed;
+
 	last_time = HAL_GetTick();
 }
 
@@ -219,10 +221,14 @@ void do_blink(void)
 	static uint32_t last_time = 0;
 	if (HAL_GetTick() - last_time < 500)
 		return;
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	last_time = HAL_GetTick();
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 }
 
+/**
+ * read temperature from max6675
+ * and check for validity
+ */
 void get_max6675(void)
 {
 	uint16_t data;
@@ -270,7 +276,7 @@ void do_usb(void)
 
 	uint8_t buf[200];
 	uint16_t n = snprintf((char*)buf, 200,
-			"Tick: %lu, PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r",
+			"Tick: %lu; PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r",
 						HAL_GetTick()/1000,
 						MAX6675.temperature>>2,
 						((MAX6675.temperature)&0b11)*25,
@@ -279,12 +285,12 @@ void do_usb(void)
 						PID.P,
 						PID.I,
 						PID.D);
-
 	CDC_Transmit_FS(buf, n);
 }
 
 typedef enum {
 	START,
+	LONG_PRESS,
 	MENU_0,
 	MENU,
 	HEATPLATE_0,
@@ -302,6 +308,7 @@ eUISTATE ui_state = START;
 void do_interface(void)
 {
 	static sSTEPS steps [10]; // steps for reflow
+	static uint8_t max_steps = 2; // how many steps, max. 10
 
 	/**
 	 * clears left part of the display
@@ -360,8 +367,15 @@ void do_interface(void)
 	{
 		static uint32_t last_time = 0;
 		volatile static uint8_t pos = 0;
+		static bool first_time = true;
+		if (first_time)
+		{
+
+		}
 		if (reset)
+		{
 			pos = 0;
+		}
 
 		int32_t dt = ((int32_t)(temperature_SP<<2)) -
 					 ((int32_t)MAX6675.temperature);
@@ -435,22 +449,21 @@ void do_interface(void)
 	{
 		lcd_string(&lcd, "___");
 		temperature_SP = 0;
-		error = MAX6675_invalid;
+		global_error = MAX6675_invalid;
 		ui_state = MALFUNCTION;
 	}
 
 	lcd_set_xy(&lcd, 12, 1);
 	// first symbol
-	if (button.long_press)
-		lcd_write_data(&lcd, 0xDB);
-	else if (button.pressed)
+	lcd_write_data(&lcd, ' ');
+	// second symbol
+	if (button.pressed)
 		lcd_write_data(&lcd, 0xA5);
 	else
 		lcd_write_data(&lcd, ' ');
-	// second symbol
-	lcd_write_data(&lcd, ' ');
 	// third symbol
 	lcd_write_data(&lcd, ' ');
+	// last symbol
 	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
 	{
 		if (ticktack < 5)
@@ -470,14 +483,14 @@ void do_interface(void)
 	if (MAX6675.temperature > ((MAX_TEMP + STEP_TEMP)<<2))
 	{
 		temperature_SP = 0;
-		error = TEMP_PV;
+		global_error |= TEMP_PV;
 		ui_state = MALFUNCTION;
 	}
 
 	if (temperature_SP > MAX_TEMP)
 	{
 		temperature_SP = 0;
-		error = TEMP_SP;
+		global_error |= TEMP_SP;
 		ui_state = MALFUNCTION;
 	}
 
@@ -489,8 +502,9 @@ void do_interface(void)
 
 	if (button.long_press)
 	{
-		ui_state = START;
+		ui_state = LONG_PRESS;
 		temperature_SP = 0;
+		global_error = OK;
 	}
 
 	switch(ui_state)
@@ -499,14 +513,24 @@ void do_interface(void)
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, "Long press  ");
 		lcd_set_xy(&lcd, 0, 1);
-		lcd_string(&lcd, "to stop     ");
-		lcd_set_xy(&lcd, 11, 1);
+		lcd_string(&lcd, "T=0 & reset");
 		lcd_write_data(&lcd, sENTER);
 		lcd_set_xy(&lcd, 11, 1);
 		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
 		if (!button.pressed && last_button)
+		{
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
 			ui_state = MENU_0;
-		last_button = button.pressed;
+		}
+		break;
+	case LONG_PRESS:
+		lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, "T set to 0  ");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, "err. cleared");
+		if (!button.pressed)
+			ui_state = MENU_0;
 		break;
 	case MENU_0:
 		lcd_mini_clear(&lcd);
@@ -527,7 +551,6 @@ void do_interface(void)
 		{
 			ui_state = enc_val?HEATPLATE_0:SETTINGS_0;
 		}
-		last_button = button.pressed;
 		break;
 	case HEATPLATE_0:
 		lcd_mini_clear(&lcd);
@@ -555,28 +578,31 @@ void do_interface(void)
 	case REFLOW:
 		do_reflow(false);
 		break;
-	case MALFUNCTION:
+	case MALFUNCTION: // just check errors
 		temperature_SP = 0;
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, " * Error! * ");
 		lcd_set_xy(&lcd, 0, 1);
-		if (error & MAX6675_invalid)
+		if (global_error & MAX6675_invalid)
 			lcd_string(&lcd, "Temp. Sensor");
-		else if (error & TEMP_SP)
+		else if (global_error & TEMP_SP)
 			lcd_string(&lcd, "SP too high ");
-		else if (error & TEMP_PV)
+		else if (global_error & TEMP_PV)
 			lcd_string(&lcd, "T too high  ");
-		else if (error & HEATER)
+		else if (global_error & HEATER)
 			lcd_string(&lcd, "heater power");
+		else if (global_error & I_LIMIT)
+			lcd_string(&lcd, "heater limit");
 		else
 			lcd_string(&lcd, "fatal error ");
 
 		break;
 	default:
-		error = FATAL;
+		global_error = FATAL;
 		ui_state = MALFUNCTION;
 		break;
 	}
+	last_button = button.pressed;
 }
 
 
@@ -587,10 +613,11 @@ void do_interface(void)
  */
 uint8_t pid(uint16_t PV, uint16_t SP)
 {
+	// initialize coefficients and limits
 	static const int32_t P=1*32768;
 	static const int32_t I=0.00153*32768;
 	static const int32_t D=10*32768;
-	static const int32_t limit_top=100*4*32768;
+	static const int32_t limit_top=25*4/0.00153; // max 25% of PWM
 
 	int32_t deltaT(uint16_t PV)
 	{
@@ -630,10 +657,16 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 			integral += error*16; // almost here, we need boost!
 	}
 	if (integral > limit_top)
+	{
+		global_error |= I_LIMIT;
+		ui_state = MALFUNCTION;
+		temperature_SP = 0;
 		integral = limit_top;
+	}
 	if (integral < 0)
 		integral = 0;
 	int32_t i = integral * I;
+	/* signal is noisy, but slow, I use additional filter for D */
 	//int32_t d = (last_PV - PV)*D;
 	int32_t d = deltaT(PV)*D;
 	if (d > 0)
@@ -644,12 +677,18 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 		out = 100;
 	if (out < 0)
 		out = 0;
+
 	PID.P = p/4/32768;
 	PID.I = i/4/32768;
 	PID.D = d/4/32768;
+
 	return out;
 }
 
+/**
+ * here happens two interrupts, at 998ms (for pid update)
+ * and also at ~500ms (for second temperature update
+ */
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef* htim)
 {
 	get_max6675();
@@ -701,52 +740,21 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+
+  HAL_GPIO_WritePin(USB_EN_GPIO_Port, USB_EN_Pin, 1); // enable USB
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1); // PWM for output
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL); // ENCODER
   TIM2->CCR2 = 998; // timer for PID interrupt + temperature update
   TIM2->CCR3 = 499; // timer for temperature update
   TIM2->DIER |= TIM_DIER_CC2IE|TIM_DIER_CC3IE; // interrupt enable
-  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim2); // Enable Interrupts
   delay_init(&htim1); // inits the library for us delay
-  init_lcd();
+  init_lcd(); // init lcd and load special symbols
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-
-#if 0
-  /*********** TIME measurement macros ****************/
-  volatile uint32_t last_ttime, ttemp, max_time = 0;
-
-#define USE_DWT
-
-#ifdef USE_DWT
-#define STARTT do {	last_ttime = DWT->CYCCNT; } while (0);
-
-#define STOPP do {\
-	ttemp = DWT->CYCCNT - last_ttime;\
-	if (ttemp > max_time)\
-		max_time = ttemp;\
-	} while (0);
-
-#else
-
-#define STARTT do {	last_ttime = HAL_GetTick(); } while (0);
-
-#define STOPP do {\
-	ttemp = HAL_GetTick() - last_ttime;\
-	if (ttemp > max_time)\
-		max_time = ttemp;\
-	} while (0);
-#endif
-
-  /*********** TIME measurement macros END*************/
-#endif
-
-
   while (1)
   {
 	  do_button(); // update button status
