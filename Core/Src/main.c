@@ -38,7 +38,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define HOT_TEMP (40) // 40 grad
-#define MAX_TEMP (275)
+#define MAX_TEMP (270)
 #define STEP_TEMP (5)
 
 
@@ -108,9 +108,9 @@ typedef struct {
 	uint32_t time;
 } sSTEPS;
 
-const sSTEPS steps_arr[] = {
-		{.temp = 150, .time=100},
-		{.temp = 210, .time=30},
+const sSTEPS steps_default[] = {
+		{.temp = 130, .time=90},
+		{.temp = 210, .time=15},
 };
 
 /* USER CODE END PV */
@@ -310,8 +310,21 @@ eUISTATE ui_state = START;
  */
 void do_interface(void)
 {
-	static sSTEPS steps [10]; // steps for reflow
+#define MAX_STEPS (MAX_STEPS)
+	static sSTEPS steps[9]; // steps for reflow
 	static uint8_t max_steps = 2; // how many steps, max. 10
+
+	static bool first_time = true;
+	if (first_time)
+	{
+		max_steps = sizeof(steps_default)/sizeof(steps_default[0]);
+		for (int i = 0; i < max_steps; i ++)
+		{
+			steps[i].temp = steps_default[i].temp;
+			steps[i].time = steps_default[i].time;
+		}
+		first_time = false;
+	}
 
 	/**
 	 * clears left part of the display
@@ -370,11 +383,7 @@ void do_interface(void)
 	{
 		static uint32_t last_time = 0;
 		volatile static uint8_t pos = 0;
-		static bool first_time = true;
-		if (first_time)
-		{
 
-		}
 		if (reset)
 		{
 			pos = 0;
@@ -383,8 +392,9 @@ void do_interface(void)
 		int32_t dt = ((int32_t)(temperature_SP<<2)) -
 					 ((int32_t)MAX6675.temperature);
 
-		if (pos >= (2*sizeof(steps_arr)/sizeof(steps_arr[0])))
+		if (pos >= (2*max_steps))
 		{
+			// TODO peep-peep
 			temperature_SP = 0;
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "Cooldown    ");
@@ -395,12 +405,12 @@ void do_interface(void)
 		if (pos%2 == 0)
 		{
 			// we are going to temperature
-			temperature_SP = steps_arr[pos>>1].temp;
+			temperature_SP = steps[pos>>1].temp;
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
 			{
 				last_time = HAL_GetTick();
 				pos++;
-				temperature_SP = steps_arr[pos>>1].temp;
+				temperature_SP = steps[pos>>1].temp;
 			}
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "#");
@@ -412,12 +422,12 @@ void do_interface(void)
 		else
 		{
 			// we are waiting for timeout
-			temperature_SP = steps_arr[pos>>1].temp;
-			if (HAL_GetTick() - last_time > steps_arr[pos>>1].time*1000)
+			temperature_SP = steps[pos>>1].temp;
+			if (HAL_GetTick() - last_time > steps[pos>>1].time*1000)
 			{
 				pos++;
-				if (pos < (2*sizeof(steps_arr)/sizeof(steps_arr[0])))
-					temperature_SP = steps_arr[pos>>1].temp;
+				if (pos < (2*max_steps))
+					temperature_SP = steps[pos>>1].temp;
 				else
 					temperature_SP = 0;
 			}
@@ -489,7 +499,7 @@ void do_interface(void)
 		else if (dT <= -STEP_TEMP)
 			lcd_write_data(&lcd, sDOWN);
 		else
-			lcd_write_data(&lcd, '?');
+			lcd_write_data(&lcd, '?'); // should never happen
 
 	}
 	// last symbol
@@ -512,7 +522,7 @@ void do_interface(void)
 
 	/* Check errors --------------------------------------------*/
 
-	if (MAX6675.temperature > ((MAX_TEMP + STEP_TEMP)<<2))
+	if (MAX6675.temperature > ((MAX_TEMP + 2*STEP_TEMP)<<2))
 	{
 		temperature_SP = 0;
 		global_error |= TEMP_PV;
@@ -527,10 +537,38 @@ void do_interface(void)
 	}
 
 	//check if heater works
-	static int32_t last_dT = dT;
-	static uint32_t time_dT = HAL_GetTick();
+	static int32_t last_dT = 0;
+	static uint32_t last_SP = 0xffff; // not realistic value, to be immediately replaced
+	static uint32_t time_dT = 0;
+	static bool check_heater = false;
+	static uint32_t heater_timeout = 20;
 
-
+	if (temperature_SP != last_SP) // user changed T
+	{
+		if (dT >= 20) // T diff is more than 20 grad
+		{
+			check_heater = true;
+			last_dT = dT; // save value
+			time_dT = HAL_GetTick(); // start timer
+			heater_timeout = 120;
+			if (dT >= 50)
+				heater_timeout = 20; // if diff 50 grad, react faster
+		}
+		else
+			check_heater = false;
+	}
+	else if (check_heater)
+	{
+		if (last_dT - dT > 5) // temperature changed more than 5 grad, ok!
+			check_heater = false;
+		else if (HAL_GetTick() - time_dT > heater_timeout*1024) // timeout, go in error
+		{
+			check_heater = false;
+			global_error |= HEATER;
+			ui_state = MALFUNCTION;
+		}
+	}
+	last_SP = temperature_SP;
 
 	/************************************/
 
