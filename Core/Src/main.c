@@ -135,16 +135,6 @@ struct sBUTTON {
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-enum {
-	  sENTER,
-	  sUP,
-	  sDOWN,
-	  sUPDOWN,
-	  sHOT,
-	  sHOTmirror,
-	  s3dots,
-	  sDOT
-};
 
 void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
 {
@@ -160,6 +150,17 @@ void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
 	}
 }
 
+enum {
+	  sENTER,
+	  sDOWN,
+	  sUPEQ,
+	  sUP,
+	  sHOT,
+	  sHOTmirror,
+	  s3dots,
+	  sDOT
+};
+
 void init_lcd(void)
 {
 	  lcd = lcd_create(ports, pins,
@@ -170,14 +171,16 @@ void init_lcd(void)
 	  /* load symbols */
 
 	  uint8_t symbols [] = {
-	  	  	  				0x1, 0x1, 0x5, 0x9, 0x1f, 0x8, 0x4, 0x0,   // ENTER
+	  	  	  				0x0, 0x1, 0x5, 0x9, 0x1f, 0x8, 0x4, 0x0,   // ENTER
+							0x0, 0x0, 0x0, 0x0, 0x11, 0xa, 0x4, 0x0,	// DOWN SMALL
+							0x4, 0xe, 0x1f, 0x0, 0x1f, 0x0, 0x0, 0x0,	// UP EQUAL
 							0x4, 0xe, 0x1f, 0x0, 0x0, 0x0, 0x0, 0x0,   // UP
-							0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN
-						    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN
 							0x9, 0x12, 0x9, 0x12, 0x0, 0x1f, 0x1f, 0x0, // HOT
 							0x12, 0x9, 0x12, 0x9, 0x0, 0x1f, 0x1f, 0x0, // HOT mirror
 							0x0, 0x4, 0x0, 0x4, 0x0, 0x4, 0x0, 0x0,    // 3 dots
 							0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0,		// 1 dot
+//						    0x4, 0xe, 0x1f, 0x0, 0x1f, 0xe, 0x4, 0x0,  // UP DOWN FULL
+//							0x0, 0x0, 0x0, 0x0, 0x1f, 0xe, 0x4, 0x0,   // DOWN FULL
 //							0xa, 0x1f, 0x1f, 0x1f, 0xe, 0x4, 0x0, 0x0, // heart big
 //			  	  	  	  	0x0, 0xe, 0x11, 0x15, 0x11, 0xe, 0x0, 0x0, // OFF
 //			  	  	  	  	0x0, 0x4, 0x15, 0x15, 0x11, 0xe, 0x0, 0x0, // ON
@@ -439,6 +442,8 @@ void do_interface(void)
 
 	/*** Right always visible section ***/
 
+	int32_t dT=((int32_t)temperature_SP)-((int32_t)(MAX6675.temperature>>2));
+
 	lcd_set_xy(&lcd, 12, 0);
 	if (MAX6675.data_valid)
 	{
@@ -462,7 +467,31 @@ void do_interface(void)
 	else
 		lcd_write_data(&lcd, ' ');
 	// third symbol
-	lcd_write_data(&lcd, ' ');
+	if (!MAX6675.data_valid)
+		lcd_write_data(&lcd, ' ');
+	else
+	{
+		if ((temperature_SP == 0) && (MAX6675.temperature < (HOT_TEMP<<2)))
+			lcd_write_data(&lcd, '-');
+		else if (((pwm_value + 9)/10)*3 > ticktack)
+		{
+			if ((STEP_TEMP > dT) && (dT > -STEP_TEMP))
+				lcd_write_data(&lcd, sUPEQ);
+			else
+				lcd_write_data(&lcd, sUP);
+		}
+		else if (dT >= STEP_TEMP)
+			lcd_write_data(&lcd, '^');
+		else if ((STEP_TEMP > dT) && (dT > -STEP_TEMP))
+		{
+			lcd_write_data(&lcd, '=');
+		}
+		else if (dT <= -STEP_TEMP)
+			lcd_write_data(&lcd, sDOWN);
+		else
+			lcd_write_data(&lcd, '?');
+
+	}
 	// last symbol
 	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
 	{
@@ -473,7 +502,10 @@ void do_interface(void)
 	}
 	else
 	{
-		lcd_write_data(&lcd, ' ');
+		if (ticktack < 5)
+			lcd_write_data(&lcd, sDOT);
+		else
+			lcd_write_data(&lcd, ' ');
 	}
 	if (++ticktack > 9)
 		ticktack = 0;
@@ -493,6 +525,11 @@ void do_interface(void)
 		global_error |= TEMP_SP;
 		ui_state = MALFUNCTION;
 	}
+
+	//check if heater works
+	static int32_t last_dT = dT;
+	static uint32_t time_dT = HAL_GetTick();
+
 
 
 	/************************************/
