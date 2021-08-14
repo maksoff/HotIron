@@ -489,6 +489,26 @@ void do_interface(void)
 	}
 
 	/**
+	 * profile settings
+	 * provides interfece to edit/add/remove steps
+	 */
+	bool do_profile_settings(bool reset)
+	{
+		static uint8_t pos = 0;
+		static uint32_t last_time = 0;
+		if (reset)
+		{
+			pos = 0;
+			last_time = HAL_GetTick();
+			return false;
+		}
+		if (HAL_GetTick() - last_time < 2000)
+			return false; // delay to show intro text
+
+		return true;
+	}
+
+	/**
 	 * do heat/wait in steps
 	 */
 	void do_reflow(bool reset)
@@ -651,6 +671,11 @@ void do_interface(void)
 
 	}
 	// ****** END DO_REFLOW *************** //
+
+
+	/***********************
+	 *  END HELP FUNCTIONS *
+	 ***********************/
 
 	/**
 	 * this happens every 100 ms
@@ -849,17 +874,20 @@ void do_interface(void)
 		heatplate(false);
 		break;
 	case uiSETTINGSenter:
-		lcd_mini_clear(&lcd);
 		lcd_set_xy(&lcd, 0, 0);
-		lcd_string(&lcd, "SETTINGS");
+		lcd_string(&lcd, "Reflow prof.");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, " settings ");
 		ui_state = uiSETTINGS;
+		do_profile_settings(true);
 		break;
 	case uiSETTINGS:
-		lcd_mini_clear(&lcd);
-//		lcd_set_xy(&lcd, 0, 0);
-//		lcd_string(&lcd, "REFLOW");
-		ui_state = uiREFLOW;
-		do_reflow(true);
+		if (do_profile_settings(false))
+		{
+			lcd_mini_clear(&lcd);
+			ui_state = uiREFLOW;
+			do_reflow(true);
+		}
 		break;
 	case uiREFLOW:
 		do_reflow(false);
