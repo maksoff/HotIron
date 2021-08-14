@@ -1059,20 +1059,6 @@ HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint1
     /* Transfer loop */
     while (hspi->RxXferCount > 0U)
     {
-    	// if RXONLY
-    	if ((hspi->Instance->CR1 & SPI_CR1_RXONLY) == SPI_CR1_RXONLY)
-    	{
-		  /* Check if the SPI is already enabled */
-		  if (((hspi->Instance->CR1 & SPI_CR1_SPE) == SPI_CR1_SPE)
-				  && (hspi->RxXferCount == 1U))
-		  {
-			  // delay for ~ 150 cycles (~ SPI clock cycle for Fclk/128
-			  // (Page 718 from RM0008 Rev 21)
-			  for (int i = 12; i > 0; i--);
-			/* Disable SPI peripheral */
-			__HAL_SPI_DISABLE(hspi);
-		  }
-    	}
       /* Check the RXNE flag */
       if (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_RXNE))
       {
