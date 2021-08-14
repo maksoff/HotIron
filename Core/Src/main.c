@@ -110,7 +110,7 @@ typedef struct {
 } sSTEPS;
 
 const sSTEPS steps_default[] = {
-		{.temp = 50, .time=10},
+		{.temp = 50, .time=30},
 //		{.temp = 130, .time=90},
 //		{.temp = 210, .time=15},
 };
@@ -381,6 +381,24 @@ void do_interface(void)
 	}
 
 	/**
+	 * helper function to change temperature with encoder
+	 * @param temp - current value
+	 * @param diff - delta from encoder
+	 * @return - value to set
+	 */
+	uint32_t change_temperature(uint32_t t, int32_t diff)
+	{
+		int32_t temp = (int32_t)t; // to avoid zero-cross
+		temp = (temp / STEP_TEMP) * STEP_TEMP; // round for more beauty
+		temp += (diff>>1)*STEP_TEMP;
+		if (temp < 0)
+			temp = 0;
+		if (temp > MAX_TEMP)
+			temp = MAX_TEMP;
+		return (uint32_t)temp;
+	}
+
+	/**
 	 * "heatplate mode" - just constant heating
 	 */
 	void heatplate(bool reset)
@@ -453,6 +471,7 @@ void do_interface(void)
 		if (pos >= (2*max_steps))
 		{
 			// TODO peep-peep and mute on press
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
 			temperature_SP = 0;
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "Cooldown    ");
@@ -461,6 +480,8 @@ void do_interface(void)
 			lcd_string(&lcd, int2time(HAL_GetTick() - last_time, time_buf));
 			return;
 		}
+
+		static uint32_t check_time = 0;
 		if (pos%2 == 0)
 		{
 			// we are going to temperature
@@ -471,9 +492,16 @@ void do_interface(void)
 			lcd_string(&lcd, "goto");
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
 			{
-				last_time = HAL_GetTick();
-				pos++;
-				temperature_SP = steps[pos>>1].temp;
+				if (HAL_GetTick() - check_time > 5000) // we should be at least 5 sec in range
+				{
+					last_time = HAL_GetTick();
+					pos++;
+					temperature_SP = steps[pos>>1].temp;
+				}
+			}
+			else
+			{
+				check_time = HAL_GetTick();
 			}
 		}
 		else
@@ -516,8 +544,69 @@ void do_interface(void)
 		lcd_write_data(&lcd, scGRAD); // grad
 		lcd_write_data(&lcd, scAR); // arrow right
 		lcd_set_xy(&lcd, 9, 0);
-//		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+
+		// *** let's allow some in-process variable tuning
+		static uint8_t rf_ui_state = 0;
+		static uint8_t last_pos = 0;
+		if (last_pos != pos)
+		{
+			// position changed, we should reset menu
+			rf_ui_state = 0;
+		}
+		last_pos = pos;
+		static bool last_button = false;
+		static uint16_t last_encoder = 0;
+		static volatile int16_t diff = 0;
+		static const uint16_t upper_limit=(MAX_TEMP/STEP_TEMP*2);
+
+		diff-=(int16_t)(encoder_value - last_encoder);
+
+		switch (rf_ui_state)
+		{
+		case 0: // reset all to default view
+			diff = 0;
+			rf_ui_state = 1;
+			break;
+		case 1: // wait for temperature edit
+			lcd_set_xy(&lcd, 9, 0);
+			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+			if ((encoder_value & 0b10) != (last_encoder & 0b10))
+				rf_ui_state = 3;
+			if ((last_button) && (!button.pressed))
+				rf_ui_state = 2;
+			break;
+		case 2: // edit temperature
+			if (diff)
+				steps[pos>>1].temp = change_temperature(steps[pos>>1].temp, diff);
+			lcd_set_xy(&lcd, 9, 0);
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
+			if ((last_button) && (!button.pressed))
+				rf_ui_state = 1;
+			break;
+		case 3: // wait for time edit
+			lcd_set_xy(&lcd, 11, 1);
+			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+			if ((encoder_value & 0b10) != (last_encoder & 0b10))
+				rf_ui_state = 1;
+			if ((last_button) && (!button.pressed))
+				rf_ui_state = 4;
+			break;
+		case 4: // edit time
+			lcd_set_xy(&lcd, 11, 1);
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
+			if ((last_button) && (!button.pressed))
+				rf_ui_state = 3;
+			break;
+		default:
+			rf_ui_state = 0;
+			break;
+		}
+		diff = 0;
+		last_encoder = encoder_value;
+		last_button = button.pressed;
+
 	}
+	// ****** END DO_REFLOW *************** //
 
 	/**
 	 * this happens every 100 ms
