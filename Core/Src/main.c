@@ -76,16 +76,17 @@ LCD_PinType pins[] = {		hd_4_Pin,
 							hd_7_Pin};
 
 enum {
-	OK = 0,
-	TEMP_SP = 1<<0,
-	TEMP_PV = 1<<1,
-	HEATER = 1<<2,
-	I_LIMIT = 1<<3,
-	MAX6675_invalid = 1<<4,
-	FATAL = 1 << 6
+	errOK = 0,
+	errTEMP_SP = 1<<0,
+	errTEMP_PV = 1<<1,
+	errHEATER = 1<<2,
+	errI_LIMIT = 1<<3,
+	errMAX6675_invalid = 1<<4,
+	errTIMEOUT = 1<<5,
+	errFATAL = 1 << 6
 };
 
-uint8_t global_error = OK;
+uint8_t global_error = errOK;
 
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
@@ -109,8 +110,9 @@ typedef struct {
 } sSTEPS;
 
 const sSTEPS steps_default[] = {
-		{.temp = 130, .time=90},
-		{.temp = 210, .time=15},
+		{.temp = 50, .time=10},
+//		{.temp = 130, .time=90},
+//		{.temp = 210, .time=15},
 };
 
 /* USER CODE END PV */
@@ -150,15 +152,55 @@ void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
 	}
 }
 
+/**
+ * converts int to time string
+ * @param time - time in msec
+ * @param buf - provide buffer for 5 positions
+ */
+char * int2time(uint32_t time, uint8_t * buf)
+{
+	time /= 1000; // convert msec to sec
+	buf[4] = '\0';
+	if (time >= 600)
+	{
+		// display time in minutes
+		buf[3] = 'm';
+		time /= 60;
+		if (time >= 999)
+		{
+			global_error |= errTIMEOUT;
+			time = 999;
+		}
+		int2string(time, buf, 3);
+	} else
+	{
+		buf[1] = ':';
+		buf[3] = time % 10 + '0';
+		time /= 10;
+		buf[2] = time % 6 + '0';
+		time /= 6;
+		buf[0] = time + '0';
+	}
+	return (char *)buf;
+}
+
+// custom characters
 enum {
-	  sENTER,
-	  sDOWN,
-	  sUPEQ,
-	  sUP,
-	  sHOT,
-	  sHOTmirror,
-	  s3dots,
-	  sDOT
+	  ccENTER,
+	  ccDOWN,
+	  ccUPEQ,
+	  ccUP,
+	  ccHOT,
+	  ccHOTmirror,
+	  cc3dots,
+	  ccDOT
+};
+
+// useful standart characters
+enum {
+	scAR = 0x7E, // arrow right
+	scGRAD = 223, // ° symbol
+	scDOT = 0xA5, // big dot in the middle
 };
 
 void init_lcd(void)
@@ -292,18 +334,18 @@ void do_usb(void)
 }
 
 typedef enum {
-	START,
-	LONG_PRESS,
-	MENU_0,
-	MENU,
-	HEATPLATE_0,
-	HEATPLATE,
-	SETTINGS_0,
-	SETTINGS,
-	REFLOW,
-	MALFUNCTION,
+	uiSTART,
+	uiLONG_PRESS,
+	uiMENUenter,
+	uiMENU,
+	uiHEATPLATEenter,
+	uiHEATPLATE,
+	uiSETTINGSenter,
+	uiSETTINGS,
+	uiREFLOW,
+	uiMALFUNCTION,
 } eUISTATE;
-eUISTATE ui_state = START;
+eUISTATE ui_state = uiSTART;
 
 /**
  * Function for the main interface, also for error states and co.
@@ -345,11 +387,15 @@ void do_interface(void)
 	{
 		static uint16_t last_encoder = 0;
 		static volatile int16_t diff = 0;
-#define upper_limit (MAX_TEMP/STEP_TEMP*2)
+		static const uint16_t upper_limit=(MAX_TEMP/STEP_TEMP*2);
+
+		static uint32_t last_time = 0;
+
 		if (reset)
 		{
 			last_encoder = encoder_value;
 			diff = 0;
+			last_time = HAL_GetTick();
 			return;
 		}
 
@@ -364,13 +410,21 @@ void do_interface(void)
 		if (button.pressed)
 			diff = 0;
 
+		// show time
+		uint8_t tbuf[6];
+		tbuf[0] = '+';
+		int2time(HAL_GetTick() - last_time, tbuf+1);
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_string(&lcd, (char*)tbuf);
+
+		// show temperature
 		uint8_t buf[3];
 		temperature_SP = STEP_TEMP*(diff>>1);
 		int2string(temperature_SP, buf, sizeof(buf));
 		lcd_set_xy(&lcd, 7, 0);
 		lcd_out(&lcd, buf, sizeof(buf));
-		lcd_write_data(&lcd, 223); // grad
-		lcd_write_data(&lcd, 0x7E); // arrow right
+		lcd_write_data(&lcd, scGRAD); // grad
+		lcd_write_data(&lcd, scAR); // arrow right
 		lcd_set_xy(&lcd, 9, 0);
 		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
 
@@ -386,58 +440,83 @@ void do_interface(void)
 
 		if (reset)
 		{
+			last_time = HAL_GetTick();
 			pos = 0;
+			return;
 		}
+
+		uint8_t time_buf[6];
 
 		int32_t dt = ((int32_t)(temperature_SP<<2)) -
 					 ((int32_t)MAX6675.temperature);
 
 		if (pos >= (2*max_steps))
 		{
-			// TODO peep-peep
+			// TODO peep-peep and mute on press
 			temperature_SP = 0;
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "Cooldown    ");
 			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "+00:10      ");
+			lcd_string(&lcd, "       +");
+			lcd_string(&lcd, int2time(HAL_GetTick() - last_time, time_buf));
 			return;
 		}
 		if (pos%2 == 0)
 		{
 			// we are going to temperature
 			temperature_SP = steps[pos>>1].temp;
+			time_buf[0] = '+';
+			int2time(HAL_GetTick() - last_time, time_buf+1);
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "goto");
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
 			{
 				last_time = HAL_GetTick();
 				pos++;
 				temperature_SP = steps[pos>>1].temp;
 			}
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "#");
-			lcd_write_data(&lcd, (pos>>1)+'1');
-			lcd_string(&lcd, ": up      ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "+00:00      ");
 		}
 		else
 		{
 			// we are waiting for timeout
 			temperature_SP = steps[pos>>1].temp;
+			time_buf[0] = '-';
+			// how long to wait? add 500 msec to avoid negative time
+			int2time(last_time + steps[pos>>1].time*1000 - HAL_GetTick()+500, time_buf+1);
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "hold");
 			if (HAL_GetTick() - last_time > steps[pos>>1].time*1000)
 			{
+				last_time = HAL_GetTick();
 				pos++;
 				if (pos < (2*max_steps))
 					temperature_SP = steps[pos>>1].temp;
 				else
 					temperature_SP = 0;
 			}
-			lcd_set_xy(&lcd, 0, 0);
-			lcd_string(&lcd, "#");
-			lcd_write_data(&lcd, (pos>>1)+'1');
-			lcd_string(&lcd, ": hold    ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "-00:00      ");
 		}
+
+
+		// write number of step
+		lcd_set_xy(&lcd, 0, 0);
+		lcd_write_data(&lcd, '#');
+		lcd_write_data(&lcd, (pos>>1)+'1');
+		lcd_write_data(&lcd, '/');
+		lcd_write_data(&lcd, max_steps + '0');
+
+		// show time
+		lcd_set_xy(&lcd, 7, 1);
+		lcd_string(&lcd, (char*)time_buf);
+
+		// write temperature
+		uint8_t buf[3];
+		int2string(temperature_SP, buf, sizeof(buf));
+		lcd_set_xy(&lcd, 7, 0);
+		lcd_out(&lcd, buf, sizeof(buf));
+		lcd_write_data(&lcd, scGRAD); // grad
+		lcd_write_data(&lcd, scAR); // arrow right
+		lcd_set_xy(&lcd, 9, 0);
+//		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
 	}
 
 	/**
@@ -458,14 +537,14 @@ void do_interface(void)
 	if (MAX6675.data_valid)
 	{
 		lcd_out(&lcd, MAX6675.ascii+1, 3);
-		lcd_write_data(&lcd, 223);
+		lcd_write_data(&lcd, scGRAD);
 	}
 	else
 	{
 		lcd_string(&lcd, "___");
 		temperature_SP = 0;
-		global_error = MAX6675_invalid;
-		ui_state = MALFUNCTION;
+		global_error = errMAX6675_invalid;
+		ui_state = uiMALFUNCTION;
 	}
 
 	lcd_set_xy(&lcd, 12, 1);
@@ -473,7 +552,7 @@ void do_interface(void)
 	lcd_write_data(&lcd, ' ');
 	// second symbol
 	if (button.pressed)
-		lcd_write_data(&lcd, 0xA5);
+		lcd_write_data(&lcd, scDOT);
 	else
 		lcd_write_data(&lcd, ' ');
 	// third symbol
@@ -486,9 +565,9 @@ void do_interface(void)
 		else if (((pwm_value + 9)/10)*3 > ticktack)
 		{
 			if ((STEP_TEMP > dT) && (dT > -STEP_TEMP))
-				lcd_write_data(&lcd, sUPEQ);
+				lcd_write_data(&lcd, ccUPEQ);
 			else
-				lcd_write_data(&lcd, sUP);
+				lcd_write_data(&lcd, ccUP);
 		}
 		else if (dT >= STEP_TEMP)
 			lcd_write_data(&lcd, '^');
@@ -497,7 +576,7 @@ void do_interface(void)
 			lcd_write_data(&lcd, '=');
 		}
 		else if (dT <= -STEP_TEMP)
-			lcd_write_data(&lcd, sDOWN);
+			lcd_write_data(&lcd, ccDOWN);
 		else
 			lcd_write_data(&lcd, '?'); // should never happen
 
@@ -506,14 +585,14 @@ void do_interface(void)
 	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
 	{
 		if (ticktack < 5)
-			lcd_write_data(&lcd, sHOT);
+			lcd_write_data(&lcd, ccHOT);
 		else
-			lcd_write_data(&lcd, sHOTmirror);
+			lcd_write_data(&lcd, ccHOTmirror);
 	}
 	else
 	{
 		if (ticktack < 5)
-			lcd_write_data(&lcd, sDOT);
+			lcd_write_data(&lcd, ccDOT);
 		else
 			lcd_write_data(&lcd, ' ');
 	}
@@ -525,15 +604,13 @@ void do_interface(void)
 	if (MAX6675.temperature > ((MAX_TEMP + 2*STEP_TEMP)<<2))
 	{
 		temperature_SP = 0;
-		global_error |= TEMP_PV;
-		ui_state = MALFUNCTION;
+		global_error |= errTEMP_PV;
 	}
 
 	if (temperature_SP > MAX_TEMP)
 	{
 		temperature_SP = 0;
-		global_error |= TEMP_SP;
-		ui_state = MALFUNCTION;
+		global_error |= errTEMP_SP;
 	}
 
 	//check if heater works
@@ -564,8 +641,7 @@ void do_interface(void)
 		else if (HAL_GetTick() - time_dT > heater_timeout*1024) // timeout, go in error
 		{
 			check_heater = false;
-			global_error |= HEATER;
-			ui_state = MALFUNCTION;
+			global_error |= errHEATER;
 		}
 	}
 	last_SP = temperature_SP;
@@ -577,104 +653,109 @@ void do_interface(void)
 
 	if (button.long_press)
 	{
-		ui_state = LONG_PRESS;
+		ui_state = uiLONG_PRESS;
 		temperature_SP = 0;
-		global_error = OK;
+		global_error = errOK;
 	}
+
+	if (global_error)
+		ui_state = uiMALFUNCTION;
 
 	switch(ui_state)
 	{
-	case START:
+	case uiSTART:
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, "Long press  ");
 		lcd_set_xy(&lcd, 0, 1);
-		lcd_string(&lcd, "T=0 & reset");
-		lcd_write_data(&lcd, sENTER);
+		lcd_string(&lcd, "T=0&reset  ");
+		lcd_write_data(&lcd, ccENTER);
 		lcd_set_xy(&lcd, 11, 1);
 		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
 		if (!button.pressed && last_button)
 		{
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
-			ui_state = MENU_0;
+			ui_state = uiMENUenter;
 		}
 		break;
-	case LONG_PRESS:
+	case uiLONG_PRESS:
 		lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, "T set to 0  ");
 		lcd_set_xy(&lcd, 0, 1);
 		lcd_string(&lcd, "err. cleared");
 		if (!button.pressed)
-			ui_state = MENU_0;
+			ui_state = uiMENUenter;
 		break;
-	case MENU_0:
+	case uiMENUenter:
 		lcd_mini_clear(&lcd);
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, " Profile");
 		lcd_set_xy(&lcd, 0, 1);
 		lcd_string(&lcd, " Heatplate");
 		lcd_set_xy(&lcd, 0, (encoder_value>>1)&0b1);
-		lcd_write_data(&lcd, 0x7E);
-		ui_state = MENU;
+		lcd_write_data(&lcd, scAR);
+		ui_state = uiMENU;
 		break;
-	case MENU:
+	case uiMENU:
 		lcd_set_xy(&lcd, 0, enc_val);
-		lcd_write_data(&lcd, 0x7E);
+		lcd_write_data(&lcd, scAR);
 		lcd_set_xy(&lcd, 0, 1 - enc_val);
 		lcd_write_data(&lcd, ' ');
 		if (!button.pressed && last_button)
 		{
-			ui_state = enc_val?HEATPLATE_0:SETTINGS_0;
+			ui_state = enc_val?uiHEATPLATEenter:uiSETTINGSenter;
 		}
 		break;
-	case HEATPLATE_0:
+	case uiHEATPLATEenter:
 		lcd_mini_clear(&lcd);
 		lcd_set_xy(&lcd, 0, 1);
-		lcd_string(&lcd, "Heatplate");
+		lcd_string(&lcd, "Heatplate   ");
 		heatplate(true);
-		ui_state = HEATPLATE;
+		ui_state = uiHEATPLATE;
 		break;
-	case HEATPLATE:
+	case uiHEATPLATE:
 		heatplate(false);
 		break;
-	case SETTINGS_0:
+	case uiSETTINGSenter:
 		lcd_mini_clear(&lcd);
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, "SETTINGS");
-		ui_state = SETTINGS;
+		ui_state = uiSETTINGS;
 		break;
-	case SETTINGS:
+	case uiSETTINGS:
 		lcd_mini_clear(&lcd);
-		lcd_set_xy(&lcd, 0, 0);
-		lcd_string(&lcd, "REFLOW");
-		ui_state = REFLOW;
+//		lcd_set_xy(&lcd, 0, 0);
+//		lcd_string(&lcd, "REFLOW");
+		ui_state = uiREFLOW;
 		do_reflow(true);
 		break;
-	case REFLOW:
+	case uiREFLOW:
 		do_reflow(false);
 		break;
-	case MALFUNCTION: // just check errors
+	case uiMALFUNCTION: // just check errors
 		temperature_SP = 0;
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, " * Error! * ");
 		lcd_set_xy(&lcd, 0, 1);
-		if (global_error & MAX6675_invalid)
+		if (global_error & errMAX6675_invalid)
 			lcd_string(&lcd, "Temp. Sensor");
-		else if (global_error & TEMP_SP)
+		else if (global_error & errTEMP_SP)
 			lcd_string(&lcd, "SP too high ");
-		else if (global_error & TEMP_PV)
+		else if (global_error & errTEMP_PV)
 			lcd_string(&lcd, "T too high  ");
-		else if (global_error & HEATER)
+		else if (global_error & errHEATER)
 			lcd_string(&lcd, "heater power");
-		else if (global_error & I_LIMIT)
+		else if (global_error & errI_LIMIT)
 			lcd_string(&lcd, "heater limit");
+		else if (global_error & errTIMEOUT)
+			lcd_string(&lcd, "timeout     ");
 		else
 			lcd_string(&lcd, "fatal error ");
 
 		break;
 	default:
-		global_error = FATAL;
-		ui_state = MALFUNCTION;
+		global_error = errFATAL;
+		ui_state = uiMALFUNCTION;
 		break;
 	}
 	last_button = button.pressed;
@@ -733,8 +814,7 @@ uint8_t pid(uint16_t PV, uint16_t SP)
 	}
 	if (integral > limit_top)
 	{
-		global_error |= I_LIMIT;
-		ui_state = MALFUNCTION;
+		global_error |= errI_LIMIT;
 		temperature_SP = 0;
 		integral = limit_top;
 	}
