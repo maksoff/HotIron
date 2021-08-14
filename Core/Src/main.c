@@ -88,6 +88,7 @@ enum {
 };
 
 uint8_t global_error = errOK;
+uint8_t ticktack = 0; // using for display blink
 
 
 #define encoder_value (TIM3->CNT)
@@ -483,7 +484,7 @@ void do_interface(void)
 		lcd_write_data(&lcd, scGRAD); // grad
 		lcd_write_data(&lcd, scAR); // arrow right
 		lcd_set_xy(&lcd, 9, 0);
-		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+		lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 
 	}
 
@@ -607,7 +608,7 @@ void do_interface(void)
 			break;
 		case 1: // wait for temperature edit
 			lcd_set_xy(&lcd, 9, 0);
-			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			if (((encoder_value & 0b10) != (last_encoder & 0b10)) && (pos&0b1))
 				rf_ui_state = 3;
 			if ((last_button) && (!button.pressed))
@@ -623,7 +624,7 @@ void do_interface(void)
 			break;
 		case 3: // wait for time edit
 			lcd_set_xy(&lcd, 11, 1);
-			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			if ((encoder_value & 0b10) != (last_encoder & 0b10))
 				rf_ui_state = 1;
 			if ((last_button) && (!button.pressed))
@@ -655,7 +656,6 @@ void do_interface(void)
 	 * this happens every 100 ms
 	 */
 	static uint32_t last_time = 0;
-	static uint8_t ticktack = 0; // using for blink "hot"
 	static bool last_button = false;
 	if (HAL_GetTick() - last_time < 100)
 		return;
@@ -802,7 +802,7 @@ void do_interface(void)
 		lcd_string(&lcd, "T=0&reset  ");
 		lcd_write_data(&lcd, ccENTER);
 		lcd_set_xy(&lcd, 11, 1);
-		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+		lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 		if (!button.pressed && last_button)
 		{
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
