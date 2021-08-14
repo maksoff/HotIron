@@ -1,0 +1,3 @@
+spi_rxonly.c:20:26:SPI_WaitFlagStateUntilTimeout	40	static
+spi_rxonly.c:79:26:SPI_EndRxTransaction	32	static
+spi_rxonly.c:111:19:HAL_SPI_ReceiveOnly	48	static

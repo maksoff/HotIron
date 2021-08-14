@@ -27,6 +27,7 @@
 #include "delay.h"
 #include "lcd.h"
 #include "string.h"
+#include "spi_rxonly.h"
 
 /* USER CODE END Includes */
 
@@ -88,6 +89,14 @@ enum {
 
 uint8_t global_error = errOK;
 
+
+#define encoder_value (TIM3->CNT)
+struct sBUTTON {
+	bool pressed;
+	bool long_press;
+} button = {.pressed = false, .long_press = false};
+
+
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
 	bool data_valid;
@@ -125,12 +134,6 @@ static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-
-#define encoder_value (TIM3->CNT)
-struct sBUTTON {
-	bool pressed;
-	bool long_press;
-} button = {.pressed = false, .long_press = false};
 
 /* USER CODE END PFP */
 
@@ -277,7 +280,7 @@ void do_blink(void)
 void get_max6675(void)
 {
 	uint16_t data;
-	HAL_SPI_Receive(&hspi1, (uint8_t*)(&data), 1, 100);
+	HAL_SPI_ReceiveOnly(&hspi1, (uint8_t*)(&data), 1, 100);
 
 	MAX6675.data_valid = !(data & 0b110);
 	MAX6675.temperature = data >> 3;
@@ -382,7 +385,7 @@ void do_interface(void)
 
 	/**
 	 * helper function to change temperature with encoder
-	 * @param temp - current value
+	 * @param t - current value
 	 * @param diff - delta from encoder
 	 * @return - value to set
 	 */
@@ -395,6 +398,42 @@ void do_interface(void)
 			temp = 0;
 		if (temp > MAX_TEMP)
 			temp = MAX_TEMP;
+		return (uint32_t)temp;
+	}
+
+	/**
+	 * helper function to change time with encoder
+	 * @param t - current value
+	 * @param diff - delta from encoder
+	 * @return - value to set
+	 */
+	uint32_t change_time(uint32_t t, int32_t diff)
+	{
+		int32_t temp = (int32_t)t; // to avoid zero-cross
+		int32_t step = 5; // how much to change the time in seconds
+		if (t < 60)
+			step = 5;
+		else if (t < 120)
+			step = 10;
+		else if (t < 300)
+			step = 20;
+		else if (t < 600)
+			step = 30;
+		else if (t < 1200)
+			step = 60;
+		else if (t < 3600)
+			step = 300;
+		else if (t < 7200)
+			step = 600;
+		else
+			step = 1800;
+
+		temp = (temp / step) * step; // round
+		temp += (diff>>1)*step;
+		if (temp < 5)
+			temp = 5;
+		if (temp > 900*60)
+			temp = 900*60;
 		return (uint32_t)temp;
 	}
 
@@ -557,7 +596,6 @@ void do_interface(void)
 		static bool last_button = false;
 		static uint16_t last_encoder = 0;
 		static volatile int16_t diff = 0;
-		static const uint16_t upper_limit=(MAX_TEMP/STEP_TEMP*2);
 
 		diff-=(int16_t)(encoder_value - last_encoder);
 
@@ -570,7 +608,7 @@ void do_interface(void)
 		case 1: // wait for temperature edit
 			lcd_set_xy(&lcd, 9, 0);
 			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
-			if ((encoder_value & 0b10) != (last_encoder & 0b10))
+			if (((encoder_value & 0b10) != (last_encoder & 0b10)) && (pos&0b1))
 				rf_ui_state = 3;
 			if ((last_button) && (!button.pressed))
 				rf_ui_state = 2;
@@ -592,6 +630,11 @@ void do_interface(void)
 				rf_ui_state = 4;
 			break;
 		case 4: // edit time
+			if (diff)
+			{
+				uint32_t tmp = (HAL_GetTick() - last_time)/1000;
+				steps[pos>>1].time = 1 + tmp + change_time(steps[pos>>1].time - tmp + 2, diff);
+			}
 			lcd_set_xy(&lcd, 11, 1);
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
 			if ((last_button) && (!button.pressed))
@@ -823,6 +866,7 @@ void do_interface(void)
 		break;
 	case uiMALFUNCTION: // just check errors
 		temperature_SP = 0;
+		lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, " * Error! * ");
 		lcd_set_xy(&lcd, 0, 1);
