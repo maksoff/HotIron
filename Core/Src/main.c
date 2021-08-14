@@ -121,6 +121,7 @@ typedef struct {
 
 const sSTEPS steps_default[] = {
 		{.temp = 50, .time=30},
+		{.temp = 45, .time=25},
 //		{.temp = 130, .time=90},
 //		{.temp = 210, .time=15},
 };
@@ -163,7 +164,6 @@ void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
  */
 char * int2time(uint32_t time, uint8_t * buf)
 {
-	time /= 1000; // convert msec to sec
 	buf[4] = '\0';
 	if (time >= 600)
 	{
@@ -205,6 +205,7 @@ enum {
 	scAR = 0x7E, // arrow right
 	scGRAD = 223, // ° symbol
 	scDOT = 0xA5, // big dot in the middle
+	scSIGMA = 0xF6, // sigma
 };
 
 void init_lcd(void)
@@ -471,7 +472,7 @@ void do_interface(void)
 		// show time
 		uint8_t tbuf[6];
 		tbuf[0] = '+';
-		int2time(HAL_GetTick() - last_time, tbuf+1);
+		int2time((HAL_GetTick() - last_time)/1000, tbuf+1);
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, (char*)tbuf);
 
@@ -494,18 +495,120 @@ void do_interface(void)
 	 */
 	bool do_profile_settings(bool reset)
 	{
-		static uint8_t pos = 0;
+		static int8_t pos = 0; // signed, to prevent negative overflow
+		static uint8_t profile_state = 0;
 		static uint32_t last_time = 0;
+		static uint16_t last_encoder = 0;
+		static volatile int16_t diff = 0;
+		static bool last_button = false;
+
+		uint8_t time_buf[5];
+
 		if (reset)
 		{
+			last_encoder = encoder_value;
+			diff = 0;
 			pos = 0;
+			profile_state = 0;
 			last_time = HAL_GetTick();
 			return false;
 		}
 		if (HAL_GetTick() - last_time < 2000)
 			return false; // delay to show intro text
 
-		return true;
+		diff-=(int16_t)(encoder_value - last_encoder);
+		last_encoder = encoder_value;
+
+		switch (profile_state)
+		{
+		case 0: // init
+			pos = 0;
+			profile_state = 1;
+			break;
+		case 1: // select profile
+			if (diff>>1 == 0)
+			{
+
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					pos++;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					pos--;
+					diff = 0;
+				}
+			}
+			if ((pos < 0) || (pos >= max_steps))
+			{
+				profile_state = 10;
+				break;
+			}
+
+			int2time(steps[pos].time, time_buf);
+
+			// show time
+			lcd_set_xy(&lcd, 5, 1);
+			lcd_string(&lcd, (char*)time_buf);
+			lcd_string(&lcd, " x");
+			lcd_write_data(&lcd, ccENTER);
+
+			// show temperature
+			uint8_t buf[3];
+			int2string(steps[pos].temp, buf, sizeof(buf));
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_out(&lcd, buf, sizeof(buf));
+			lcd_write_data(&lcd, scGRAD); // grad
+			lcd_write_data(&lcd, ' ');
+
+			// write number of step
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_write_data(&lcd, '#');
+			lcd_write_data(&lcd, pos+'1');
+			lcd_write_data(&lcd, '/');
+			lcd_write_data(&lcd, max_steps + '0');
+			lcd_string(&lcd, " steps  ");
+
+			break;
+		case 10: // last menu
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_write_data(&lcd, ' ');
+			lcd_write_data(&lcd, scSIGMA);
+			lcd_write_data(&lcd, ' ');
+			lcd_write_data(&lcd, max_steps + '0');
+			lcd_string(&lcd, " steps  ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "run  +steps ");
+			if (diff == 0)
+			{
+
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					pos = 0;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					pos = max_steps - 1;
+					diff = 0;
+				}
+				profile_state = 1;
+			}
+			break;
+		default:
+			global_error |= errFATAL;
+			break;
+		}
+
+		last_button = button.pressed;
+		return false;
 	}
 
 	/**
@@ -537,7 +640,7 @@ void do_interface(void)
 			lcd_string(&lcd, "Cooldown    ");
 			lcd_set_xy(&lcd, 0, 1);
 			lcd_string(&lcd, "       +");
-			lcd_string(&lcd, int2time(HAL_GetTick() - last_time, time_buf));
+			lcd_string(&lcd, int2time((HAL_GetTick() - last_time)/1000, time_buf));
 			return;
 		}
 
@@ -547,7 +650,7 @@ void do_interface(void)
 			// we are going to temperature
 			temperature_SP = steps[pos>>1].temp;
 			time_buf[0] = '+';
-			int2time(HAL_GetTick() - last_time, time_buf+1);
+			int2time((HAL_GetTick() - last_time)/1000, time_buf+1);
 			lcd_set_xy(&lcd, 0, 1);
 			lcd_string(&lcd, "goto");
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
@@ -570,7 +673,7 @@ void do_interface(void)
 			temperature_SP = steps[pos>>1].temp;
 			time_buf[0] = '-';
 			// how long to wait? add 500 msec to avoid negative time
-			int2time(last_time + steps[pos>>1].time*1000 - HAL_GetTick()+500, time_buf+1);
+			int2time((last_time - HAL_GetTick()+500)/1000 + steps[pos>>1].time, time_buf+1);
 			lcd_set_xy(&lcd, 0, 1);
 			lcd_string(&lcd, "hold");
 			if (HAL_GetTick() - last_time > steps[pos>>1].time*1000)
