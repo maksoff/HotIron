@@ -653,9 +653,11 @@ void do_interface(void)
 
 			show_step_menu();
 
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "add  ");
-
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 10, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 
 			break;
 		case 12: // delete current step
@@ -694,8 +696,13 @@ void do_interface(void)
 			}
 
 			show_step_menu();
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "del  ");
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 11, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+
 			break;
 		case 13: // can't add steps anymore
 			if (last_button && (!button.pressed)) // wait for confirmation
@@ -723,7 +730,7 @@ void do_interface(void)
 			if (diff>>1 == 0)
 			{
 				if (last_button && (!button.pressed))
-					profile_state = 1; // stop editing
+					profile_state = 22; // start edit
 			}
 			else
 			{
@@ -741,16 +748,18 @@ void do_interface(void)
 
 			show_step_menu();
 
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "t edit ");
-
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 2, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 
 			break;
 		case 22: // edit temperature
 			if (diff>>1 == 0)
 			{
 				if (last_button && (!button.pressed))
-					profile_state = 1; // stop editing
+					profile_state = 21; // stop editing
 			}
 			else
 			{
@@ -772,7 +781,7 @@ void do_interface(void)
 			if (diff>>1 == 0)
 			{
 				if (last_button && (!button.pressed))
-					profile_state = 1; // stop editing
+					profile_state = 24; // start edit
 			}
 			else
 			{
@@ -791,15 +800,19 @@ void do_interface(void)
 			show_step_menu();
 
 			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "time edit ");
 
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 8, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 
 			break;
 		case 24: // edit time
 			if (diff>>1 == 0)
 			{
 				if (last_button && (!button.pressed))
-					profile_state = 1; // stop editing
+					profile_state = 23; // stop editing
 			}
 			else
 			{
