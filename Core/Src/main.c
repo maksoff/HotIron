@@ -618,7 +618,24 @@ void do_interface(void)
 			if (diff>>1 == 0)
 			{
 				if (last_button && (!button.pressed))
-					profile_state = 1; // stop editing
+				{
+					if (max_steps >= 9)
+						profile_state = 13;
+					else
+					{
+						// adding position
+						for (int i = 8; i > pos; i--)
+						{
+							steps[i].time = steps[i-1].time;
+							steps[i].temp = steps[i-1].temp;
+						}
+						pos++;
+						steps[pos].time = 60;
+						steps[pos].temp = 100;
+						max_steps++;
+						profile_state = 10; // wait for confirmation
+					}
+				}
 			}
 			else
 			{
@@ -645,7 +662,22 @@ void do_interface(void)
 			if (diff>>1 == 0)
 			{
 				if (last_button && (!button.pressed))
-					profile_state = 1; // stop editing
+				{
+					if (max_steps <= 1)
+						profile_state = 14;
+					else
+					{
+						for (int i = pos; i < 8; i++)
+						{
+							steps[i].time = steps[i+1].time;
+							steps[i].temp = steps[i+1].temp;
+						}
+						max_steps--;
+						if (pos >= max_steps) 	// if it was last position
+							pos = max_steps-1; 	// move to the previous one
+						profile_state = 10; 	// wait for confirmation
+					}
+				}
 			}
 			else
 			{
@@ -664,8 +696,28 @@ void do_interface(void)
 			show_step_menu();
 			lcd_set_xy(&lcd, 0, 1);
 			lcd_string(&lcd, "del  ");
-
-
+			break;
+		case 13: // can't add steps anymore
+			if (last_button && (!button.pressed)) // wait for confirmation
+				profile_state = 10;
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Not possible");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "max 9 steps ");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 12, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+			break;
+		case 14: // can't delete steps anymore
+			if (last_button && (!button.pressed)) // wait for confirmation
+				profile_state = 10;
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Not possible");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "min 1 step  ");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 12, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			break;
 		case 21: // wait temperature edit
 			if (diff>>1 == 0)
@@ -739,7 +791,7 @@ void do_interface(void)
 			show_step_menu();
 
 			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "time edit  ");
+			lcd_string(&lcd, "time edit ");
 
 
 			break;
