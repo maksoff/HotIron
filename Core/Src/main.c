@@ -552,7 +552,7 @@ void do_interface(void)
 			profile_state = 1;
 			break;
 		case 1: // select profile
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 					profile_state = 10;
@@ -578,16 +578,21 @@ void do_interface(void)
 
 			show_step_menu();
 
+//			lcd_set_xy(&lcd, 9, 1);
+//			lcd_string(&lcd, "  ");
+//			lcd_write_data(&lcd, cc3dots);
+//			lcd_write_data(&lcd, ' ');
+//			lcd_set_xy(&lcd, 11, 1);
 			lcd_set_xy(&lcd, 9, 1);
-			lcd_string(&lcd, "  ");
+			lcd_string(&lcd, "    ");
+			lcd_set_xy(&lcd, 11, 0);
 			lcd_write_data(&lcd, cc3dots);
-			lcd_write_data(&lcd, ' ');
-			lcd_set_xy(&lcd, 11, 1);
+			lcd_set_xy(&lcd, 11, 0);
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 
 			break;
 		case 10: // confirm current profile
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 					profile_state = 1; // stop editing
@@ -615,7 +620,7 @@ void do_interface(void)
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			break;
 		case 11: // add new step
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 				{
@@ -661,7 +666,7 @@ void do_interface(void)
 
 			break;
 		case 12: // delete current step
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 				{
@@ -727,7 +732,7 @@ void do_interface(void)
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			break;
 		case 21: // wait temperature edit
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 					profile_state = 22; // start edit
@@ -756,29 +761,29 @@ void do_interface(void)
 
 			break;
 		case 22: // edit temperature
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 					profile_state = 21; // stop editing
 			}
 			else
 			{
-				if (diff > 1)
-				{
-					diff = 0;
-				}
-				else if (diff < -1)
-				{
-					diff = 0;
-				}
+				steps[pos].temp = change_temperature(steps[pos].temp, diff);
+				diff = 0;
 			}
 
 			show_step_menu();
 
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 2, 1);
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
+
 
 			break;
 		case 23: // wait time edit
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 					profile_state = 24; // start edit
@@ -809,25 +814,24 @@ void do_interface(void)
 
 			break;
 		case 24: // edit time
-			if (diff>>1 == 0)
+			if (diff == 0)
 			{
 				if (last_button && (!button.pressed))
 					profile_state = 23; // stop editing
 			}
 			else
 			{
-				if (diff > 1)
-				{
-					diff = 0;
-				}
-				else if (diff < -1)
-				{
-					diff = 0;
-				}
+				steps[pos].time = change_time(steps[pos].time, diff);
+				diff = 0;
 			}
 
 			show_step_menu();
 
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 8, 1);
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
 
 			break;
 		case 90: // last menu
