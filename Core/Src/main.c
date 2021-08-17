@@ -88,6 +88,7 @@ enum {
 };
 
 uint8_t global_error = errOK;
+uint8_t ticktack = 0; // using for display blink
 
 
 #define encoder_value (TIM3->CNT)
@@ -120,6 +121,7 @@ typedef struct {
 
 const sSTEPS steps_default[] = {
 		{.temp = 50, .time=30},
+		{.temp = 45, .time=25},
 //		{.temp = 130, .time=90},
 //		{.temp = 210, .time=15},
 };
@@ -162,7 +164,6 @@ void int2string(uint32_t digit, uint8_t * buf, uint8_t len)
  */
 char * int2time(uint32_t time, uint8_t * buf)
 {
-	time /= 1000; // convert msec to sec
 	buf[4] = '\0';
 	if (time >= 600)
 	{
@@ -204,6 +205,7 @@ enum {
 	scAR = 0x7E, // arrow right
 	scGRAD = 223, // ° symbol
 	scDOT = 0xA5, // big dot in the middle
+	scSIGMA = 0xF6, // sigma
 };
 
 void init_lcd(void)
@@ -243,7 +245,7 @@ void init_lcd(void)
 
 void do_button(void)
 {
-	const uint32_t time_for_long_press = 1000;
+	const uint32_t time_for_long_press = 700;
 	static uint32_t last_time = 0;
 	static bool last_button = false;
 	static uint32_t but_time = 0;
@@ -380,7 +382,7 @@ void do_interface(void)
 		lcd_set_xy(lcd, 0, 0);
 		lcd_string(lcd, "            ");
 		lcd_set_xy(lcd, 0, 1);
-		lcd_string(lcd, "            ");
+		lcd_string(lcd, "             ");
 	}
 
 	/**
@@ -470,7 +472,7 @@ void do_interface(void)
 		// show time
 		uint8_t tbuf[6];
 		tbuf[0] = '+';
-		int2time(HAL_GetTick() - last_time, tbuf+1);
+		int2time((HAL_GetTick() - last_time)/1000, tbuf+1);
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, (char*)tbuf);
 
@@ -483,8 +485,397 @@ void do_interface(void)
 		lcd_write_data(&lcd, scGRAD); // grad
 		lcd_write_data(&lcd, scAR); // arrow right
 		lcd_set_xy(&lcd, 9, 0);
-		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+		lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 
+	}
+
+	/**
+	 * profile settings
+	 * provides interfece to edit/add/remove steps
+	 */
+	bool do_profile_settings(bool reset)
+	{
+		static int8_t pos = 0; // signed, to prevent negative overflow
+		static uint8_t profile_state = 0;
+		static uint32_t last_time = 0;
+		static uint16_t last_encoder = 0;
+		static volatile int16_t diff = 0;
+		static bool last_button = false;
+
+		uint8_t time_buf[5];
+
+		if (reset)
+		{
+			last_encoder = encoder_value;
+			diff = 0;
+			pos = 0;
+			profile_state = 0;
+			last_time = HAL_GetTick();
+			return false;
+		}
+		if (HAL_GetTick() - last_time < 1000)
+		{
+			return false; // delay to show intro text
+		}
+
+		void show_step_menu(void)
+		{
+			// show time
+			int2time(steps[pos].time, time_buf);
+			lcd_set_xy(&lcd, 5, 1);
+			lcd_string(&lcd, (char*)time_buf);
+
+			// show temperature
+			uint8_t buf[3];
+			int2string(steps[pos].temp, buf, sizeof(buf));
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_out(&lcd, buf, sizeof(buf));
+			lcd_write_data(&lcd, scGRAD); // grad
+			lcd_write_data(&lcd, ' ');
+
+			// write number of step
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_write_data(&lcd, '#');
+			lcd_write_data(&lcd, pos+'1');
+			lcd_write_data(&lcd, '/');
+			lcd_write_data(&lcd, max_steps + '0');
+			lcd_string(&lcd, " step   ");
+		}
+
+		diff-=(int16_t)(encoder_value - last_encoder);
+		last_encoder = encoder_value;
+
+		switch (profile_state)
+		{
+		case 0: // init
+			pos = 0;
+			profile_state = 1;
+			break;
+		case 1: // select profile
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+					profile_state = 10;
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					pos++;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					pos--;
+					diff = 0;
+				}
+			}
+			if ((pos < 0) || (pos >= max_steps))
+			{
+				profile_state = 90;
+				break;
+			}
+
+			show_step_menu();
+
+//			lcd_set_xy(&lcd, 9, 1);
+//			lcd_string(&lcd, "  ");
+//			lcd_write_data(&lcd, cc3dots);
+//			lcd_write_data(&lcd, ' ');
+//			lcd_set_xy(&lcd, 11, 1);
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, "    ");
+			lcd_set_xy(&lcd, 11, 0);
+			lcd_write_data(&lcd, cc3dots);
+			lcd_set_xy(&lcd, 11, 0);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+
+			break;
+		case 10: // confirm current profile
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+					profile_state = 1; // stop editing
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					profile_state = 21;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					profile_state = 12;
+					diff = 0;
+				}
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 12, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+			break;
+		case 11: // add new step
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+				{
+					if (max_steps >= 9)
+						profile_state = 13;
+					else
+					{
+						// adding position
+						for (int i = 8; i > pos; i--)
+						{
+							steps[i].time = steps[i-1].time;
+							steps[i].temp = steps[i-1].temp;
+						}
+						pos++;
+						steps[pos].time = 60;
+						steps[pos].temp = 100;
+						max_steps++;
+						profile_state = 10; // wait for confirmation
+					}
+				}
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					profile_state = 12;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					profile_state = 23;
+					diff = 0;
+				}
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 10, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+
+			break;
+		case 12: // delete current step
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+				{
+					if (max_steps <= 1)
+						profile_state = 14;
+					else
+					{
+						for (int i = pos; i < 8; i++)
+						{
+							steps[i].time = steps[i+1].time;
+							steps[i].temp = steps[i+1].temp;
+						}
+						max_steps--;
+						if (pos >= max_steps) 	// if it was last position
+							pos = max_steps-1; 	// move to the previous one
+						profile_state = 10; 	// wait for confirmation
+					}
+				}
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					profile_state = 10;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					profile_state = 11;
+					diff = 0;
+				}
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 11, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+
+			break;
+		case 13: // can't add steps anymore
+			if (last_button && (!button.pressed)) // wait for confirmation
+				profile_state = 10;
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Not possible");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "max 9 steps ");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 12, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+			break;
+		case 14: // can't delete steps anymore
+			if (last_button && (!button.pressed)) // wait for confirmation
+				profile_state = 10;
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_string(&lcd, "Not possible");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "min 1 step  ");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 12, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+			break;
+		case 21: // wait temperature edit
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+					profile_state = 22; // start edit
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					profile_state = 23;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					profile_state = 10;
+					diff = 0;
+				}
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 2, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+
+			break;
+		case 22: // edit temperature
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+					profile_state = 21; // stop editing
+			}
+			else
+			{
+				steps[pos].temp = change_temperature(steps[pos].temp, diff);
+				diff = 0;
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 2, 1);
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
+
+
+			break;
+		case 23: // wait time edit
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+					profile_state = 24; // start edit
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					profile_state = 11;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					profile_state = 21;
+					diff = 0;
+				}
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 0, 1);
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 8, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+
+			break;
+		case 24: // edit time
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+					profile_state = 23; // stop editing
+			}
+			else
+			{
+				steps[pos].time = change_time(steps[pos].time, diff);
+				diff = 0;
+			}
+
+			show_step_menu();
+
+			lcd_set_xy(&lcd, 9, 1);
+			lcd_string(&lcd, " +x");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 8, 1);
+			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
+
+			break;
+		case 90: // last menu
+			lcd_set_xy(&lcd, 0, 0);
+			lcd_write_data(&lcd, ' ');
+			lcd_write_data(&lcd, scSIGMA);
+			lcd_write_data(&lcd, ' ');
+			lcd_write_data(&lcd, max_steps + '0');
+			lcd_string(&lcd, " steps  ");
+			lcd_set_xy(&lcd, 0, 1);
+			lcd_string(&lcd, "start prof. ");
+			lcd_write_data(&lcd, ccENTER);
+			lcd_set_xy(&lcd, 12, 1);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+			if (diff == 0)
+			{
+				if (last_button && (!button.pressed))
+				{
+					lcd_mini_clear(&lcd);
+					return true;
+				}
+			}
+			else
+			{
+				if (diff > 1)
+				{
+					pos = 0;
+					diff = 0;
+				}
+				else if (diff < -1)
+				{
+					pos = max_steps - 1;
+					diff = 0;
+				}
+				profile_state = 1;
+			}
+			break;
+		default:
+			global_error |= errFATAL;
+			break;
+		}
+
+		last_button = button.pressed;
+		return false;
 	}
 
 	/**
@@ -516,7 +907,8 @@ void do_interface(void)
 			lcd_string(&lcd, "Cooldown    ");
 			lcd_set_xy(&lcd, 0, 1);
 			lcd_string(&lcd, "       +");
-			lcd_string(&lcd, int2time(HAL_GetTick() - last_time, time_buf));
+			lcd_string(&lcd, int2time((HAL_GetTick() - last_time)/1000, time_buf));
+			lcd_write_data(&lcd, ' ');
 			return;
 		}
 
@@ -526,7 +918,7 @@ void do_interface(void)
 			// we are going to temperature
 			temperature_SP = steps[pos>>1].temp;
 			time_buf[0] = '+';
-			int2time(HAL_GetTick() - last_time, time_buf+1);
+			int2time((HAL_GetTick() - last_time)/1000, time_buf+1);
 			lcd_set_xy(&lcd, 0, 1);
 			lcd_string(&lcd, "goto");
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
@@ -547,19 +939,23 @@ void do_interface(void)
 		{
 			// we are waiting for timeout
 			temperature_SP = steps[pos>>1].temp;
-			time_buf[0] = '-';
-			// how long to wait? add 500 msec to avoid negative time
-			int2time(last_time + steps[pos>>1].time*1000 - HAL_GetTick()+500, time_buf+1);
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "hold");
-			if (HAL_GetTick() - last_time > steps[pos>>1].time*1000)
+			if (HAL_GetTick() - last_time >= steps[pos>>1].time*1000)
 			{
 				last_time = HAL_GetTick();
+				check_time = HAL_GetTick();
 				pos++;
 				if (pos < (2*max_steps))
 					temperature_SP = steps[pos>>1].temp;
 				else
 					temperature_SP = 0;
+			}
+			else
+			{
+				time_buf[0] = '-';
+				// how long to wait? add some time to avoid negative time
+				int2time(steps[pos>>1].time - (HAL_GetTick() - last_time + 1000)/1000, time_buf+1);
+				lcd_set_xy(&lcd, 0, 1);
+				lcd_string(&lcd, "hold");
 			}
 		}
 
@@ -607,7 +1003,7 @@ void do_interface(void)
 			break;
 		case 1: // wait for temperature edit
 			lcd_set_xy(&lcd, 9, 0);
-			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			if (((encoder_value & 0b10) != (last_encoder & 0b10)) && (pos&0b1))
 				rf_ui_state = 3;
 			if ((last_button) && (!button.pressed))
@@ -623,7 +1019,7 @@ void do_interface(void)
 			break;
 		case 3: // wait for time edit
 			lcd_set_xy(&lcd, 11, 1);
-			lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			if ((encoder_value & 0b10) != (last_encoder & 0b10))
 				rf_ui_state = 1;
 			if ((last_button) && (!button.pressed))
@@ -651,11 +1047,15 @@ void do_interface(void)
 	}
 	// ****** END DO_REFLOW *************** //
 
+
+	/***********************
+	 *  END HELP FUNCTIONS *
+	 ***********************/
+
 	/**
 	 * this happens every 100 ms
 	 */
 	static uint32_t last_time = 0;
-	static uint8_t ticktack = 0; // using for blink "hot"
 	static bool last_button = false;
 	if (HAL_GetTick() - last_time < 100)
 		return;
@@ -679,15 +1079,13 @@ void do_interface(void)
 		ui_state = uiMALFUNCTION;
 	}
 
-	lcd_set_xy(&lcd, 12, 1);
+	lcd_set_xy(&lcd, 13, 1);
 	// first symbol
-	lcd_write_data(&lcd, ' ');
-	// second symbol
 	if (button.pressed)
 		lcd_write_data(&lcd, scDOT);
 	else
 		lcd_write_data(&lcd, ' ');
-	// third symbol
+	// second symbol
 	if (!MAX6675.data_valid)
 		lcd_write_data(&lcd, ' ');
 	else
@@ -799,10 +1197,10 @@ void do_interface(void)
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, "Long press  ");
 		lcd_set_xy(&lcd, 0, 1);
-		lcd_string(&lcd, "T=0&reset  ");
+		lcd_string(&lcd, "T=0 & reset ");
 		lcd_write_data(&lcd, ccENTER);
-		lcd_set_xy(&lcd, 11, 1);
-		lcd_mode(&lcd, ENABLE, CURSOR_ENABLE, NO_BLINK);
+		lcd_set_xy(&lcd, 12, 1);
+		lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 		if (!button.pressed && last_button)
 		{
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
@@ -814,7 +1212,7 @@ void do_interface(void)
 		lcd_set_xy(&lcd, 0, 0);
 		lcd_string(&lcd, "T set to 0  ");
 		lcd_set_xy(&lcd, 0, 1);
-		lcd_string(&lcd, "err. cleared");
+		lcd_string(&lcd, "err. cleared ");
 		if (!button.pressed)
 			ui_state = uiMENUenter;
 		break;
@@ -849,17 +1247,20 @@ void do_interface(void)
 		heatplate(false);
 		break;
 	case uiSETTINGSenter:
-		lcd_mini_clear(&lcd);
 		lcd_set_xy(&lcd, 0, 0);
-		lcd_string(&lcd, "SETTINGS");
+		lcd_string(&lcd, " Profile    ");
+		lcd_set_xy(&lcd, 0, 1);
+		lcd_string(&lcd, " settings    ");
 		ui_state = uiSETTINGS;
+		do_profile_settings(true);
 		break;
 	case uiSETTINGS:
-		lcd_mini_clear(&lcd);
-//		lcd_set_xy(&lcd, 0, 0);
-//		lcd_string(&lcd, "REFLOW");
-		ui_state = uiREFLOW;
-		do_reflow(true);
+		if (do_profile_settings(false))
+		{
+			lcd_mini_clear(&lcd);
+			ui_state = uiREFLOW;
+			do_reflow(true);
+		}
 		break;
 	case uiREFLOW:
 		do_reflow(false);
