@@ -8,7 +8,7 @@
 #ifndef INC_NOTES_H_
 #define INC_NOTES_H_
 
-uint16_t B4[] = {
+const uint8_t B4[] = {
   0,    0,    1,    1,    2,    3,    5,    7,    9,   11,
  13,   16,   19,   22,   25,   29,   32,   36,   40,   44,
  48,   52,   56,   60,   65,   69,   73,   77,   81,   85,
@@ -21,9 +21,9 @@ uint16_t B4[] = {
   3,    2,    1,    1,    0,
 };
 
-uint16_t B4_size = sizeof(B4)/sizeof(B4[0]);
+const uint8_t B4_size = sizeof(B4)/sizeof(B4[0]);
 
-uint16_t Gd4[] = {
+const uint8_t Gd4[] = {
   0,    0,    0,    1,    2,    2,    4,    5,    6,    8,
  10,   12,   14,   16,   18,   21,   24,   26,   29,   32,
  35,   39,   42,   45,   49,   52,   56,   59,   63,   66,
@@ -38,9 +38,9 @@ uint16_t Gd4[] = {
   1,    0,    0,
 };
 
-uint16_t Gd4_size = sizeof(Gd4)/sizeof(Gd4[0]);
+const uint8_t Gd4_size = sizeof(Gd4)/sizeof(Gd4[0]);
 
-uint16_t E4[] = {
+const uint8_t E4[] = {
   0,    0,    0,    1,    1,    2,    2,    3,    4,    5,
   6,    7,    9,   10,   12,   13,   15,   17,   19,   21,
  23,   25,   28,   30,   33,   35,   38,   40,   43,   45,
@@ -58,6 +58,6 @@ uint16_t E4[] = {
   0,    0,
 };
 
-uint16_t E4_size = sizeof(E4)/sizeof(E4[0]);
+const uint8_t E4_size = sizeof(E4)/sizeof(E4[0]);
 
 #endif /* INC_NOTES_H_ */

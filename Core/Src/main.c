@@ -128,6 +128,15 @@ const sSTEPS steps_default[] = {
 		{.temp = 210, .time=15},
 };
 
+struct {
+	bool peep;
+	bool stop;
+} peep = {false, false};
+
+bool peep_start = false;
+bool peep_stop = false;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -340,6 +349,87 @@ void do_usb(void)
 						PID.I,
 						PID.D);
 	CDC_Transmit_FS(buf, n);
+}
+
+typedef struct {
+	const uint8_t * note;
+	const uint8_t size;
+	const uint32_t time;
+} sNOTES;
+
+const sNOTES notes[] =
+{
+		{B4, B4_size, 100},
+		{Gd4, Gd4_size, 100},
+		{E4, E4_size, 100}
+};
+
+const uint8_t notes_size = sizeof(notes)/sizeof(notes[0]);
+const uint32_t notes_pause = 700;
+
+void do_peep(void)
+{
+	static uint8_t peep_note = 0;
+	static uint32_t last_time = 0;
+	static bool last_peep = false;
+
+	static uint8_t peep_state = 0;
+
+	if (peep.peep & (!last_peep))
+	{
+		// first time
+		peep_note = 0;
+		peep_state = 0;
+		last_time = HAL_GetTick();
+	}
+
+	if (peep.peep)
+	{
+		switch (peep_state) {
+		case 0: // init
+			peep.stop = false;
+			peep_note = 0;
+			peep_state = 1;
+			break;
+		case 1: // load note and start
+			HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
+					(uint32_t *)notes[peep_note].note, notes[peep_note].size);
+			last_time = HAL_GetTick();
+			peep_state = 2;
+			break;
+		case 2: // wait note length
+			if (HAL_GetTick() - last_time > notes[peep_note].time)
+			{
+				peep.stop = true;
+				peep_state = 3;
+			}
+			break;
+		case 3: // wait PWM stop
+			if (!peep.stop)
+				peep_state = 4;
+			break;
+		case 4: // check if next note to play
+			if (++peep_note < notes_size)
+			{
+				peep_state = 1; // play next note
+				break;
+			}
+			last_time = HAL_GetTick();
+			peep_state = 5;
+			break;
+		case 5: // wait pause
+			if (HAL_GetTick() - last_time > notes_pause)
+				peep_state = 0; // start again
+			break;
+		default:
+			global_error |= errFATAL;
+		}
+	}
+	else if (last_peep)
+	{
+		peep.stop = true;
+	}
+	last_peep = peep.peep;
 }
 
 typedef enum {
@@ -884,10 +974,13 @@ void do_interface(void)
 	{
 		static uint32_t last_time = 0;
 		volatile static uint8_t pos = 0;
+		static bool last_button = false;
+		static bool peep_first_time = true;
 
 		if (reset)
 		{
 			last_time = HAL_GetTick();
+			peep_first_time = true;
 			pos = 0;
 			return;
 		}
@@ -899,15 +992,37 @@ void do_interface(void)
 
 		if (pos >= (2*max_steps))
 		{
-			// TODO peep-peep and mute on press
-			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
+			if (peep_first_time)
+			{
+				peep.peep = true;
+				peep_first_time = false;
+			}
+
+			if (button.pressed)
+				peep.peep = false;
+
 			temperature_SP = 0;
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "Cooldown    ");
-			lcd_set_xy(&lcd, 0, 1);
-			lcd_string(&lcd, "       +");
+			lcd_set_xy(&lcd, 7, 1);
+			lcd_string(&lcd, "+");
 			lcd_string(&lcd, int2time((HAL_GetTick() - last_time)/1000, time_buf));
 			lcd_write_data(&lcd, ' ');
+
+			if (peep.peep)
+			{
+				lcd_set_xy(&lcd, 0, 1);
+				lcd_string(&lcd, "mute");
+				lcd_write_data(&lcd, ccENTER);
+				lcd_set_xy(&lcd, 4, 1);
+				lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
+			} else
+			{
+				lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
+				lcd_set_xy(&lcd, 0, 1);
+				lcd_string(&lcd, "       ");
+			}
+
 			return;
 		}
 
@@ -988,7 +1103,6 @@ void do_interface(void)
 			rf_ui_state = 0;
 		}
 		last_pos = pos;
-		static bool last_button = false;
 		static uint16_t last_encoder = 0;
 		static volatile int16_t diff = 0;
 
@@ -1392,6 +1506,16 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef* htim)
 	ascii_max6675();
 }
 
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+	if (peep.stop && (htim == &htim4))
+	{
+		HAL_TIM_PWM_Stop_DMA(htim, TIM_CHANNEL_2);
+		peep.stop = false;
+	}
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -1440,16 +1564,6 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2); // Enable Interrupts
   delay_init(&htim1); // inits the library for us delay
   init_lcd(); // init lcd and load special symbols
-//
-  uint16_t test [] = {16, 16,16, 32,32, 96};
-//  HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_1, (uint32_t *)test, 3);
-
-  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-//  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-
-  HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2, (uint32_t *)B4, B4_size);
-//  TIM4->CCR1 = 64;
-//  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
 
@@ -1461,6 +1575,7 @@ int main(void)
 	  do_blink(); // led heartbeat
 	  do_usb();  // output debug information
 	  do_interface(); // here happens the magic
+	  do_peep(); // peep-peep
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -1763,7 +1878,7 @@ static void MX_TIM4_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 63;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
