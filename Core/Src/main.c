@@ -29,6 +29,8 @@
 #include "string.h"
 #include "spi_rxonly.h"
 
+#include "notes.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +63,8 @@ SPI_HandleTypeDef hspi1;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
+DMA_HandleTypeDef hdma_tim4_ch2;
 
 /* USER CODE BEGIN PV */
 
@@ -120,10 +124,8 @@ typedef struct {
 } sSTEPS;
 
 const sSTEPS steps_default[] = {
-		{.temp = 50, .time=30},
-		{.temp = 45, .time=25},
-//		{.temp = 130, .time=90},
-//		{.temp = 210, .time=15},
+		{.temp = 130, .time=90},
+		{.temp = 210, .time=15},
 };
 
 /* USER CODE END PV */
@@ -134,6 +136,8 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_DMA_Init(void);
+static void MX_TIM4_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -578,11 +582,6 @@ void do_interface(void)
 
 			show_step_menu();
 
-//			lcd_set_xy(&lcd, 9, 1);
-//			lcd_string(&lcd, "  ");
-//			lcd_write_data(&lcd, cc3dots);
-//			lcd_write_data(&lcd, ' ');
-//			lcd_set_xy(&lcd, 11, 1);
 			lcd_set_xy(&lcd, 9, 1);
 			lcd_string(&lcd, "    ");
 			lcd_set_xy(&lcd, 11, 0);
@@ -923,7 +922,7 @@ void do_interface(void)
 			lcd_string(&lcd, "goto");
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
 			{
-				if (HAL_GetTick() - check_time > 5000) // we should be at least 5 sec in range
+				if (HAL_GetTick() - check_time > 3000) // we should be at least some time in range
 				{
 					last_time = HAL_GetTick();
 					pos++;
@@ -1427,6 +1426,8 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_DMA_Init();
+  MX_TIM4_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
@@ -1439,6 +1440,16 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2); // Enable Interrupts
   delay_init(&htim1); // inits the library for us delay
   init_lcd(); // init lcd and load special symbols
+//
+  uint16_t test [] = {16, 16,16, 32,32, 96};
+//  HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_1, (uint32_t *)test, 3);
+
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+//  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+
+  HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2, (uint32_t *)B4, B4_size);
+//  TIM4->CCR1 = 64;
+//  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
 
@@ -1704,6 +1715,81 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 0;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 127;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 63;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+  HAL_TIM_MspPostInit(&htim4);
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
 }
 
