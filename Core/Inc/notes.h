@@ -60,4 +60,25 @@ const uint8_t E4[] = {
 
 const uint8_t E4_size = sizeof(E4)/sizeof(E4[0]);
 
+const uint8_t pause[] = {};
+const uint8_t pause_size = 0;
+
+#define PAUSE pause, pause_size
+
+typedef struct {
+	const uint8_t * note; 	// array to send
+	const uint8_t size;		// items in array
+	const uint32_t time;	// time in ms
+} sNOTES;
+
+const sNOTES notes[] =
+{
+		{B4, B4_size, 100},
+		{Gd4, Gd4_size, 100},
+		{E4, E4_size, 100},
+		{PAUSE, 700}
+};
+
+const uint8_t notes_size = sizeof(notes)/sizeof(notes[0]);
+
 #endif /* INC_NOTES_H_ */

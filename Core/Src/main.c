@@ -40,11 +40,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define HOT_TEMP (40) // 40 grad
-#define MAX_TEMP (270)
-#define STEP_TEMP (5)
+#define HOT_TEMP (40) // temperature to show the HOT indicator
+#define MAX_TEMP (270) // upper limit
+#define STEP_TEMP (5) // how much to change the temperature with each encoder tick
 
-
+// pins used for debug
 #define DEBUG_A1 HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 1)
 #define DEBUG_B1 HAL_GPIO_WritePin(debug_b_GPIO_Port, debug_b_Pin, 1)
 #define DEBUG_A0 HAL_GPIO_WritePin(debug_a_GPIO_Port, debug_a_Pin, 0)
@@ -132,10 +132,6 @@ struct {
 	bool peep;
 	bool stop;
 } peep = {false, false};
-
-bool peep_start = false;
-bool peep_stop = false;
-
 
 /* USER CODE END PV */
 
@@ -351,22 +347,6 @@ void do_usb(void)
 	CDC_Transmit_FS(buf, n);
 }
 
-typedef struct {
-	const uint8_t * note;
-	const uint8_t size;
-	const uint32_t time;
-} sNOTES;
-
-const sNOTES notes[] =
-{
-		{B4, B4_size, 100},
-		{Gd4, Gd4_size, 100},
-		{E4, E4_size, 100}
-};
-
-const uint8_t notes_size = sizeof(notes)/sizeof(notes[0]);
-const uint32_t notes_pause = 700;
-
 void do_peep(void)
 {
 	static uint8_t peep_note = 0;
@@ -392,16 +372,27 @@ void do_peep(void)
 			peep_state = 1;
 			break;
 		case 1: // load note and start
-			HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
-					(uint32_t *)notes[peep_note].note, notes[peep_note].size);
+			if (notes[peep_note].size) // if something to play, start PWM with DMA
+			{
+				HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
+						(uint32_t *)notes[peep_note].note, notes[peep_note].size);
+			}
 			last_time = HAL_GetTick();
 			peep_state = 2;
 			break;
 		case 2: // wait note length
 			if (HAL_GetTick() - last_time > notes[peep_note].time)
 			{
-				peep.stop = true;
-				peep_state = 3;
+				if (notes[peep_note].size == 0)
+				{
+					// we need only pause, PWM & DMA already disabled
+					peep_state = 4;
+				}
+				else
+				{
+					peep.stop = true;
+					peep_state = 3;
+				}
 			}
 			break;
 		case 3: // wait PWM stop
@@ -412,17 +403,16 @@ void do_peep(void)
 			if (++peep_note < notes_size)
 			{
 				peep_state = 1; // play next note
-				break;
 			}
-			last_time = HAL_GetTick();
-			peep_state = 5;
-			break;
-		case 5: // wait pause
-			if (HAL_GetTick() - last_time > notes_pause)
-				peep_state = 0; // start again
+			else
+			{
+				// we are finished, start again
+				peep_state = 0;
+			}
 			break;
 		default:
 			global_error |= errFATAL;
+			break;
 		}
 	}
 	else if (last_peep)
@@ -451,7 +441,6 @@ eUISTATE ui_state = uiSTART;
  */
 void do_interface(void)
 {
-#define MAX_STEPS (MAX_STEPS)
 	static sSTEPS steps[9]; // steps for reflow
 	static uint8_t max_steps = 2; // how many steps, max. 10
 
@@ -643,7 +632,7 @@ void do_interface(void)
 		{
 		case 0: // init
 			pos = 0;
-			profile_state = 1;
+			profile_state = 90;
 			break;
 		case 1: // select profile
 			if (diff == 0)
@@ -771,7 +760,7 @@ void do_interface(void)
 						max_steps--;
 						if (pos >= max_steps) 	// if it was last position
 							pos = max_steps-1; 	// move to the previous one
-						profile_state = 10; 	// wait for confirmation
+						profile_state = 1; 	// show profile
 					}
 				}
 			}
@@ -981,6 +970,7 @@ void do_interface(void)
 		{
 			last_time = HAL_GetTick();
 			peep_first_time = true;
+			last_button = false;
 			pos = 0;
 			return;
 		}
@@ -1014,6 +1004,7 @@ void do_interface(void)
 				lcd_set_xy(&lcd, 0, 1);
 				lcd_string(&lcd, "mute");
 				lcd_write_data(&lcd, ccENTER);
+				lcd_string(&lcd, "  ");
 				lcd_set_xy(&lcd, 4, 1);
 				lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			} else
@@ -1227,6 +1218,7 @@ void do_interface(void)
 	// last symbol
 	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
 	{
+		// todo enable red leds!
 		if (ticktack < 5)
 			lcd_write_data(&lcd, ccHOT);
 		else
@@ -1299,10 +1291,14 @@ void do_interface(void)
 		ui_state = uiLONG_PRESS;
 		temperature_SP = 0;
 		global_error = errOK;
+		peep.peep = false;
 	}
 
 	if (global_error)
+	{
 		ui_state = uiMALFUNCTION;
+		peep.peep = true;
+	}
 
 	switch(ui_state)
 	{
