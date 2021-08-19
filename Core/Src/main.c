@@ -41,6 +41,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define HOT_TEMP (40) // temperature to show the HOT indicator
+#define HOT_HYST (2)  // hysteresis for led blink
 #define MAX_TEMP (270) // upper limit
 #define STEP_TEMP (5) // how much to change the temperature with each encoder tick
 
@@ -95,7 +96,7 @@ uint8_t global_error = errOK;
 uint8_t ticktack = 0; // using for display blink
 
 struct sENCODER {
-	int16_t value;
+	uint16_t value;
 	bool pressed;
 	bool long_press;
 } encoder = {.value = 0, .pressed = false, .long_press = false};
@@ -103,9 +104,10 @@ struct sENCODER {
 
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
-	bool data_valid;
 	uint8_t ascii[7];  // converted to ASCII
-} MAX6675 = {.data_valid = false, .temperature = 0};
+	bool data_valid;	// check if MAX6675 bits are correct
+	bool hot;			// check if temperature too hot
+} MAX6675 = {.data_valid = false, .temperature = 0, .hot = false};
 
 uint16_t pwm_value = 0;
 uint16_t temperature_SP = 0;
@@ -280,7 +282,7 @@ void do_button(void)
 	 * reads register value and drops non-significant byte
 	 * also inverts direction of encoder
 	 */
-	encoder.value = (-((int16_t)((TIM3->CNT)>>1)));
+	encoder.value = (-((int16_t)(TIM3->CNT)))>>1;
 
 	last_time = HAL_GetTick();
 }
@@ -329,11 +331,18 @@ void ascii_max6675(void)
 					MAX6675.ascii[i--] = ' ';
 			}
 			MAX6675.ascii[4] = '.';
+
+			if (MAX6675.hot && (MAX6675.temperature < (HOT_TEMP<<2)))
+				MAX6675.hot = false;
+			else if ((!MAX6675.hot) &&
+					(MAX6675.temperature > ((HOT_TEMP + HOT_HYST)<<2)))
+				MAX6675.hot = true;
 		}
 		else
 		{
 			for (int i = 0; i < sizeof(MAX6675); i ++)
 				MAX6675.ascii[i] = 'x';
+			MAX6675.hot = true;
 		}
 }
 
@@ -484,7 +493,7 @@ void do_interface(void)
 	 * @param diff - delta from encoder
 	 * @return - value to set
 	 */
-	uint32_t change_temperature(uint32_t t, int32_t diff)
+	uint32_t change_temperature(uint32_t t, int16_t diff)
 	{
 		if (diff == 0)
 			return t;
@@ -504,7 +513,7 @@ void do_interface(void)
 	 * @param diff - delta from encoder
 	 * @return - value to set
 	 */
-	uint32_t change_time(uint32_t t, int32_t diff)
+	uint32_t change_time(uint32_t t, int16_t diff, bool round)
 	{
 		int32_t temp = (int32_t)t; // to avoid zero-cross
 		int32_t step = 5; // how much to change the time in seconds
@@ -525,7 +534,8 @@ void do_interface(void)
 		else
 			step = 1800;
 
-		temp = (temp / step) * step; // round
+		if (round)
+			temp = (temp / step) * step; // round
 		temp += (diff)*step;
 		if (temp < 5)
 			temp = 5;
@@ -539,7 +549,7 @@ void do_interface(void)
 	 */
 	void heatplate(bool reset)
 	{
-		static int16_t last_encoder = 0;
+		static uint16_t last_encoder = 0;
 		static uint32_t last_time = 0;
 
 		if (reset)
@@ -552,7 +562,8 @@ void do_interface(void)
 
 		if (encoder.pressed)
 			temperature_SP = 0;
-		temperature_SP = change_temperature(temperature_SP, encoder.value - last_encoder);
+		temperature_SP = change_temperature(temperature_SP,
+							encoder.value - last_encoder);
 		last_encoder = encoder.value;
 
 		// show time
@@ -583,7 +594,7 @@ void do_interface(void)
 		static int8_t pos = 0; // signed, to prevent negative overflow
 		static uint8_t profile_state = 0;
 		static uint32_t last_time = 0;
-		static int16_t last_encoder = 0;
+		static uint16_t last_encoder = 0;
 		static bool last_button = false;
 
 		uint8_t time_buf[5];
@@ -888,7 +899,7 @@ void do_interface(void)
 			}
 			else
 			{
-				steps[pos].time = change_time(steps[pos].time, diff);
+				steps[pos].time = change_time(steps[pos].time, diff, true);
 			}
 
 			show_step_menu();
@@ -1080,7 +1091,7 @@ void do_interface(void)
 			rf_ui_state = 0;
 		}
 		last_pos = pos;
-		static int16_t last_encoder = 0;
+		static uint16_t last_encoder = 0;
 
 		switch (rf_ui_state)
 		{
@@ -1116,8 +1127,9 @@ void do_interface(void)
 			if (encoder.value != last_encoder)
 			{
 				uint32_t tmp = (HAL_GetTick() - last_time)/1000;
-				steps[pos>>1].time = 1 + tmp + change_time(steps[pos>>1].time - tmp + 2,
-															encoder.value - last_encoder);
+				steps[pos>>1].time = tmp + change_time(steps[pos>>1].time - tmp,
+															encoder.value - last_encoder,
+															false);
 			}
 			lcd_set_xy(&lcd, 11, 1);
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
@@ -1177,7 +1189,7 @@ void do_interface(void)
 		lcd_write_data(&lcd, ' ');
 	else
 	{
-		if ((temperature_SP == 0) && (MAX6675.temperature < (HOT_TEMP<<2)))
+		if ((temperature_SP == 0) && (!MAX6675.hot))
 			lcd_write_data(&lcd, '-');
 		else if (((pwm_value + 9)/10)*3 > ticktack)
 		{
@@ -1199,9 +1211,9 @@ void do_interface(void)
 
 	}
 	// last symbol
-	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
+	if ((MAX6675.hot) || (!MAX6675.data_valid))
 	{
-		// todo enable red leds!
+		HAL_GPIO_WritePin(HOT_LEDS_GPIO_Port, HOT_LEDS_Pin, 1);
 		if (ticktack < 5)
 			lcd_write_data(&lcd, ccHOT);
 		else
@@ -1209,6 +1221,7 @@ void do_interface(void)
 	}
 	else
 	{
+		HAL_GPIO_WritePin(HOT_LEDS_GPIO_Port, HOT_LEDS_Pin, 0);
 		if (ticktack < 5)
 			lcd_write_data(&lcd, ccDOT);
 		else
@@ -1902,7 +1915,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, LED_Pin|HOT_LEDS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
@@ -1914,12 +1927,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, debug_a_Pin|debug_b_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
+  /*Configure GPIO pins : LED_Pin HOT_LEDS_Pin */
+  GPIO_InitStruct.Pin = LED_Pin|HOT_LEDS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : hd_7_Pin hd_6_Pin hd_RS_Pin hd_E_Pin
                            hd_4_Pin hd_5_Pin debug_a_Pin debug_b_Pin */

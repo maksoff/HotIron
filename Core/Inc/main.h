@@ -63,6 +63,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
+#define HOT_LEDS_Pin GPIO_PIN_14
+#define HOT_LEDS_GPIO_Port GPIOC
+#define SSR_control_Pin GPIO_PIN_0
+#define SSR_control_GPIO_Port GPIOA
 #define hd_7_Pin GPIO_PIN_10
 #define hd_7_GPIO_Port GPIOB
 #define hd_6_Pin GPIO_PIN_11
@@ -83,6 +87,8 @@ void Error_Handler(void);
 #define enc_a_GPIO_Port GPIOB
 #define enc_b_Pin GPIO_PIN_5
 #define enc_b_GPIO_Port GPIOB
+#define Loudspeaker_Pin GPIO_PIN_7
+#define Loudspeaker_GPIO_Port GPIOB
 #define debug_a_Pin GPIO_PIN_8
 #define debug_a_GPIO_Port GPIOB
 #define debug_b_Pin GPIO_PIN_9
