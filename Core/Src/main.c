@@ -624,7 +624,7 @@ void do_interface(void)
 		}
 
 
-		int32_t diff = encoder.value - last_encoder;
+		int16_t diff = encoder.value - last_encoder;
 		last_encoder = encoder.value;
 
 		void show_step_menu(void)
