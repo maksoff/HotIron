@@ -7,43 +7,43 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         0000d4a4  0800010c  0800010c  0001010c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       000004c8  0800d5b0  0800d5b0  0001d5b0  2**2
+  2 .rodata       00001854  0800d5b0  0800d5b0  0001d5b0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  0800da78  0800da78  00020214  2**0
+  3 .ARM.extab    00000000  0800ee04  0800ee04  00020214  2**0
                   CONTENTS
-  4 .ARM          00000000  0800da78  0800da78  00020214  2**0
+  4 .ARM          00000000  0800ee04  0800ee04  00020214  2**0
                   CONTENTS
-  5 .preinit_array 00000000  0800da78  0800da78  00020214  2**0
+  5 .preinit_array 00000000  0800ee04  0800ee04  00020214  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  0800da78  0800da78  0001da78  2**2
+  6 .init_array   00000004  0800ee04  0800ee04  0001ee04  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .fini_array   00000004  0800da7c  0800da7c  0001da7c  2**2
+  7 .fini_array   00000004  0800ee08  0800ee08  0001ee08  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  8 .data         00000214  20000000  0800da80  00020000  2**2
+  8 .data         00000214  20000000  0800ee0c  00020000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          0000148c  20000214  0800dc94  00020214  2**2
+  9 .bss          0000148c  20000214  0800f020  00020214  2**2
                   ALLOC
- 10 ._user_heap_stack 00000600  200016a0  0800dc94  000216a0  2**0
+ 10 ._user_heap_stack 00000600  200016a0  0800f020  000216a0  2**0
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  00020214  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0001c7c1  00000000  00000000  0002023d  2**0
+ 12 .debug_info   0001cfee  00000000  00000000  0002023d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00003ffb  00000000  00000000  0003c9fe  2**0
+ 13 .debug_abbrev 00004017  00000000  00000000  0003d22b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 000013f8  00000000  00000000  00040a00  2**3
+ 14 .debug_aranges 000013f8  00000000  00000000  00041248  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00001248  00000000  00000000  00041df8  2**3
+ 15 .debug_ranges 00001248  00000000  00000000  00042640  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001b6e2  00000000  00000000  00043040  2**0
+ 16 .debug_macro  0001b6e3  00000000  00000000  00043888  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00018bef  00000000  00000000  0005e722  2**0
+ 17 .debug_line   00018bec  00000000  00000000  0005ef6b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008ff5d  00000000  00000000  00077311  2**0
+ 18 .debug_str    00090085  00000000  00000000  00077b57  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  0010726e  2**0
+ 19 .comment      00000053  00000000  00000000  00107bdc  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000055ec  00000000  00000000  001072c4  2**2
+ 20 .debug_frame  000055ec  00000000  00000000  00107c30  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1577,21 +1577,21 @@ void do_peep(void)
  8000ab0:	4b59      	ldr	r3, [pc, #356]	; (8000c18 <do_peep+0x198>)
  8000ab2:	781b      	ldrb	r3, [r3, #0]
  8000ab4:	2b00      	cmp	r3, #0
- 8000ab6:	f000 809e 	beq.w	8000bf6 <do_peep+0x176>
+ 8000ab6:	f000 809d 	beq.w	8000bf4 <do_peep+0x174>
 	{
 		switch (peep_state) {
  8000aba:	4b5a      	ldr	r3, [pc, #360]	; (8000c24 <do_peep+0x1a4>)
  8000abc:	781b      	ldrb	r3, [r3, #0]
  8000abe:	2b04      	cmp	r3, #4
- 8000ac0:	f200 8091 	bhi.w	8000be6 <do_peep+0x166>
+ 8000ac0:	f200 8090 	bhi.w	8000be4 <do_peep+0x164>
  8000ac4:	a201      	add	r2, pc, #4	; (adr r2, 8000acc <do_peep+0x4c>)
  8000ac6:	f852 f023 	ldr.w	pc, [r2, r3, lsl #2]
  8000aca:	bf00      	nop
  8000acc:	08000ae1 	.word	0x08000ae1
  8000ad0:	08000af5 	.word	0x08000af5
- 8000ad4:	08000b55 	.word	0x08000b55
- 8000ad8:	08000bab 	.word	0x08000bab
- 8000adc:	08000bc1 	.word	0x08000bc1
+ 8000ad4:	08000b53 	.word	0x08000b53
+ 8000ad8:	08000ba9 	.word	0x08000ba9
+ 8000adc:	08000bbf 	.word	0x08000bbf
 		case 0: // init
 			peep.stop = false;
  8000ae0:	4b4d      	ldr	r3, [pc, #308]	; (8000c18 <do_peep+0x198>)
@@ -1606,7 +1606,7 @@ void do_peep(void)
  8000aee:	2201      	movs	r2, #1
  8000af0:	701a      	strb	r2, [r3, #0]
 			break;
- 8000af2:	e08b      	b.n	8000c0c <do_peep+0x18c>
+ 8000af2:	e08a      	b.n	8000c0a <do_peep+0x18a>
 		case 1: // load note and start
 			if (notes[peep_note].size) // if something to play, start PWM with DMA
  8000af4:	4b4a      	ldr	r3, [pc, #296]	; (8000c20 <do_peep+0x1a0>)
@@ -1619,9 +1619,9 @@ void do_peep(void)
  8000b02:	009b      	lsls	r3, r3, #2
  8000b04:	4413      	add	r3, r2
  8000b06:	3304      	adds	r3, #4
- 8000b08:	781b      	ldrb	r3, [r3, #0]
+ 8000b08:	881b      	ldrh	r3, [r3, #0]
  8000b0a:	2b00      	cmp	r3, #0
- 8000b0c:	d019      	beq.n	8000b42 <do_peep+0xc2>
+ 8000b0c:	d018      	beq.n	8000b40 <do_peep+0xc0>
 			{
 				HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
  8000b0e:	4b44      	ldr	r3, [pc, #272]	; (8000c20 <do_peep+0x1a0>)
@@ -1635,6 +1635,7 @@ void do_peep(void)
  8000b1c:	009b      	lsls	r3, r3, #2
  8000b1e:	4413      	add	r3, r2
  8000b20:	681a      	ldr	r2, [r3, #0]
+				HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
  8000b22:	4b3f      	ldr	r3, [pc, #252]	; (8000c20 <do_peep+0x1a0>)
  8000b24:	781b      	ldrb	r3, [r3, #0]
  8000b26:	4618      	mov	r0, r3
@@ -1645,174 +1646,173 @@ void do_peep(void)
  8000b30:	009b      	lsls	r3, r3, #2
  8000b32:	440b      	add	r3, r1
  8000b34:	3304      	adds	r3, #4
- 8000b36:	781b      	ldrb	r3, [r3, #0]
-				HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
- 8000b38:	b29b      	uxth	r3, r3
- 8000b3a:	2104      	movs	r1, #4
- 8000b3c:	483c      	ldr	r0, [pc, #240]	; (8000c30 <do_peep+0x1b0>)
- 8000b3e:	f006 fb97 	bl	8007270 <HAL_TIM_PWM_Start_DMA>
+ 8000b36:	881b      	ldrh	r3, [r3, #0]
+ 8000b38:	2104      	movs	r1, #4
+ 8000b3a:	483d      	ldr	r0, [pc, #244]	; (8000c30 <do_peep+0x1b0>)
+ 8000b3c:	f006 fb98 	bl	8007270 <HAL_TIM_PWM_Start_DMA>
 			}
 			last_time = HAL_GetTick();
- 8000b42:	f002 ffbb 	bl	8003abc <HAL_GetTick>
- 8000b46:	4603      	mov	r3, r0
- 8000b48:	4a37      	ldr	r2, [pc, #220]	; (8000c28 <do_peep+0x1a8>)
- 8000b4a:	6013      	str	r3, [r2, #0]
+ 8000b40:	f002 ffbc 	bl	8003abc <HAL_GetTick>
+ 8000b44:	4603      	mov	r3, r0
+ 8000b46:	4a38      	ldr	r2, [pc, #224]	; (8000c28 <do_peep+0x1a8>)
+ 8000b48:	6013      	str	r3, [r2, #0]
 			peep_state = 2;
- 8000b4c:	4b35      	ldr	r3, [pc, #212]	; (8000c24 <do_peep+0x1a4>)
- 8000b4e:	2202      	movs	r2, #2
- 8000b50:	701a      	strb	r2, [r3, #0]
+ 8000b4a:	4b36      	ldr	r3, [pc, #216]	; (8000c24 <do_peep+0x1a4>)
+ 8000b4c:	2202      	movs	r2, #2
+ 8000b4e:	701a      	strb	r2, [r3, #0]
 			break;
- 8000b52:	e05b      	b.n	8000c0c <do_peep+0x18c>
+ 8000b50:	e05b      	b.n	8000c0a <do_peep+0x18a>
 		case 2: // wait note length
 			if (HAL_GetTick() - last_time > notes[peep_note].time)
- 8000b54:	f002 ffb2 	bl	8003abc <HAL_GetTick>
- 8000b58:	4602      	mov	r2, r0
- 8000b5a:	4b33      	ldr	r3, [pc, #204]	; (8000c28 <do_peep+0x1a8>)
- 8000b5c:	681b      	ldr	r3, [r3, #0]
- 8000b5e:	1ad2      	subs	r2, r2, r3
- 8000b60:	4b2f      	ldr	r3, [pc, #188]	; (8000c20 <do_peep+0x1a0>)
- 8000b62:	781b      	ldrb	r3, [r3, #0]
- 8000b64:	4618      	mov	r0, r3
- 8000b66:	4931      	ldr	r1, [pc, #196]	; (8000c2c <do_peep+0x1ac>)
- 8000b68:	4603      	mov	r3, r0
- 8000b6a:	005b      	lsls	r3, r3, #1
- 8000b6c:	4403      	add	r3, r0
- 8000b6e:	009b      	lsls	r3, r3, #2
- 8000b70:	440b      	add	r3, r1
- 8000b72:	3308      	adds	r3, #8
- 8000b74:	681b      	ldr	r3, [r3, #0]
- 8000b76:	429a      	cmp	r2, r3
- 8000b78:	d945      	bls.n	8000c06 <do_peep+0x186>
+ 8000b52:	f002 ffb3 	bl	8003abc <HAL_GetTick>
+ 8000b56:	4602      	mov	r2, r0
+ 8000b58:	4b33      	ldr	r3, [pc, #204]	; (8000c28 <do_peep+0x1a8>)
+ 8000b5a:	681b      	ldr	r3, [r3, #0]
+ 8000b5c:	1ad2      	subs	r2, r2, r3
+ 8000b5e:	4b30      	ldr	r3, [pc, #192]	; (8000c20 <do_peep+0x1a0>)
+ 8000b60:	781b      	ldrb	r3, [r3, #0]
+ 8000b62:	4618      	mov	r0, r3
+ 8000b64:	4931      	ldr	r1, [pc, #196]	; (8000c2c <do_peep+0x1ac>)
+ 8000b66:	4603      	mov	r3, r0
+ 8000b68:	005b      	lsls	r3, r3, #1
+ 8000b6a:	4403      	add	r3, r0
+ 8000b6c:	009b      	lsls	r3, r3, #2
+ 8000b6e:	440b      	add	r3, r1
+ 8000b70:	3308      	adds	r3, #8
+ 8000b72:	681b      	ldr	r3, [r3, #0]
+ 8000b74:	429a      	cmp	r2, r3
+ 8000b76:	d945      	bls.n	8000c04 <do_peep+0x184>
 			{
 				if (notes[peep_note].size == 0)
- 8000b7a:	4b29      	ldr	r3, [pc, #164]	; (8000c20 <do_peep+0x1a0>)
- 8000b7c:	781b      	ldrb	r3, [r3, #0]
- 8000b7e:	4619      	mov	r1, r3
- 8000b80:	4a2a      	ldr	r2, [pc, #168]	; (8000c2c <do_peep+0x1ac>)
- 8000b82:	460b      	mov	r3, r1
- 8000b84:	005b      	lsls	r3, r3, #1
- 8000b86:	440b      	add	r3, r1
- 8000b88:	009b      	lsls	r3, r3, #2
- 8000b8a:	4413      	add	r3, r2
- 8000b8c:	3304      	adds	r3, #4
- 8000b8e:	781b      	ldrb	r3, [r3, #0]
- 8000b90:	2b00      	cmp	r3, #0
- 8000b92:	d103      	bne.n	8000b9c <do_peep+0x11c>
+ 8000b78:	4b29      	ldr	r3, [pc, #164]	; (8000c20 <do_peep+0x1a0>)
+ 8000b7a:	781b      	ldrb	r3, [r3, #0]
+ 8000b7c:	4619      	mov	r1, r3
+ 8000b7e:	4a2b      	ldr	r2, [pc, #172]	; (8000c2c <do_peep+0x1ac>)
+ 8000b80:	460b      	mov	r3, r1
+ 8000b82:	005b      	lsls	r3, r3, #1
+ 8000b84:	440b      	add	r3, r1
+ 8000b86:	009b      	lsls	r3, r3, #2
+ 8000b88:	4413      	add	r3, r2
+ 8000b8a:	3304      	adds	r3, #4
+ 8000b8c:	881b      	ldrh	r3, [r3, #0]
+ 8000b8e:	2b00      	cmp	r3, #0
+ 8000b90:	d103      	bne.n	8000b9a <do_peep+0x11a>
 				{
 					// we need only pause, PWM & DMA already disabled
 					peep_state = 4;
- 8000b94:	4b23      	ldr	r3, [pc, #140]	; (8000c24 <do_peep+0x1a4>)
- 8000b96:	2204      	movs	r2, #4
- 8000b98:	701a      	strb	r2, [r3, #0]
+ 8000b92:	4b24      	ldr	r3, [pc, #144]	; (8000c24 <do_peep+0x1a4>)
+ 8000b94:	2204      	movs	r2, #4
+ 8000b96:	701a      	strb	r2, [r3, #0]
 				{
 					peep.stop = true;
 					peep_state = 3;
 				}
 			}
 			break;
- 8000b9a:	e034      	b.n	8000c06 <do_peep+0x186>
+ 8000b98:	e034      	b.n	8000c04 <do_peep+0x184>
 					peep.stop = true;
- 8000b9c:	4b1e      	ldr	r3, [pc, #120]	; (8000c18 <do_peep+0x198>)
- 8000b9e:	2201      	movs	r2, #1
- 8000ba0:	705a      	strb	r2, [r3, #1]
+ 8000b9a:	4b1f      	ldr	r3, [pc, #124]	; (8000c18 <do_peep+0x198>)
+ 8000b9c:	2201      	movs	r2, #1
+ 8000b9e:	705a      	strb	r2, [r3, #1]
 					peep_state = 3;
- 8000ba2:	4b20      	ldr	r3, [pc, #128]	; (8000c24 <do_peep+0x1a4>)
- 8000ba4:	2203      	movs	r2, #3
- 8000ba6:	701a      	strb	r2, [r3, #0]
+ 8000ba0:	4b20      	ldr	r3, [pc, #128]	; (8000c24 <do_peep+0x1a4>)
+ 8000ba2:	2203      	movs	r2, #3
+ 8000ba4:	701a      	strb	r2, [r3, #0]
 			break;
- 8000ba8:	e02d      	b.n	8000c06 <do_peep+0x186>
+ 8000ba6:	e02d      	b.n	8000c04 <do_peep+0x184>
 		case 3: // wait PWM stop
 			if (!peep.stop)
- 8000baa:	4b1b      	ldr	r3, [pc, #108]	; (8000c18 <do_peep+0x198>)
- 8000bac:	785b      	ldrb	r3, [r3, #1]
- 8000bae:	f083 0301 	eor.w	r3, r3, #1
- 8000bb2:	b2db      	uxtb	r3, r3
- 8000bb4:	2b00      	cmp	r3, #0
- 8000bb6:	d028      	beq.n	8000c0a <do_peep+0x18a>
+ 8000ba8:	4b1b      	ldr	r3, [pc, #108]	; (8000c18 <do_peep+0x198>)
+ 8000baa:	785b      	ldrb	r3, [r3, #1]
+ 8000bac:	f083 0301 	eor.w	r3, r3, #1
+ 8000bb0:	b2db      	uxtb	r3, r3
+ 8000bb2:	2b00      	cmp	r3, #0
+ 8000bb4:	d028      	beq.n	8000c08 <do_peep+0x188>
 				peep_state = 4;
- 8000bb8:	4b1a      	ldr	r3, [pc, #104]	; (8000c24 <do_peep+0x1a4>)
- 8000bba:	2204      	movs	r2, #4
- 8000bbc:	701a      	strb	r2, [r3, #0]
+ 8000bb6:	4b1b      	ldr	r3, [pc, #108]	; (8000c24 <do_peep+0x1a4>)
+ 8000bb8:	2204      	movs	r2, #4
+ 8000bba:	701a      	strb	r2, [r3, #0]
 			break;
- 8000bbe:	e024      	b.n	8000c0a <do_peep+0x18a>
+ 8000bbc:	e024      	b.n	8000c08 <do_peep+0x188>
 		case 4: // check if next note to play
 			if (++peep_note < notes_size)
- 8000bc0:	4b17      	ldr	r3, [pc, #92]	; (8000c20 <do_peep+0x1a0>)
- 8000bc2:	781b      	ldrb	r3, [r3, #0]
- 8000bc4:	3301      	adds	r3, #1
- 8000bc6:	b2da      	uxtb	r2, r3
- 8000bc8:	4b15      	ldr	r3, [pc, #84]	; (8000c20 <do_peep+0x1a0>)
- 8000bca:	701a      	strb	r2, [r3, #0]
- 8000bcc:	4b14      	ldr	r3, [pc, #80]	; (8000c20 <do_peep+0x1a0>)
- 8000bce:	781b      	ldrb	r3, [r3, #0]
- 8000bd0:	2204      	movs	r2, #4
- 8000bd2:	4293      	cmp	r3, r2
- 8000bd4:	d203      	bcs.n	8000bde <do_peep+0x15e>
+ 8000bbe:	4b18      	ldr	r3, [pc, #96]	; (8000c20 <do_peep+0x1a0>)
+ 8000bc0:	781b      	ldrb	r3, [r3, #0]
+ 8000bc2:	3301      	adds	r3, #1
+ 8000bc4:	b2da      	uxtb	r2, r3
+ 8000bc6:	4b16      	ldr	r3, [pc, #88]	; (8000c20 <do_peep+0x1a0>)
+ 8000bc8:	701a      	strb	r2, [r3, #0]
+ 8000bca:	4b15      	ldr	r3, [pc, #84]	; (8000c20 <do_peep+0x1a0>)
+ 8000bcc:	781b      	ldrb	r3, [r3, #0]
+ 8000bce:	2237      	movs	r2, #55	; 0x37
+ 8000bd0:	4293      	cmp	r3, r2
+ 8000bd2:	d203      	bcs.n	8000bdc <do_peep+0x15c>
 			{
 				peep_state = 1; // play next note
- 8000bd6:	4b13      	ldr	r3, [pc, #76]	; (8000c24 <do_peep+0x1a4>)
- 8000bd8:	2201      	movs	r2, #1
- 8000bda:	701a      	strb	r2, [r3, #0]
+ 8000bd4:	4b13      	ldr	r3, [pc, #76]	; (8000c24 <do_peep+0x1a4>)
+ 8000bd6:	2201      	movs	r2, #1
+ 8000bd8:	701a      	strb	r2, [r3, #0]
 			else
 			{
 				// we are finished, start again
 				peep_state = 0;
 			}
 			break;
- 8000bdc:	e016      	b.n	8000c0c <do_peep+0x18c>
+ 8000bda:	e016      	b.n	8000c0a <do_peep+0x18a>
 				peep_state = 0;
- 8000bde:	4b11      	ldr	r3, [pc, #68]	; (8000c24 <do_peep+0x1a4>)
- 8000be0:	2200      	movs	r2, #0
- 8000be2:	701a      	strb	r2, [r3, #0]
+ 8000bdc:	4b11      	ldr	r3, [pc, #68]	; (8000c24 <do_peep+0x1a4>)
+ 8000bde:	2200      	movs	r2, #0
+ 8000be0:	701a      	strb	r2, [r3, #0]
 			break;
- 8000be4:	e012      	b.n	8000c0c <do_peep+0x18c>
+ 8000be2:	e012      	b.n	8000c0a <do_peep+0x18a>
 		default:
 			global_error |= errFATAL;
- 8000be6:	4b13      	ldr	r3, [pc, #76]	; (8000c34 <do_peep+0x1b4>)
- 8000be8:	781b      	ldrb	r3, [r3, #0]
- 8000bea:	f043 0340 	orr.w	r3, r3, #64	; 0x40
- 8000bee:	b2da      	uxtb	r2, r3
- 8000bf0:	4b10      	ldr	r3, [pc, #64]	; (8000c34 <do_peep+0x1b4>)
- 8000bf2:	701a      	strb	r2, [r3, #0]
+ 8000be4:	4b13      	ldr	r3, [pc, #76]	; (8000c34 <do_peep+0x1b4>)
+ 8000be6:	781b      	ldrb	r3, [r3, #0]
+ 8000be8:	f043 0340 	orr.w	r3, r3, #64	; 0x40
+ 8000bec:	b2da      	uxtb	r2, r3
+ 8000bee:	4b11      	ldr	r3, [pc, #68]	; (8000c34 <do_peep+0x1b4>)
+ 8000bf0:	701a      	strb	r2, [r3, #0]
 			break;
- 8000bf4:	e00a      	b.n	8000c0c <do_peep+0x18c>
+ 8000bf2:	e00a      	b.n	8000c0a <do_peep+0x18a>
 		}
 	}
 	else if (last_peep)
- 8000bf6:	4b09      	ldr	r3, [pc, #36]	; (8000c1c <do_peep+0x19c>)
- 8000bf8:	781b      	ldrb	r3, [r3, #0]
- 8000bfa:	2b00      	cmp	r3, #0
- 8000bfc:	d006      	beq.n	8000c0c <do_peep+0x18c>
+ 8000bf4:	4b09      	ldr	r3, [pc, #36]	; (8000c1c <do_peep+0x19c>)
+ 8000bf6:	781b      	ldrb	r3, [r3, #0]
+ 8000bf8:	2b00      	cmp	r3, #0
+ 8000bfa:	d006      	beq.n	8000c0a <do_peep+0x18a>
 	{
 		peep.stop = true;
- 8000bfe:	4b06      	ldr	r3, [pc, #24]	; (8000c18 <do_peep+0x198>)
- 8000c00:	2201      	movs	r2, #1
- 8000c02:	705a      	strb	r2, [r3, #1]
- 8000c04:	e002      	b.n	8000c0c <do_peep+0x18c>
+ 8000bfc:	4b06      	ldr	r3, [pc, #24]	; (8000c18 <do_peep+0x198>)
+ 8000bfe:	2201      	movs	r2, #1
+ 8000c00:	705a      	strb	r2, [r3, #1]
+ 8000c02:	e002      	b.n	8000c0a <do_peep+0x18a>
 			break;
- 8000c06:	bf00      	nop
- 8000c08:	e000      	b.n	8000c0c <do_peep+0x18c>
+ 8000c04:	bf00      	nop
+ 8000c06:	e000      	b.n	8000c0a <do_peep+0x18a>
 			break;
- 8000c0a:	bf00      	nop
+ 8000c08:	bf00      	nop
 	}
 	last_peep = peep.peep;
- 8000c0c:	4b02      	ldr	r3, [pc, #8]	; (8000c18 <do_peep+0x198>)
- 8000c0e:	781a      	ldrb	r2, [r3, #0]
- 8000c10:	4b02      	ldr	r3, [pc, #8]	; (8000c1c <do_peep+0x19c>)
- 8000c12:	701a      	strb	r2, [r3, #0]
+ 8000c0a:	4b03      	ldr	r3, [pc, #12]	; (8000c18 <do_peep+0x198>)
+ 8000c0c:	781a      	ldrb	r2, [r3, #0]
+ 8000c0e:	4b03      	ldr	r3, [pc, #12]	; (8000c1c <do_peep+0x19c>)
+ 8000c10:	701a      	strb	r2, [r3, #0]
 }
- 8000c14:	bf00      	nop
- 8000c16:	bd80      	pop	{r7, pc}
+ 8000c12:	bf00      	nop
+ 8000c14:	bd80      	pop	{r7, pc}
+ 8000c16:	bf00      	nop
  8000c18:	2000024c 	.word	0x2000024c
  8000c1c:	20000260 	.word	0x20000260
  8000c20:	20000261 	.word	0x20000261
  8000c24:	20000262 	.word	0x20000262
  8000c28:	20000264 	.word	0x20000264
- 8000c2c:	0800d9e4 	.word	0x0800d9e4
+ 8000c2c:	0800eb0c 	.word	0x0800eb0c
  8000c30:	20000588 	.word	0x20000588
  8000c34:	20000230 	.word	0x20000230
 
-08000c38 <lcd_mini_clear.8550>:
+08000c38 <lcd_mini_clear.8622>:
 
 	/**
 	 * clears left part of the display
@@ -1836,7 +1836,7 @@ void do_peep(void)
  8000c54:	6878      	ldr	r0, [r7, #4]
  8000c56:	f7ff fb6b 	bl	8000330 <lcd_set_xy>
 		lcd_string(lcd, "            ");
- 8000c5a:	4908      	ldr	r1, [pc, #32]	; (8000c7c <lcd_mini_clear.8550+0x44>)
+ 8000c5a:	4908      	ldr	r1, [pc, #32]	; (8000c7c <lcd_mini_clear.8622+0x44>)
  8000c5c:	6878      	ldr	r0, [r7, #4]
  8000c5e:	f7ff fb50 	bl	8000302 <lcd_string>
 		lcd_set_xy(lcd, 0, 1);
@@ -1845,7 +1845,7 @@ void do_peep(void)
  8000c66:	6878      	ldr	r0, [r7, #4]
  8000c68:	f7ff fb62 	bl	8000330 <lcd_set_xy>
 		lcd_string(lcd, "             ");
- 8000c6c:	4904      	ldr	r1, [pc, #16]	; (8000c80 <lcd_mini_clear.8550+0x48>)
+ 8000c6c:	4904      	ldr	r1, [pc, #16]	; (8000c80 <lcd_mini_clear.8622+0x48>)
  8000c6e:	6878      	ldr	r0, [r7, #4]
  8000c70:	f7ff fb47 	bl	8000302 <lcd_string>
 	}
@@ -2280,7 +2280,7 @@ void do_interface(void)
  8000f2e:	e04e      	b.n	8000fce <do_interface+0x34a>
  8000f30:	2000001c 	.word	0x2000001c
  8000f34:	2000001d 	.word	0x2000001d
- 8000f38:	0800da14 	.word	0x0800da14
+ 8000f38:	0800eda0 	.word	0x0800eda0
  8000f3c:	20000268 	.word	0x20000268
  8000f40:	200002b0 	.word	0x200002b0
  8000f44:	20000246 	.word	0x20000246
@@ -2521,7 +2521,7 @@ void do_interface(void)
  800110a:	1d3b      	adds	r3, r7, #4
  800110c:	469c      	mov	ip, r3
  800110e:	4862      	ldr	r0, [pc, #392]	; (8001298 <do_interface+0x614>)
- 8001110:	f7ff fd92 	bl	8000c38 <lcd_mini_clear.8550>
+ 8001110:	f7ff fd92 	bl	8000c38 <lcd_mini_clear.8622>
 		lcd_set_xy(&lcd, 0, 0);
  8001114:	2200      	movs	r2, #0
  8001116:	2100      	movs	r1, #0
@@ -2623,7 +2623,7 @@ void do_interface(void)
  80011d2:	1d3b      	adds	r3, r7, #4
  80011d4:	469c      	mov	ip, r3
  80011d6:	4830      	ldr	r0, [pc, #192]	; (8001298 <do_interface+0x614>)
- 80011d8:	f7ff fd2e 	bl	8000c38 <lcd_mini_clear.8550>
+ 80011d8:	f7ff fd2e 	bl	8000c38 <lcd_mini_clear.8622>
 		lcd_set_xy(&lcd, 0, 1);
  80011dc:	2201      	movs	r2, #1
  80011de:	2100      	movs	r1, #0
@@ -2637,7 +2637,7 @@ void do_interface(void)
  80011ee:	1d3b      	adds	r3, r7, #4
  80011f0:	469c      	mov	ip, r3
  80011f2:	2001      	movs	r0, #1
- 80011f4:	f000 f9a0 	bl	8001538 <heatplate.8565>
+ 80011f4:	f000 f9a0 	bl	8001538 <heatplate.8637>
 		ui_state = uiHEATPLATE;
  80011f8:	4b25      	ldr	r3, [pc, #148]	; (8001290 <do_interface+0x60c>)
  80011fa:	2205      	movs	r2, #5
@@ -2649,7 +2649,7 @@ void do_interface(void)
  8001200:	1d3b      	adds	r3, r7, #4
  8001202:	469c      	mov	ip, r3
  8001204:	2000      	movs	r0, #0
- 8001206:	f000 f997 	bl	8001538 <heatplate.8565>
+ 8001206:	f000 f997 	bl	8001538 <heatplate.8637>
 		break;
  800120a:	e0cf      	b.n	80013ac <do_interface+0x728>
 	case uiSETTINGSenter:
@@ -2679,7 +2679,7 @@ void do_interface(void)
  8001236:	1d3b      	adds	r3, r7, #4
  8001238:	469c      	mov	ip, r3
  800123a:	2001      	movs	r0, #1
- 800123c:	f000 fa7c 	bl	8001738 <do_profile_settings.8572>
+ 800123c:	f000 fa7c 	bl	8001738 <do_profile_settings.8644>
 		break;
  8001240:	e0b4      	b.n	80013ac <do_interface+0x728>
 	case uiSETTINGS:
@@ -2687,7 +2687,7 @@ void do_interface(void)
  8001242:	1d3b      	adds	r3, r7, #4
  8001244:	469c      	mov	ip, r3
  8001246:	2000      	movs	r0, #0
- 8001248:	f000 fa76 	bl	8001738 <do_profile_settings.8572>
+ 8001248:	f000 fa76 	bl	8001738 <do_profile_settings.8644>
  800124c:	4603      	mov	r3, r0
  800124e:	2b00      	cmp	r3, #0
  8001250:	f000 80ab 	beq.w	80013aa <do_interface+0x726>
@@ -2696,7 +2696,7 @@ void do_interface(void)
  8001254:	1d3b      	adds	r3, r7, #4
  8001256:	469c      	mov	ip, r3
  8001258:	480f      	ldr	r0, [pc, #60]	; (8001298 <do_interface+0x614>)
- 800125a:	f7ff fced 	bl	8000c38 <lcd_mini_clear.8550>
+ 800125a:	f7ff fced 	bl	8000c38 <lcd_mini_clear.8622>
 			ui_state = uiREFLOW;
  800125e:	4b0c      	ldr	r3, [pc, #48]	; (8001290 <do_interface+0x60c>)
  8001260:	2208      	movs	r2, #8
@@ -2705,7 +2705,7 @@ void do_interface(void)
  8001264:	1d3b      	adds	r3, r7, #4
  8001266:	469c      	mov	ip, r3
  8001268:	2001      	movs	r0, #1
- 800126a:	f000 ff6d 	bl	8002148 <do_reflow.8608>
+ 800126a:	f000 ff6d 	bl	8002148 <do_reflow.8680>
 		}
 		break;
  800126e:	e09c      	b.n	80013aa <do_interface+0x726>
@@ -2736,7 +2736,7 @@ void do_interface(void)
  80012c8:	1d3b      	adds	r3, r7, #4
  80012ca:	469c      	mov	ip, r3
  80012cc:	2000      	movs	r0, #0
- 80012ce:	f000 ff3b 	bl	8002148 <do_reflow.8608>
+ 80012ce:	f000 ff3b 	bl	8002148 <do_reflow.8680>
 		break;
  80012d2:	e06b      	b.n	80013ac <do_interface+0x728>
 	case uiMALFUNCTION: // just check errors
@@ -2899,7 +2899,7 @@ void do_interface(void)
  80013f0:	20000234 	.word	0x20000234
  80013f4:	200002c0 	.word	0x200002c0
 
-080013f8 <change_temperature.8554>:
+080013f8 <change_temperature.8626>:
 	{
  80013f8:	b480      	push	{r7}
  80013fa:	b087      	sub	sp, #28
@@ -2911,16 +2911,16 @@ void do_interface(void)
 		if (diff == 0)
  8001408:	f9b7 300a 	ldrsh.w	r3, [r7, #10]
  800140c:	2b00      	cmp	r3, #0
- 800140e:	d101      	bne.n	8001414 <change_temperature.8554+0x1c>
+ 800140e:	d101      	bne.n	8001414 <change_temperature.8626+0x1c>
 			return t;
  8001410:	68fb      	ldr	r3, [r7, #12]
- 8001412:	e021      	b.n	8001458 <change_temperature.8554+0x60>
+ 8001412:	e021      	b.n	8001458 <change_temperature.8626+0x60>
 		int32_t temp = (int32_t)t; // to avoid zero-cross
  8001414:	68fb      	ldr	r3, [r7, #12]
  8001416:	617b      	str	r3, [r7, #20]
 		temp = (temp / STEP_TEMP) * STEP_TEMP; // round for more beauty
  8001418:	697b      	ldr	r3, [r7, #20]
- 800141a:	4a12      	ldr	r2, [pc, #72]	; (8001464 <change_temperature.8554+0x6c>)
+ 800141a:	4a12      	ldr	r2, [pc, #72]	; (8001464 <change_temperature.8626+0x6c>)
  800141c:	fb82 1203 	smull	r1, r2, r2, r3
  8001420:	1052      	asrs	r2, r2, #1
  8001422:	17db      	asrs	r3, r3, #31
@@ -2940,14 +2940,14 @@ void do_interface(void)
 		if (temp < 0)
  800143e:	697b      	ldr	r3, [r7, #20]
  8001440:	2b00      	cmp	r3, #0
- 8001442:	da01      	bge.n	8001448 <change_temperature.8554+0x50>
+ 8001442:	da01      	bge.n	8001448 <change_temperature.8626+0x50>
 			temp = 0;
  8001444:	2300      	movs	r3, #0
  8001446:	617b      	str	r3, [r7, #20]
 		if (temp > MAX_TEMP)
  8001448:	697b      	ldr	r3, [r7, #20]
  800144a:	f5b3 7f87 	cmp.w	r3, #270	; 0x10e
- 800144e:	dd02      	ble.n	8001456 <change_temperature.8554+0x5e>
+ 800144e:	dd02      	ble.n	8001456 <change_temperature.8626+0x5e>
 			temp = MAX_TEMP;
  8001450:	f44f 7387 	mov.w	r3, #270	; 0x10e
  8001454:	617b      	str	r3, [r7, #20]
@@ -2962,7 +2962,7 @@ void do_interface(void)
  8001462:	bf00      	nop
  8001464:	66666667 	.word	0x66666667
 
-08001468 <change_time.8560>:
+08001468 <change_time.8632>:
 	{
  8001468:	b480      	push	{r7}
  800146a:	b087      	sub	sp, #28
@@ -2982,66 +2982,66 @@ void do_interface(void)
 		if (t < 60)
  8001484:	68fb      	ldr	r3, [r7, #12]
  8001486:	2b3b      	cmp	r3, #59	; 0x3b
- 8001488:	d802      	bhi.n	8001490 <change_time.8560+0x28>
+ 8001488:	d802      	bhi.n	8001490 <change_time.8632+0x28>
 			step = 5;
  800148a:	2305      	movs	r3, #5
  800148c:	613b      	str	r3, [r7, #16]
- 800148e:	e02d      	b.n	80014ec <change_time.8560+0x84>
+ 800148e:	e02d      	b.n	80014ec <change_time.8632+0x84>
 		else if (t < 120)
  8001490:	68fb      	ldr	r3, [r7, #12]
  8001492:	2b77      	cmp	r3, #119	; 0x77
- 8001494:	d802      	bhi.n	800149c <change_time.8560+0x34>
+ 8001494:	d802      	bhi.n	800149c <change_time.8632+0x34>
 			step = 10;
  8001496:	230a      	movs	r3, #10
  8001498:	613b      	str	r3, [r7, #16]
- 800149a:	e027      	b.n	80014ec <change_time.8560+0x84>
+ 800149a:	e027      	b.n	80014ec <change_time.8632+0x84>
 		else if (t < 300)
  800149c:	68fb      	ldr	r3, [r7, #12]
  800149e:	f5b3 7f96 	cmp.w	r3, #300	; 0x12c
- 80014a2:	d202      	bcs.n	80014aa <change_time.8560+0x42>
+ 80014a2:	d202      	bcs.n	80014aa <change_time.8632+0x42>
 			step = 20;
  80014a4:	2314      	movs	r3, #20
  80014a6:	613b      	str	r3, [r7, #16]
- 80014a8:	e020      	b.n	80014ec <change_time.8560+0x84>
+ 80014a8:	e020      	b.n	80014ec <change_time.8632+0x84>
 		else if (t < 600)
  80014aa:	68fb      	ldr	r3, [r7, #12]
  80014ac:	f5b3 7f16 	cmp.w	r3, #600	; 0x258
- 80014b0:	d202      	bcs.n	80014b8 <change_time.8560+0x50>
+ 80014b0:	d202      	bcs.n	80014b8 <change_time.8632+0x50>
 			step = 30;
  80014b2:	231e      	movs	r3, #30
  80014b4:	613b      	str	r3, [r7, #16]
- 80014b6:	e019      	b.n	80014ec <change_time.8560+0x84>
+ 80014b6:	e019      	b.n	80014ec <change_time.8632+0x84>
 		else if (t < 1200)
  80014b8:	68fb      	ldr	r3, [r7, #12]
  80014ba:	f5b3 6f96 	cmp.w	r3, #1200	; 0x4b0
- 80014be:	d202      	bcs.n	80014c6 <change_time.8560+0x5e>
+ 80014be:	d202      	bcs.n	80014c6 <change_time.8632+0x5e>
 			step = 60;
  80014c0:	233c      	movs	r3, #60	; 0x3c
  80014c2:	613b      	str	r3, [r7, #16]
- 80014c4:	e012      	b.n	80014ec <change_time.8560+0x84>
+ 80014c4:	e012      	b.n	80014ec <change_time.8632+0x84>
 		else if (t < 3600)
  80014c6:	68fb      	ldr	r3, [r7, #12]
  80014c8:	f5b3 6f61 	cmp.w	r3, #3600	; 0xe10
- 80014cc:	d203      	bcs.n	80014d6 <change_time.8560+0x6e>
+ 80014cc:	d203      	bcs.n	80014d6 <change_time.8632+0x6e>
 			step = 300;
  80014ce:	f44f 7396 	mov.w	r3, #300	; 0x12c
  80014d2:	613b      	str	r3, [r7, #16]
- 80014d4:	e00a      	b.n	80014ec <change_time.8560+0x84>
+ 80014d4:	e00a      	b.n	80014ec <change_time.8632+0x84>
 		else if (t < 7200)
  80014d6:	68fb      	ldr	r3, [r7, #12]
  80014d8:	f5b3 5fe1 	cmp.w	r3, #7200	; 0x1c20
- 80014dc:	d203      	bcs.n	80014e6 <change_time.8560+0x7e>
+ 80014dc:	d203      	bcs.n	80014e6 <change_time.8632+0x7e>
 			step = 600;
  80014de:	f44f 7316 	mov.w	r3, #600	; 0x258
  80014e2:	613b      	str	r3, [r7, #16]
- 80014e4:	e002      	b.n	80014ec <change_time.8560+0x84>
+ 80014e4:	e002      	b.n	80014ec <change_time.8632+0x84>
 			step = 1800;
  80014e6:	f44f 63e1 	mov.w	r3, #1800	; 0x708
  80014ea:	613b      	str	r3, [r7, #16]
 		if (round)
  80014ec:	7a7b      	ldrb	r3, [r7, #9]
  80014ee:	2b00      	cmp	r3, #0
- 80014f0:	d007      	beq.n	8001502 <change_time.8560+0x9a>
+ 80014f0:	d007      	beq.n	8001502 <change_time.8632+0x9a>
 			temp = (temp / step) * step; // round
  80014f2:	697a      	ldr	r2, [r7, #20]
  80014f4:	693b      	ldr	r3, [r7, #16]
@@ -3059,7 +3059,7 @@ void do_interface(void)
 		if (temp < 5)
  8001512:	697b      	ldr	r3, [r7, #20]
  8001514:	2b04      	cmp	r3, #4
- 8001516:	dc01      	bgt.n	800151c <change_time.8560+0xb4>
+ 8001516:	dc01      	bgt.n	800151c <change_time.8632+0xb4>
 			temp = 5;
  8001518:	2305      	movs	r3, #5
  800151a:	617b      	str	r3, [r7, #20]
@@ -3067,7 +3067,7 @@ void do_interface(void)
  800151c:	697b      	ldr	r3, [r7, #20]
  800151e:	f24d 22f0 	movw	r2, #54000	; 0xd2f0
  8001522:	4293      	cmp	r3, r2
- 8001524:	dd02      	ble.n	800152c <change_time.8560+0xc4>
+ 8001524:	dd02      	ble.n	800152c <change_time.8632+0xc4>
 			temp = 900*60;
  8001526:	f24d 23f0 	movw	r3, #54000	; 0xd2f0
  800152a:	617b      	str	r3, [r7, #20]
@@ -3080,7 +3080,7 @@ void do_interface(void)
  8001534:	bc80      	pop	{r7}
  8001536:	4770      	bx	lr
 
-08001538 <heatplate.8565>:
+08001538 <heatplate.8637>:
 	{
  8001538:	b580      	push	{r7, lr}
  800153a:	b086      	sub	sp, #24
@@ -3092,35 +3092,35 @@ void do_interface(void)
 		if (reset)
  8001548:	79fb      	ldrb	r3, [r7, #7]
  800154a:	2b00      	cmp	r3, #0
- 800154c:	d009      	beq.n	8001562 <heatplate.8565+0x2a>
+ 800154c:	d009      	beq.n	8001562 <heatplate.8637+0x2a>
 			last_encoder = encoder.value;
- 800154e:	4b3b      	ldr	r3, [pc, #236]	; (800163c <heatplate.8565+0x104>)
+ 800154e:	4b3b      	ldr	r3, [pc, #236]	; (800163c <heatplate.8637+0x104>)
  8001550:	881a      	ldrh	r2, [r3, #0]
- 8001552:	4b3b      	ldr	r3, [pc, #236]	; (8001640 <heatplate.8565+0x108>)
+ 8001552:	4b3b      	ldr	r3, [pc, #236]	; (8001640 <heatplate.8637+0x108>)
  8001554:	801a      	strh	r2, [r3, #0]
 			last_time = HAL_GetTick();
  8001556:	f002 fab1 	bl	8003abc <HAL_GetTick>
  800155a:	4603      	mov	r3, r0
- 800155c:	4a39      	ldr	r2, [pc, #228]	; (8001644 <heatplate.8565+0x10c>)
+ 800155c:	4a39      	ldr	r2, [pc, #228]	; (8001644 <heatplate.8637+0x10c>)
  800155e:	6013      	str	r3, [r2, #0]
- 8001560:	e069      	b.n	8001636 <heatplate.8565+0xfe>
+ 8001560:	e069      	b.n	8001636 <heatplate.8637+0xfe>
 		if (encoder.pressed)
- 8001562:	4b36      	ldr	r3, [pc, #216]	; (800163c <heatplate.8565+0x104>)
+ 8001562:	4b36      	ldr	r3, [pc, #216]	; (800163c <heatplate.8637+0x104>)
  8001564:	789b      	ldrb	r3, [r3, #2]
  8001566:	2b00      	cmp	r3, #0
- 8001568:	d002      	beq.n	8001570 <heatplate.8565+0x38>
+ 8001568:	d002      	beq.n	8001570 <heatplate.8637+0x38>
 			temperature_SP = 0;
- 800156a:	4b37      	ldr	r3, [pc, #220]	; (8001648 <heatplate.8565+0x110>)
+ 800156a:	4b37      	ldr	r3, [pc, #220]	; (8001648 <heatplate.8637+0x110>)
  800156c:	2200      	movs	r2, #0
  800156e:	801a      	strh	r2, [r3, #0]
 		temperature_SP = change_temperature(temperature_SP,
- 8001570:	4b35      	ldr	r3, [pc, #212]	; (8001648 <heatplate.8565+0x110>)
+ 8001570:	4b35      	ldr	r3, [pc, #212]	; (8001648 <heatplate.8637+0x110>)
  8001572:	881b      	ldrh	r3, [r3, #0]
  8001574:	4618      	mov	r0, r3
 							encoder.value - last_encoder);
- 8001576:	4b31      	ldr	r3, [pc, #196]	; (800163c <heatplate.8565+0x104>)
+ 8001576:	4b31      	ldr	r3, [pc, #196]	; (800163c <heatplate.8637+0x104>)
  8001578:	881a      	ldrh	r2, [r3, #0]
- 800157a:	4b31      	ldr	r3, [pc, #196]	; (8001640 <heatplate.8565+0x108>)
+ 800157a:	4b31      	ldr	r3, [pc, #196]	; (8001640 <heatplate.8637+0x108>)
  800157c:	881b      	ldrh	r3, [r3, #0]
  800157e:	1ad3      	subs	r3, r2, r3
  8001580:	b29b      	uxth	r3, r3
@@ -3128,15 +3128,15 @@ void do_interface(void)
  8001582:	b21b      	sxth	r3, r3
  8001584:	468c      	mov	ip, r1
  8001586:	4619      	mov	r1, r3
- 8001588:	f7ff ff36 	bl	80013f8 <change_temperature.8554>
+ 8001588:	f7ff ff36 	bl	80013f8 <change_temperature.8626>
  800158c:	4603      	mov	r3, r0
  800158e:	b29a      	uxth	r2, r3
- 8001590:	4b2d      	ldr	r3, [pc, #180]	; (8001648 <heatplate.8565+0x110>)
+ 8001590:	4b2d      	ldr	r3, [pc, #180]	; (8001648 <heatplate.8637+0x110>)
  8001592:	801a      	strh	r2, [r3, #0]
 		last_encoder = encoder.value;
- 8001594:	4b29      	ldr	r3, [pc, #164]	; (800163c <heatplate.8565+0x104>)
+ 8001594:	4b29      	ldr	r3, [pc, #164]	; (800163c <heatplate.8637+0x104>)
  8001596:	881a      	ldrh	r2, [r3, #0]
- 8001598:	4b29      	ldr	r3, [pc, #164]	; (8001640 <heatplate.8565+0x108>)
+ 8001598:	4b29      	ldr	r3, [pc, #164]	; (8001640 <heatplate.8637+0x108>)
  800159a:	801a      	strh	r2, [r3, #0]
 		tbuf[0] = '+';
  800159c:	232b      	movs	r3, #43	; 0x2b
@@ -3144,10 +3144,10 @@ void do_interface(void)
 		int2time((HAL_GetTick() - last_time)/1000, tbuf+1);
  80015a0:	f002 fa8c 	bl	8003abc <HAL_GetTick>
  80015a4:	4602      	mov	r2, r0
- 80015a6:	4b27      	ldr	r3, [pc, #156]	; (8001644 <heatplate.8565+0x10c>)
+ 80015a6:	4b27      	ldr	r3, [pc, #156]	; (8001644 <heatplate.8637+0x10c>)
  80015a8:	681b      	ldr	r3, [r3, #0]
  80015aa:	1ad3      	subs	r3, r2, r3
- 80015ac:	4a27      	ldr	r2, [pc, #156]	; (800164c <heatplate.8565+0x114>)
+ 80015ac:	4a27      	ldr	r2, [pc, #156]	; (800164c <heatplate.8637+0x114>)
  80015ae:	fba2 2303 	umull	r2, r3, r2, r3
  80015b2:	099a      	lsrs	r2, r3, #6
  80015b4:	f107 0310 	add.w	r3, r7, #16
@@ -3158,15 +3158,15 @@ void do_interface(void)
 		lcd_set_xy(&lcd, 0, 0);
  80015c2:	2200      	movs	r2, #0
  80015c4:	2100      	movs	r1, #0
- 80015c6:	4822      	ldr	r0, [pc, #136]	; (8001650 <heatplate.8565+0x118>)
+ 80015c6:	4822      	ldr	r0, [pc, #136]	; (8001650 <heatplate.8637+0x118>)
  80015c8:	f7fe feb2 	bl	8000330 <lcd_set_xy>
 		lcd_string(&lcd, (char*)tbuf);
  80015cc:	f107 0310 	add.w	r3, r7, #16
  80015d0:	4619      	mov	r1, r3
- 80015d2:	481f      	ldr	r0, [pc, #124]	; (8001650 <heatplate.8565+0x118>)
+ 80015d2:	481f      	ldr	r0, [pc, #124]	; (8001650 <heatplate.8637+0x118>)
  80015d4:	f7fe fe95 	bl	8000302 <lcd_string>
 		int2string(temperature_SP, buf, sizeof(buf));
- 80015d8:	4b1b      	ldr	r3, [pc, #108]	; (8001648 <heatplate.8565+0x110>)
+ 80015d8:	4b1b      	ldr	r3, [pc, #108]	; (8001648 <heatplate.8637+0x110>)
  80015da:	881b      	ldrh	r3, [r3, #0]
  80015dc:	4618      	mov	r0, r3
  80015de:	f107 030c 	add.w	r3, r7, #12
@@ -3176,29 +3176,29 @@ void do_interface(void)
 		lcd_set_xy(&lcd, 7, 0);
  80015ea:	2200      	movs	r2, #0
  80015ec:	2107      	movs	r1, #7
- 80015ee:	4818      	ldr	r0, [pc, #96]	; (8001650 <heatplate.8565+0x118>)
+ 80015ee:	4818      	ldr	r0, [pc, #96]	; (8001650 <heatplate.8637+0x118>)
  80015f0:	f7fe fe9e 	bl	8000330 <lcd_set_xy>
 		lcd_out(&lcd, buf, sizeof(buf));
  80015f4:	f107 030c 	add.w	r3, r7, #12
  80015f8:	2203      	movs	r2, #3
  80015fa:	4619      	mov	r1, r3
- 80015fc:	4814      	ldr	r0, [pc, #80]	; (8001650 <heatplate.8565+0x118>)
+ 80015fc:	4814      	ldr	r0, [pc, #80]	; (8001650 <heatplate.8637+0x118>)
  80015fe:	f7fe fe62 	bl	80002c6 <lcd_out>
 		lcd_write_data(&lcd, scGRAD); // grad
  8001602:	21df      	movs	r1, #223	; 0xdf
- 8001604:	4812      	ldr	r0, [pc, #72]	; (8001650 <heatplate.8565+0x118>)
+ 8001604:	4812      	ldr	r0, [pc, #72]	; (8001650 <heatplate.8637+0x118>)
  8001606:	f7fe ff19 	bl	800043c <lcd_write_data>
 		lcd_write_data(&lcd, scAR); // arrow right
  800160a:	217e      	movs	r1, #126	; 0x7e
- 800160c:	4810      	ldr	r0, [pc, #64]	; (8001650 <heatplate.8565+0x118>)
+ 800160c:	4810      	ldr	r0, [pc, #64]	; (8001650 <heatplate.8637+0x118>)
  800160e:	f7fe ff15 	bl	800043c <lcd_write_data>
 		lcd_set_xy(&lcd, 9, 0);
  8001612:	2200      	movs	r2, #0
  8001614:	2109      	movs	r1, #9
- 8001616:	480e      	ldr	r0, [pc, #56]	; (8001650 <heatplate.8565+0x118>)
+ 8001616:	480e      	ldr	r0, [pc, #56]	; (8001650 <heatplate.8637+0x118>)
  8001618:	f7fe fe8a 	bl	8000330 <lcd_set_xy>
 		lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 800161c:	4b0d      	ldr	r3, [pc, #52]	; (8001654 <heatplate.8565+0x11c>)
+ 800161c:	4b0d      	ldr	r3, [pc, #52]	; (8001654 <heatplate.8637+0x11c>)
  800161e:	781b      	ldrb	r3, [r3, #0]
  8001620:	2b04      	cmp	r3, #4
  8001622:	bf94      	ite	ls
@@ -3208,7 +3208,7 @@ void do_interface(void)
  800162a:	461a      	mov	r2, r3
  800162c:	2300      	movs	r3, #0
  800162e:	2101      	movs	r1, #1
- 8001630:	4807      	ldr	r0, [pc, #28]	; (8001650 <heatplate.8565+0x118>)
+ 8001630:	4807      	ldr	r0, [pc, #28]	; (8001650 <heatplate.8637+0x118>)
  8001632:	f7fe fe1b 	bl	800026c <lcd_mode>
 	}
  8001636:	3718      	adds	r7, #24
@@ -3222,7 +3222,7 @@ void do_interface(void)
  8001650:	20000570 	.word	0x20000570
  8001654:	20000231 	.word	0x20000231
 
-08001658 <show_step_menu.8582>:
+08001658 <show_step_menu.8654>:
 		{
  8001658:	b590      	push	{r4, r7, lr}
  800165a:	b085      	sub	sp, #20
@@ -3230,9 +3230,9 @@ void do_interface(void)
  800165e:	4664      	mov	r4, ip
  8001660:	f8c7 c004 	str.w	ip, [r7, #4]
 			int2time(steps[pos].time, time_buf);
- 8001664:	4b2f      	ldr	r3, [pc, #188]	; (8001724 <show_step_menu.8582+0xcc>)
+ 8001664:	4b2f      	ldr	r3, [pc, #188]	; (8001724 <show_step_menu.8654+0xcc>)
  8001666:	f993 3000 	ldrsb.w	r3, [r3]
- 800166a:	4a2f      	ldr	r2, [pc, #188]	; (8001728 <show_step_menu.8582+0xd0>)
+ 800166a:	4a2f      	ldr	r2, [pc, #188]	; (8001728 <show_step_menu.8654+0xd0>)
  800166c:	00db      	lsls	r3, r3, #3
  800166e:	4413      	add	r3, r2
  8001670:	685b      	ldr	r3, [r3, #4]
@@ -3243,18 +3243,18 @@ void do_interface(void)
 			lcd_set_xy(&lcd, 5, 1);
  800167c:	2201      	movs	r2, #1
  800167e:	2105      	movs	r1, #5
- 8001680:	482a      	ldr	r0, [pc, #168]	; (800172c <show_step_menu.8582+0xd4>)
+ 8001680:	482a      	ldr	r0, [pc, #168]	; (800172c <show_step_menu.8654+0xd4>)
  8001682:	f7fe fe55 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, (char*)time_buf);
  8001686:	4623      	mov	r3, r4
  8001688:	4619      	mov	r1, r3
- 800168a:	4828      	ldr	r0, [pc, #160]	; (800172c <show_step_menu.8582+0xd4>)
+ 800168a:	4828      	ldr	r0, [pc, #160]	; (800172c <show_step_menu.8654+0xd4>)
  800168c:	f7fe fe39 	bl	8000302 <lcd_string>
 			int2string(steps[pos].temp, buf, sizeof(buf));
- 8001690:	4b24      	ldr	r3, [pc, #144]	; (8001724 <show_step_menu.8582+0xcc>)
+ 8001690:	4b24      	ldr	r3, [pc, #144]	; (8001724 <show_step_menu.8654+0xcc>)
  8001692:	f993 3000 	ldrsb.w	r3, [r3]
  8001696:	461a      	mov	r2, r3
- 8001698:	4b23      	ldr	r3, [pc, #140]	; (8001728 <show_step_menu.8582+0xd0>)
+ 8001698:	4b23      	ldr	r3, [pc, #140]	; (8001728 <show_step_menu.8654+0xd0>)
  800169a:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  800169e:	4618      	mov	r0, r3
  80016a0:	f107 030c 	add.w	r3, r7, #12
@@ -3264,55 +3264,55 @@ void do_interface(void)
 			lcd_set_xy(&lcd, 0, 1);
  80016ac:	2201      	movs	r2, #1
  80016ae:	2100      	movs	r1, #0
- 80016b0:	481e      	ldr	r0, [pc, #120]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016b0:	481e      	ldr	r0, [pc, #120]	; (800172c <show_step_menu.8654+0xd4>)
  80016b2:	f7fe fe3d 	bl	8000330 <lcd_set_xy>
 			lcd_out(&lcd, buf, sizeof(buf));
  80016b6:	f107 030c 	add.w	r3, r7, #12
  80016ba:	2203      	movs	r2, #3
  80016bc:	4619      	mov	r1, r3
- 80016be:	481b      	ldr	r0, [pc, #108]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016be:	481b      	ldr	r0, [pc, #108]	; (800172c <show_step_menu.8654+0xd4>)
  80016c0:	f7fe fe01 	bl	80002c6 <lcd_out>
 			lcd_write_data(&lcd, scGRAD); // grad
  80016c4:	21df      	movs	r1, #223	; 0xdf
- 80016c6:	4819      	ldr	r0, [pc, #100]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016c6:	4819      	ldr	r0, [pc, #100]	; (800172c <show_step_menu.8654+0xd4>)
  80016c8:	f7fe feb8 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, ' ');
  80016cc:	2120      	movs	r1, #32
- 80016ce:	4817      	ldr	r0, [pc, #92]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016ce:	4817      	ldr	r0, [pc, #92]	; (800172c <show_step_menu.8654+0xd4>)
  80016d0:	f7fe feb4 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 0, 0);
  80016d4:	2200      	movs	r2, #0
  80016d6:	2100      	movs	r1, #0
- 80016d8:	4814      	ldr	r0, [pc, #80]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016d8:	4814      	ldr	r0, [pc, #80]	; (800172c <show_step_menu.8654+0xd4>)
  80016da:	f7fe fe29 	bl	8000330 <lcd_set_xy>
 			lcd_write_data(&lcd, '#');
  80016de:	2123      	movs	r1, #35	; 0x23
- 80016e0:	4812      	ldr	r0, [pc, #72]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016e0:	4812      	ldr	r0, [pc, #72]	; (800172c <show_step_menu.8654+0xd4>)
  80016e2:	f7fe feab 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, pos+'1');
- 80016e6:	4b0f      	ldr	r3, [pc, #60]	; (8001724 <show_step_menu.8582+0xcc>)
+ 80016e6:	4b0f      	ldr	r3, [pc, #60]	; (8001724 <show_step_menu.8654+0xcc>)
  80016e8:	f993 3000 	ldrsb.w	r3, [r3]
  80016ec:	b2db      	uxtb	r3, r3
  80016ee:	3331      	adds	r3, #49	; 0x31
  80016f0:	b2db      	uxtb	r3, r3
  80016f2:	4619      	mov	r1, r3
- 80016f4:	480d      	ldr	r0, [pc, #52]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016f4:	480d      	ldr	r0, [pc, #52]	; (800172c <show_step_menu.8654+0xd4>)
  80016f6:	f7fe fea1 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, '/');
  80016fa:	212f      	movs	r1, #47	; 0x2f
- 80016fc:	480b      	ldr	r0, [pc, #44]	; (800172c <show_step_menu.8582+0xd4>)
+ 80016fc:	480b      	ldr	r0, [pc, #44]	; (800172c <show_step_menu.8654+0xd4>)
  80016fe:	f7fe fe9d 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, max_steps + '0');
- 8001702:	4b0b      	ldr	r3, [pc, #44]	; (8001730 <show_step_menu.8582+0xd8>)
+ 8001702:	4b0b      	ldr	r3, [pc, #44]	; (8001730 <show_step_menu.8654+0xd8>)
  8001704:	781b      	ldrb	r3, [r3, #0]
  8001706:	3330      	adds	r3, #48	; 0x30
  8001708:	b2db      	uxtb	r3, r3
  800170a:	4619      	mov	r1, r3
- 800170c:	4807      	ldr	r0, [pc, #28]	; (800172c <show_step_menu.8582+0xd4>)
+ 800170c:	4807      	ldr	r0, [pc, #28]	; (800172c <show_step_menu.8654+0xd4>)
  800170e:	f7fe fe95 	bl	800043c <lcd_write_data>
 			lcd_string(&lcd, " step   ");
- 8001712:	4908      	ldr	r1, [pc, #32]	; (8001734 <show_step_menu.8582+0xdc>)
- 8001714:	4805      	ldr	r0, [pc, #20]	; (800172c <show_step_menu.8582+0xd4>)
+ 8001712:	4908      	ldr	r1, [pc, #32]	; (8001734 <show_step_menu.8654+0xdc>)
+ 8001714:	4805      	ldr	r0, [pc, #20]	; (800172c <show_step_menu.8654+0xd4>)
  8001716:	f7fe fdf4 	bl	8000302 <lcd_string>
 		}
  800171a:	bf00      	nop
@@ -3326,7 +3326,7 @@ void do_interface(void)
  8001730:	2000001d 	.word	0x2000001d
  8001734:	0800d788 	.word	0x0800d788
 
-08001738 <do_profile_settings.8572>:
+08001738 <do_profile_settings.8644>:
 	{
  8001738:	b5b0      	push	{r4, r5, r7, lr}
  800173a:	b088      	sub	sp, #32
@@ -3341,58 +3341,58 @@ void do_interface(void)
 		if (reset)
  800174e:	79fb      	ldrb	r3, [r7, #7]
  8001750:	2b00      	cmp	r3, #0
- 8001752:	d011      	beq.n	8001778 <do_profile_settings.8572+0x40>
+ 8001752:	d011      	beq.n	8001778 <do_profile_settings.8644+0x40>
 			last_encoder = encoder.value;
- 8001754:	4bb6      	ldr	r3, [pc, #728]	; (8001a30 <do_profile_settings.8572+0x2f8>)
+ 8001754:	4bb6      	ldr	r3, [pc, #728]	; (8001a30 <do_profile_settings.8644+0x2f8>)
  8001756:	881a      	ldrh	r2, [r3, #0]
- 8001758:	4bb6      	ldr	r3, [pc, #728]	; (8001a34 <do_profile_settings.8572+0x2fc>)
+ 8001758:	4bb6      	ldr	r3, [pc, #728]	; (8001a34 <do_profile_settings.8644+0x2fc>)
  800175a:	801a      	strh	r2, [r3, #0]
 			pos = 0;
- 800175c:	4bb6      	ldr	r3, [pc, #728]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 800175c:	4bb6      	ldr	r3, [pc, #728]	; (8001a38 <do_profile_settings.8644+0x300>)
  800175e:	2200      	movs	r2, #0
  8001760:	701a      	strb	r2, [r3, #0]
 			profile_state = 0;
- 8001762:	4bb6      	ldr	r3, [pc, #728]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 8001762:	4bb6      	ldr	r3, [pc, #728]	; (8001a3c <do_profile_settings.8644+0x304>)
  8001764:	2200      	movs	r2, #0
  8001766:	701a      	strb	r2, [r3, #0]
 			last_time = HAL_GetTick();
  8001768:	f002 f9a8 	bl	8003abc <HAL_GetTick>
  800176c:	4603      	mov	r3, r0
- 800176e:	4ab4      	ldr	r2, [pc, #720]	; (8001a40 <do_profile_settings.8572+0x308>)
+ 800176e:	4ab4      	ldr	r2, [pc, #720]	; (8001a40 <do_profile_settings.8644+0x308>)
  8001770:	6013      	str	r3, [r2, #0]
 			return false;
  8001772:	2300      	movs	r3, #0
- 8001774:	f000 bccc 	b.w	8002110 <do_profile_settings.8572+0x9d8>
+ 8001774:	f000 bccc 	b.w	8002110 <do_profile_settings.8644+0x9d8>
 		if (HAL_GetTick() - last_time < 1000)
  8001778:	f002 f9a0 	bl	8003abc <HAL_GetTick>
  800177c:	4602      	mov	r2, r0
- 800177e:	4bb0      	ldr	r3, [pc, #704]	; (8001a40 <do_profile_settings.8572+0x308>)
+ 800177e:	4bb0      	ldr	r3, [pc, #704]	; (8001a40 <do_profile_settings.8644+0x308>)
  8001780:	681b      	ldr	r3, [r3, #0]
  8001782:	1ad3      	subs	r3, r2, r3
  8001784:	f5b3 7f7a 	cmp.w	r3, #1000	; 0x3e8
- 8001788:	d202      	bcs.n	8001790 <do_profile_settings.8572+0x58>
+ 8001788:	d202      	bcs.n	8001790 <do_profile_settings.8644+0x58>
 			return false; // delay to show intro text
  800178a:	2300      	movs	r3, #0
- 800178c:	f000 bcc0 	b.w	8002110 <do_profile_settings.8572+0x9d8>
+ 800178c:	f000 bcc0 	b.w	8002110 <do_profile_settings.8644+0x9d8>
 		int32_t diff = encoder.value - last_encoder;
- 8001790:	4ba7      	ldr	r3, [pc, #668]	; (8001a30 <do_profile_settings.8572+0x2f8>)
+ 8001790:	4ba7      	ldr	r3, [pc, #668]	; (8001a30 <do_profile_settings.8644+0x2f8>)
  8001792:	881b      	ldrh	r3, [r3, #0]
  8001794:	461a      	mov	r2, r3
- 8001796:	4ba7      	ldr	r3, [pc, #668]	; (8001a34 <do_profile_settings.8572+0x2fc>)
+ 8001796:	4ba7      	ldr	r3, [pc, #668]	; (8001a34 <do_profile_settings.8644+0x2fc>)
  8001798:	881b      	ldrh	r3, [r3, #0]
  800179a:	1ad3      	subs	r3, r2, r3
  800179c:	617b      	str	r3, [r7, #20]
 		last_encoder = encoder.value;
- 800179e:	4ba4      	ldr	r3, [pc, #656]	; (8001a30 <do_profile_settings.8572+0x2f8>)
+ 800179e:	4ba4      	ldr	r3, [pc, #656]	; (8001a30 <do_profile_settings.8644+0x2f8>)
  80017a0:	881a      	ldrh	r2, [r3, #0]
- 80017a2:	4ba4      	ldr	r3, [pc, #656]	; (8001a34 <do_profile_settings.8572+0x2fc>)
+ 80017a2:	4ba4      	ldr	r3, [pc, #656]	; (8001a34 <do_profile_settings.8644+0x2fc>)
  80017a4:	801a      	strh	r2, [r3, #0]
 		switch (profile_state)
- 80017a6:	4ba5      	ldr	r3, [pc, #660]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 80017a6:	4ba5      	ldr	r3, [pc, #660]	; (8001a3c <do_profile_settings.8644+0x304>)
  80017a8:	781b      	ldrb	r3, [r3, #0]
  80017aa:	2b5a      	cmp	r3, #90	; 0x5a
- 80017ac:	f200 84a2 	bhi.w	80020f4 <do_profile_settings.8572+0x9bc>
- 80017b0:	a201      	add	r2, pc, #4	; (adr r2, 80017b8 <do_profile_settings.8572+0x80>)
+ 80017ac:	f200 84a2 	bhi.w	80020f4 <do_profile_settings.8644+0x9bc>
+ 80017b0:	a201      	add	r2, pc, #4	; (adr r2, 80017b8 <do_profile_settings.8644+0x80>)
  80017b2:	f852 f023 	ldr.w	pc, [r2, r3, lsl #2]
  80017b6:	bf00      	nop
  80017b8:	08001925 	.word	0x08001925
@@ -3487,109 +3487,109 @@ void do_interface(void)
  800191c:	080020f5 	.word	0x080020f5
  8001920:	0800202b 	.word	0x0800202b
 			pos = 0;
- 8001924:	4b44      	ldr	r3, [pc, #272]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 8001924:	4b44      	ldr	r3, [pc, #272]	; (8001a38 <do_profile_settings.8644+0x300>)
  8001926:	2200      	movs	r2, #0
  8001928:	701a      	strb	r2, [r3, #0]
 			profile_state = 90;
- 800192a:	4b44      	ldr	r3, [pc, #272]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 800192a:	4b44      	ldr	r3, [pc, #272]	; (8001a3c <do_profile_settings.8644+0x304>)
  800192c:	225a      	movs	r2, #90	; 0x5a
  800192e:	701a      	strb	r2, [r3, #0]
 			break;
- 8001930:	e3e9      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001930:	e3e9      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001932:	697b      	ldr	r3, [r7, #20]
  8001934:	2b00      	cmp	r3, #0
- 8001936:	d10e      	bne.n	8001956 <do_profile_settings.8572+0x21e>
+ 8001936:	d10e      	bne.n	8001956 <do_profile_settings.8644+0x21e>
 				if (last_button && (!encoder.pressed))
- 8001938:	4b42      	ldr	r3, [pc, #264]	; (8001a44 <do_profile_settings.8572+0x30c>)
+ 8001938:	4b42      	ldr	r3, [pc, #264]	; (8001a44 <do_profile_settings.8644+0x30c>)
  800193a:	781b      	ldrb	r3, [r3, #0]
  800193c:	2b00      	cmp	r3, #0
- 800193e:	d023      	beq.n	8001988 <do_profile_settings.8572+0x250>
- 8001940:	4b3b      	ldr	r3, [pc, #236]	; (8001a30 <do_profile_settings.8572+0x2f8>)
+ 800193e:	d023      	beq.n	8001988 <do_profile_settings.8644+0x250>
+ 8001940:	4b3b      	ldr	r3, [pc, #236]	; (8001a30 <do_profile_settings.8644+0x2f8>)
  8001942:	789b      	ldrb	r3, [r3, #2]
  8001944:	f083 0301 	eor.w	r3, r3, #1
  8001948:	b2db      	uxtb	r3, r3
  800194a:	2b00      	cmp	r3, #0
- 800194c:	d01c      	beq.n	8001988 <do_profile_settings.8572+0x250>
+ 800194c:	d01c      	beq.n	8001988 <do_profile_settings.8644+0x250>
 					profile_state = 10;
- 800194e:	4b3b      	ldr	r3, [pc, #236]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 800194e:	4b3b      	ldr	r3, [pc, #236]	; (8001a3c <do_profile_settings.8644+0x304>)
  8001950:	220a      	movs	r2, #10
  8001952:	701a      	strb	r2, [r3, #0]
- 8001954:	e018      	b.n	8001988 <do_profile_settings.8572+0x250>
+ 8001954:	e018      	b.n	8001988 <do_profile_settings.8644+0x250>
 				if (diff > 0)
  8001956:	697b      	ldr	r3, [r7, #20]
  8001958:	2b00      	cmp	r3, #0
- 800195a:	dd09      	ble.n	8001970 <do_profile_settings.8572+0x238>
+ 800195a:	dd09      	ble.n	8001970 <do_profile_settings.8644+0x238>
 					pos++;
- 800195c:	4b36      	ldr	r3, [pc, #216]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 800195c:	4b36      	ldr	r3, [pc, #216]	; (8001a38 <do_profile_settings.8644+0x300>)
  800195e:	f993 3000 	ldrsb.w	r3, [r3]
  8001962:	b2db      	uxtb	r3, r3
  8001964:	3301      	adds	r3, #1
  8001966:	b2db      	uxtb	r3, r3
  8001968:	b25a      	sxtb	r2, r3
- 800196a:	4b33      	ldr	r3, [pc, #204]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 800196a:	4b33      	ldr	r3, [pc, #204]	; (8001a38 <do_profile_settings.8644+0x300>)
  800196c:	701a      	strb	r2, [r3, #0]
- 800196e:	e00b      	b.n	8001988 <do_profile_settings.8572+0x250>
+ 800196e:	e00b      	b.n	8001988 <do_profile_settings.8644+0x250>
 				else if (diff < 0)
  8001970:	697b      	ldr	r3, [r7, #20]
  8001972:	2b00      	cmp	r3, #0
- 8001974:	da08      	bge.n	8001988 <do_profile_settings.8572+0x250>
+ 8001974:	da08      	bge.n	8001988 <do_profile_settings.8644+0x250>
 					pos--;
- 8001976:	4b30      	ldr	r3, [pc, #192]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 8001976:	4b30      	ldr	r3, [pc, #192]	; (8001a38 <do_profile_settings.8644+0x300>)
  8001978:	f993 3000 	ldrsb.w	r3, [r3]
  800197c:	b2db      	uxtb	r3, r3
  800197e:	3b01      	subs	r3, #1
  8001980:	b2db      	uxtb	r3, r3
  8001982:	b25a      	sxtb	r2, r3
- 8001984:	4b2c      	ldr	r3, [pc, #176]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 8001984:	4b2c      	ldr	r3, [pc, #176]	; (8001a38 <do_profile_settings.8644+0x300>)
  8001986:	701a      	strb	r2, [r3, #0]
 			if ((pos < 0) || (pos >= max_steps))
- 8001988:	4b2b      	ldr	r3, [pc, #172]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 8001988:	4b2b      	ldr	r3, [pc, #172]	; (8001a38 <do_profile_settings.8644+0x300>)
  800198a:	f993 3000 	ldrsb.w	r3, [r3]
  800198e:	2b00      	cmp	r3, #0
- 8001990:	db07      	blt.n	80019a2 <do_profile_settings.8572+0x26a>
- 8001992:	4b29      	ldr	r3, [pc, #164]	; (8001a38 <do_profile_settings.8572+0x300>)
+ 8001990:	db07      	blt.n	80019a2 <do_profile_settings.8644+0x26a>
+ 8001992:	4b29      	ldr	r3, [pc, #164]	; (8001a38 <do_profile_settings.8644+0x300>)
  8001994:	f993 3000 	ldrsb.w	r3, [r3]
  8001998:	461a      	mov	r2, r3
- 800199a:	4b2b      	ldr	r3, [pc, #172]	; (8001a48 <do_profile_settings.8572+0x310>)
+ 800199a:	4b2b      	ldr	r3, [pc, #172]	; (8001a48 <do_profile_settings.8644+0x310>)
  800199c:	781b      	ldrb	r3, [r3, #0]
  800199e:	429a      	cmp	r2, r3
- 80019a0:	db03      	blt.n	80019aa <do_profile_settings.8572+0x272>
+ 80019a0:	db03      	blt.n	80019aa <do_profile_settings.8644+0x272>
 				profile_state = 90;
- 80019a2:	4b26      	ldr	r3, [pc, #152]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 80019a2:	4b26      	ldr	r3, [pc, #152]	; (8001a3c <do_profile_settings.8644+0x304>)
  80019a4:	225a      	movs	r2, #90	; 0x5a
  80019a6:	701a      	strb	r2, [r3, #0]
 				break;
- 80019a8:	e3ad      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 80019a8:	e3ad      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			show_step_menu();
  80019aa:	f107 0308 	add.w	r3, r7, #8
  80019ae:	469c      	mov	ip, r3
- 80019b0:	f7ff fe52 	bl	8001658 <show_step_menu.8582>
+ 80019b0:	f7ff fe52 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  80019b4:	2201      	movs	r2, #1
  80019b6:	2109      	movs	r1, #9
- 80019b8:	4824      	ldr	r0, [pc, #144]	; (8001a4c <do_profile_settings.8572+0x314>)
+ 80019b8:	4824      	ldr	r0, [pc, #144]	; (8001a4c <do_profile_settings.8644+0x314>)
  80019ba:	f7fe fcb9 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "    ");
- 80019be:	4924      	ldr	r1, [pc, #144]	; (8001a50 <do_profile_settings.8572+0x318>)
- 80019c0:	4822      	ldr	r0, [pc, #136]	; (8001a4c <do_profile_settings.8572+0x314>)
+ 80019be:	4924      	ldr	r1, [pc, #144]	; (8001a50 <do_profile_settings.8644+0x318>)
+ 80019c0:	4822      	ldr	r0, [pc, #136]	; (8001a4c <do_profile_settings.8644+0x314>)
  80019c2:	f7fe fc9e 	bl	8000302 <lcd_string>
 			lcd_set_xy(&lcd, 11, 0);
  80019c6:	2200      	movs	r2, #0
  80019c8:	210b      	movs	r1, #11
- 80019ca:	4820      	ldr	r0, [pc, #128]	; (8001a4c <do_profile_settings.8572+0x314>)
+ 80019ca:	4820      	ldr	r0, [pc, #128]	; (8001a4c <do_profile_settings.8644+0x314>)
  80019cc:	f7fe fcb0 	bl	8000330 <lcd_set_xy>
 			lcd_write_data(&lcd, cc3dots);
  80019d0:	2106      	movs	r1, #6
- 80019d2:	481e      	ldr	r0, [pc, #120]	; (8001a4c <do_profile_settings.8572+0x314>)
+ 80019d2:	481e      	ldr	r0, [pc, #120]	; (8001a4c <do_profile_settings.8644+0x314>)
  80019d4:	f7fe fd32 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 11, 0);
  80019d8:	2200      	movs	r2, #0
  80019da:	210b      	movs	r1, #11
- 80019dc:	481b      	ldr	r0, [pc, #108]	; (8001a4c <do_profile_settings.8572+0x314>)
+ 80019dc:	481b      	ldr	r0, [pc, #108]	; (8001a4c <do_profile_settings.8644+0x314>)
  80019de:	f7fe fca7 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 80019e2:	4b1c      	ldr	r3, [pc, #112]	; (8001a54 <do_profile_settings.8572+0x31c>)
+ 80019e2:	4b1c      	ldr	r3, [pc, #112]	; (8001a54 <do_profile_settings.8644+0x31c>)
  80019e4:	781b      	ldrb	r3, [r3, #0]
  80019e6:	2b04      	cmp	r3, #4
  80019e8:	bf94      	ite	ls
@@ -3599,39 +3599,39 @@ void do_interface(void)
  80019f0:	461a      	mov	r2, r3
  80019f2:	2300      	movs	r3, #0
  80019f4:	2101      	movs	r1, #1
- 80019f6:	4815      	ldr	r0, [pc, #84]	; (8001a4c <do_profile_settings.8572+0x314>)
+ 80019f6:	4815      	ldr	r0, [pc, #84]	; (8001a4c <do_profile_settings.8644+0x314>)
  80019f8:	f7fe fc38 	bl	800026c <lcd_mode>
 			break;
- 80019fc:	e383      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 80019fc:	e383      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  80019fe:	697b      	ldr	r3, [r7, #20]
  8001a00:	2b00      	cmp	r3, #0
- 8001a02:	d10e      	bne.n	8001a22 <do_profile_settings.8572+0x2ea>
+ 8001a02:	d10e      	bne.n	8001a22 <do_profile_settings.8644+0x2ea>
 				if (last_button && (!encoder.pressed))
- 8001a04:	4b0f      	ldr	r3, [pc, #60]	; (8001a44 <do_profile_settings.8572+0x30c>)
+ 8001a04:	4b0f      	ldr	r3, [pc, #60]	; (8001a44 <do_profile_settings.8644+0x30c>)
  8001a06:	781b      	ldrb	r3, [r3, #0]
  8001a08:	2b00      	cmp	r3, #0
- 8001a0a:	d02b      	beq.n	8001a64 <do_profile_settings.8572+0x32c>
- 8001a0c:	4b08      	ldr	r3, [pc, #32]	; (8001a30 <do_profile_settings.8572+0x2f8>)
+ 8001a0a:	d02b      	beq.n	8001a64 <do_profile_settings.8644+0x32c>
+ 8001a0c:	4b08      	ldr	r3, [pc, #32]	; (8001a30 <do_profile_settings.8644+0x2f8>)
  8001a0e:	789b      	ldrb	r3, [r3, #2]
  8001a10:	f083 0301 	eor.w	r3, r3, #1
  8001a14:	b2db      	uxtb	r3, r3
  8001a16:	2b00      	cmp	r3, #0
- 8001a18:	d024      	beq.n	8001a64 <do_profile_settings.8572+0x32c>
+ 8001a18:	d024      	beq.n	8001a64 <do_profile_settings.8644+0x32c>
 					profile_state = 1; // stop editing
- 8001a1a:	4b08      	ldr	r3, [pc, #32]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 8001a1a:	4b08      	ldr	r3, [pc, #32]	; (8001a3c <do_profile_settings.8644+0x304>)
  8001a1c:	2201      	movs	r2, #1
  8001a1e:	701a      	strb	r2, [r3, #0]
- 8001a20:	e020      	b.n	8001a64 <do_profile_settings.8572+0x32c>
+ 8001a20:	e020      	b.n	8001a64 <do_profile_settings.8644+0x32c>
 				if (diff > 0)
  8001a22:	697b      	ldr	r3, [r7, #20]
  8001a24:	2b00      	cmp	r3, #0
- 8001a26:	dd17      	ble.n	8001a58 <do_profile_settings.8572+0x320>
+ 8001a26:	dd17      	ble.n	8001a58 <do_profile_settings.8644+0x320>
 					profile_state = 21;
- 8001a28:	4b04      	ldr	r3, [pc, #16]	; (8001a3c <do_profile_settings.8572+0x304>)
+ 8001a28:	4b04      	ldr	r3, [pc, #16]	; (8001a3c <do_profile_settings.8644+0x304>)
  8001a2a:	2215      	movs	r2, #21
  8001a2c:	701a      	strb	r2, [r3, #0]
- 8001a2e:	e019      	b.n	8001a64 <do_profile_settings.8572+0x32c>
+ 8001a2e:	e019      	b.n	8001a64 <do_profile_settings.8644+0x32c>
  8001a30:	20000234 	.word	0x20000234
  8001a34:	200002c8 	.word	0x200002c8
  8001a38:	200002ca 	.word	0x200002ca
@@ -3645,35 +3645,35 @@ void do_interface(void)
 				else if (diff < 0)
  8001a58:	697b      	ldr	r3, [r7, #20]
  8001a5a:	2b00      	cmp	r3, #0
- 8001a5c:	da02      	bge.n	8001a64 <do_profile_settings.8572+0x32c>
+ 8001a5c:	da02      	bge.n	8001a64 <do_profile_settings.8644+0x32c>
 					profile_state = 12;
- 8001a5e:	4b9a      	ldr	r3, [pc, #616]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001a5e:	4b9a      	ldr	r3, [pc, #616]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001a60:	220c      	movs	r2, #12
  8001a62:	701a      	strb	r2, [r3, #0]
 			show_step_menu();
  8001a64:	f107 0308 	add.w	r3, r7, #8
  8001a68:	469c      	mov	ip, r3
- 8001a6a:	f7ff fdf5 	bl	8001658 <show_step_menu.8582>
+ 8001a6a:	f7ff fdf5 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  8001a6e:	2201      	movs	r2, #1
  8001a70:	2109      	movs	r1, #9
- 8001a72:	4896      	ldr	r0, [pc, #600]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001a72:	4896      	ldr	r0, [pc, #600]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001a74:	f7fe fc5c 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8001a78:	4995      	ldr	r1, [pc, #596]	; (8001cd0 <do_profile_settings.8572+0x598>)
- 8001a7a:	4894      	ldr	r0, [pc, #592]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001a78:	4995      	ldr	r1, [pc, #596]	; (8001cd0 <do_profile_settings.8644+0x598>)
+ 8001a7a:	4894      	ldr	r0, [pc, #592]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001a7c:	f7fe fc41 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001a80:	2100      	movs	r1, #0
- 8001a82:	4892      	ldr	r0, [pc, #584]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001a82:	4892      	ldr	r0, [pc, #584]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001a84:	f7fe fcda 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 12, 1);
  8001a88:	2201      	movs	r2, #1
  8001a8a:	210c      	movs	r1, #12
- 8001a8c:	488f      	ldr	r0, [pc, #572]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001a8c:	488f      	ldr	r0, [pc, #572]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001a8e:	f7fe fc4f 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001a92:	4b90      	ldr	r3, [pc, #576]	; (8001cd4 <do_profile_settings.8572+0x59c>)
+ 8001a92:	4b90      	ldr	r3, [pc, #576]	; (8001cd4 <do_profile_settings.8644+0x59c>)
  8001a94:	781b      	ldrb	r3, [r3, #0]
  8001a96:	2b04      	cmp	r3, #4
  8001a98:	bf94      	ite	ls
@@ -3683,47 +3683,47 @@ void do_interface(void)
  8001aa0:	461a      	mov	r2, r3
  8001aa2:	2300      	movs	r3, #0
  8001aa4:	2101      	movs	r1, #1
- 8001aa6:	4889      	ldr	r0, [pc, #548]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001aa6:	4889      	ldr	r0, [pc, #548]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001aa8:	f7fe fbe0 	bl	800026c <lcd_mode>
 			break;
- 8001aac:	e32b      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001aac:	e32b      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001aae:	697b      	ldr	r3, [r7, #20]
  8001ab0:	2b00      	cmp	r3, #0
- 8001ab2:	d156      	bne.n	8001b62 <do_profile_settings.8572+0x42a>
+ 8001ab2:	d156      	bne.n	8001b62 <do_profile_settings.8644+0x42a>
 				if (last_button && (!encoder.pressed))
- 8001ab4:	4b88      	ldr	r3, [pc, #544]	; (8001cd8 <do_profile_settings.8572+0x5a0>)
+ 8001ab4:	4b88      	ldr	r3, [pc, #544]	; (8001cd8 <do_profile_settings.8644+0x5a0>)
  8001ab6:	781b      	ldrb	r3, [r3, #0]
  8001ab8:	2b00      	cmp	r3, #0
- 8001aba:	d05f      	beq.n	8001b7c <do_profile_settings.8572+0x444>
- 8001abc:	4b87      	ldr	r3, [pc, #540]	; (8001cdc <do_profile_settings.8572+0x5a4>)
+ 8001aba:	d05f      	beq.n	8001b7c <do_profile_settings.8644+0x444>
+ 8001abc:	4b87      	ldr	r3, [pc, #540]	; (8001cdc <do_profile_settings.8644+0x5a4>)
  8001abe:	789b      	ldrb	r3, [r3, #2]
  8001ac0:	f083 0301 	eor.w	r3, r3, #1
  8001ac4:	b2db      	uxtb	r3, r3
  8001ac6:	2b00      	cmp	r3, #0
- 8001ac8:	d058      	beq.n	8001b7c <do_profile_settings.8572+0x444>
+ 8001ac8:	d058      	beq.n	8001b7c <do_profile_settings.8644+0x444>
 					if (max_steps >= 9)
- 8001aca:	4b85      	ldr	r3, [pc, #532]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001aca:	4b85      	ldr	r3, [pc, #532]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001acc:	781b      	ldrb	r3, [r3, #0]
  8001ace:	2b08      	cmp	r3, #8
- 8001ad0:	d903      	bls.n	8001ada <do_profile_settings.8572+0x3a2>
+ 8001ad0:	d903      	bls.n	8001ada <do_profile_settings.8644+0x3a2>
 						profile_state = 13;
- 8001ad2:	4b7d      	ldr	r3, [pc, #500]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001ad2:	4b7d      	ldr	r3, [pc, #500]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001ad4:	220d      	movs	r2, #13
  8001ad6:	701a      	strb	r2, [r3, #0]
- 8001ad8:	e050      	b.n	8001b7c <do_profile_settings.8572+0x444>
+ 8001ad8:	e050      	b.n	8001b7c <do_profile_settings.8644+0x444>
 						for (int i = 8; i > pos; i--)
  8001ada:	2308      	movs	r3, #8
  8001adc:	61fb      	str	r3, [r7, #28]
- 8001ade:	e016      	b.n	8001b0e <do_profile_settings.8572+0x3d6>
+ 8001ade:	e016      	b.n	8001b0e <do_profile_settings.8644+0x3d6>
 							steps[i].time = steps[i-1].time;
  8001ae0:	69fb      	ldr	r3, [r7, #28]
  8001ae2:	3b01      	subs	r3, #1
- 8001ae4:	4a7f      	ldr	r2, [pc, #508]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001ae4:	4a7f      	ldr	r2, [pc, #508]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001ae6:	00db      	lsls	r3, r3, #3
  8001ae8:	4413      	add	r3, r2
  8001aea:	685a      	ldr	r2, [r3, #4]
- 8001aec:	497d      	ldr	r1, [pc, #500]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001aec:	497d      	ldr	r1, [pc, #500]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001aee:	69fb      	ldr	r3, [r7, #28]
  8001af0:	00db      	lsls	r3, r3, #3
  8001af2:	440b      	add	r3, r1
@@ -3731,98 +3731,98 @@ void do_interface(void)
 							steps[i].temp = steps[i-1].temp;
  8001af6:	69fb      	ldr	r3, [r7, #28]
  8001af8:	3b01      	subs	r3, #1
- 8001afa:	4a7a      	ldr	r2, [pc, #488]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001afa:	4a7a      	ldr	r2, [pc, #488]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001afc:	f852 2033 	ldr.w	r2, [r2, r3, lsl #3]
- 8001b00:	4978      	ldr	r1, [pc, #480]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001b00:	4978      	ldr	r1, [pc, #480]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001b02:	69fb      	ldr	r3, [r7, #28]
  8001b04:	f841 2033 	str.w	r2, [r1, r3, lsl #3]
 						for (int i = 8; i > pos; i--)
  8001b08:	69fb      	ldr	r3, [r7, #28]
  8001b0a:	3b01      	subs	r3, #1
  8001b0c:	61fb      	str	r3, [r7, #28]
- 8001b0e:	4b76      	ldr	r3, [pc, #472]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001b0e:	4b76      	ldr	r3, [pc, #472]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001b10:	f993 3000 	ldrsb.w	r3, [r3]
  8001b14:	461a      	mov	r2, r3
  8001b16:	69fb      	ldr	r3, [r7, #28]
  8001b18:	4293      	cmp	r3, r2
- 8001b1a:	dce1      	bgt.n	8001ae0 <do_profile_settings.8572+0x3a8>
+ 8001b1a:	dce1      	bgt.n	8001ae0 <do_profile_settings.8644+0x3a8>
 						pos++;
- 8001b1c:	4b72      	ldr	r3, [pc, #456]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001b1c:	4b72      	ldr	r3, [pc, #456]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001b1e:	f993 3000 	ldrsb.w	r3, [r3]
  8001b22:	b2db      	uxtb	r3, r3
  8001b24:	3301      	adds	r3, #1
  8001b26:	b2db      	uxtb	r3, r3
  8001b28:	b25a      	sxtb	r2, r3
- 8001b2a:	4b6f      	ldr	r3, [pc, #444]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001b2a:	4b6f      	ldr	r3, [pc, #444]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001b2c:	701a      	strb	r2, [r3, #0]
 						steps[pos].time = 60;
- 8001b2e:	4b6e      	ldr	r3, [pc, #440]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001b2e:	4b6e      	ldr	r3, [pc, #440]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001b30:	f993 3000 	ldrsb.w	r3, [r3]
- 8001b34:	4a6b      	ldr	r2, [pc, #428]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001b34:	4a6b      	ldr	r2, [pc, #428]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001b36:	00db      	lsls	r3, r3, #3
  8001b38:	4413      	add	r3, r2
  8001b3a:	223c      	movs	r2, #60	; 0x3c
  8001b3c:	605a      	str	r2, [r3, #4]
 						steps[pos].temp = 100;
- 8001b3e:	4b6a      	ldr	r3, [pc, #424]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001b3e:	4b6a      	ldr	r3, [pc, #424]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001b40:	f993 3000 	ldrsb.w	r3, [r3]
  8001b44:	4619      	mov	r1, r3
- 8001b46:	4b67      	ldr	r3, [pc, #412]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001b46:	4b67      	ldr	r3, [pc, #412]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001b48:	2264      	movs	r2, #100	; 0x64
  8001b4a:	f843 2031 	str.w	r2, [r3, r1, lsl #3]
 						max_steps++;
- 8001b4e:	4b64      	ldr	r3, [pc, #400]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001b4e:	4b64      	ldr	r3, [pc, #400]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001b50:	781b      	ldrb	r3, [r3, #0]
  8001b52:	3301      	adds	r3, #1
  8001b54:	b2da      	uxtb	r2, r3
- 8001b56:	4b62      	ldr	r3, [pc, #392]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001b56:	4b62      	ldr	r3, [pc, #392]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001b58:	701a      	strb	r2, [r3, #0]
 						profile_state = 10; // wait for confirmation
- 8001b5a:	4b5b      	ldr	r3, [pc, #364]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001b5a:	4b5b      	ldr	r3, [pc, #364]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001b5c:	220a      	movs	r2, #10
  8001b5e:	701a      	strb	r2, [r3, #0]
- 8001b60:	e00c      	b.n	8001b7c <do_profile_settings.8572+0x444>
+ 8001b60:	e00c      	b.n	8001b7c <do_profile_settings.8644+0x444>
 				if (diff > 0)
  8001b62:	697b      	ldr	r3, [r7, #20]
  8001b64:	2b00      	cmp	r3, #0
- 8001b66:	dd03      	ble.n	8001b70 <do_profile_settings.8572+0x438>
+ 8001b66:	dd03      	ble.n	8001b70 <do_profile_settings.8644+0x438>
 					profile_state = 12;
- 8001b68:	4b57      	ldr	r3, [pc, #348]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001b68:	4b57      	ldr	r3, [pc, #348]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001b6a:	220c      	movs	r2, #12
  8001b6c:	701a      	strb	r2, [r3, #0]
- 8001b6e:	e005      	b.n	8001b7c <do_profile_settings.8572+0x444>
+ 8001b6e:	e005      	b.n	8001b7c <do_profile_settings.8644+0x444>
 				else if (diff < 0)
  8001b70:	697b      	ldr	r3, [r7, #20]
  8001b72:	2b00      	cmp	r3, #0
- 8001b74:	da02      	bge.n	8001b7c <do_profile_settings.8572+0x444>
+ 8001b74:	da02      	bge.n	8001b7c <do_profile_settings.8644+0x444>
 					profile_state = 23;
- 8001b76:	4b54      	ldr	r3, [pc, #336]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001b76:	4b54      	ldr	r3, [pc, #336]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001b78:	2217      	movs	r2, #23
  8001b7a:	701a      	strb	r2, [r3, #0]
 			show_step_menu();
  8001b7c:	f107 0308 	add.w	r3, r7, #8
  8001b80:	469c      	mov	ip, r3
- 8001b82:	f7ff fd69 	bl	8001658 <show_step_menu.8582>
+ 8001b82:	f7ff fd69 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  8001b86:	2201      	movs	r2, #1
  8001b88:	2109      	movs	r1, #9
- 8001b8a:	4850      	ldr	r0, [pc, #320]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001b8a:	4850      	ldr	r0, [pc, #320]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001b8c:	f7fe fbd0 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8001b90:	494f      	ldr	r1, [pc, #316]	; (8001cd0 <do_profile_settings.8572+0x598>)
- 8001b92:	484e      	ldr	r0, [pc, #312]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001b90:	494f      	ldr	r1, [pc, #316]	; (8001cd0 <do_profile_settings.8644+0x598>)
+ 8001b92:	484e      	ldr	r0, [pc, #312]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001b94:	f7fe fbb5 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001b98:	2100      	movs	r1, #0
- 8001b9a:	484c      	ldr	r0, [pc, #304]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001b9a:	484c      	ldr	r0, [pc, #304]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001b9c:	f7fe fc4e 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 10, 1);
  8001ba0:	2201      	movs	r2, #1
  8001ba2:	210a      	movs	r1, #10
- 8001ba4:	4849      	ldr	r0, [pc, #292]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001ba4:	4849      	ldr	r0, [pc, #292]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001ba6:	f7fe fbc3 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001baa:	4b4a      	ldr	r3, [pc, #296]	; (8001cd4 <do_profile_settings.8572+0x59c>)
+ 8001baa:	4b4a      	ldr	r3, [pc, #296]	; (8001cd4 <do_profile_settings.8644+0x59c>)
  8001bac:	781b      	ldrb	r3, [r3, #0]
  8001bae:	2b04      	cmp	r3, #4
  8001bb0:	bf94      	ite	ls
@@ -3832,48 +3832,48 @@ void do_interface(void)
  8001bb8:	461a      	mov	r2, r3
  8001bba:	2300      	movs	r3, #0
  8001bbc:	2101      	movs	r1, #1
- 8001bbe:	4843      	ldr	r0, [pc, #268]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001bbe:	4843      	ldr	r0, [pc, #268]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001bc0:	f7fe fb54 	bl	800026c <lcd_mode>
 			break;
- 8001bc4:	e29f      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001bc4:	e29f      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001bc6:	697b      	ldr	r3, [r7, #20]
  8001bc8:	2b00      	cmp	r3, #0
- 8001bca:	d14a      	bne.n	8001c62 <do_profile_settings.8572+0x52a>
+ 8001bca:	d14a      	bne.n	8001c62 <do_profile_settings.8644+0x52a>
 				if (last_button && (!encoder.pressed))
- 8001bcc:	4b42      	ldr	r3, [pc, #264]	; (8001cd8 <do_profile_settings.8572+0x5a0>)
+ 8001bcc:	4b42      	ldr	r3, [pc, #264]	; (8001cd8 <do_profile_settings.8644+0x5a0>)
  8001bce:	781b      	ldrb	r3, [r3, #0]
  8001bd0:	2b00      	cmp	r3, #0
- 8001bd2:	d053      	beq.n	8001c7c <do_profile_settings.8572+0x544>
- 8001bd4:	4b41      	ldr	r3, [pc, #260]	; (8001cdc <do_profile_settings.8572+0x5a4>)
+ 8001bd2:	d053      	beq.n	8001c7c <do_profile_settings.8644+0x544>
+ 8001bd4:	4b41      	ldr	r3, [pc, #260]	; (8001cdc <do_profile_settings.8644+0x5a4>)
  8001bd6:	789b      	ldrb	r3, [r3, #2]
  8001bd8:	f083 0301 	eor.w	r3, r3, #1
  8001bdc:	b2db      	uxtb	r3, r3
  8001bde:	2b00      	cmp	r3, #0
- 8001be0:	d04c      	beq.n	8001c7c <do_profile_settings.8572+0x544>
+ 8001be0:	d04c      	beq.n	8001c7c <do_profile_settings.8644+0x544>
 					if (max_steps <= 1)
- 8001be2:	4b3f      	ldr	r3, [pc, #252]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001be2:	4b3f      	ldr	r3, [pc, #252]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001be4:	781b      	ldrb	r3, [r3, #0]
  8001be6:	2b01      	cmp	r3, #1
- 8001be8:	d803      	bhi.n	8001bf2 <do_profile_settings.8572+0x4ba>
+ 8001be8:	d803      	bhi.n	8001bf2 <do_profile_settings.8644+0x4ba>
 						profile_state = 14;
- 8001bea:	4b37      	ldr	r3, [pc, #220]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001bea:	4b37      	ldr	r3, [pc, #220]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001bec:	220e      	movs	r2, #14
  8001bee:	701a      	strb	r2, [r3, #0]
- 8001bf0:	e044      	b.n	8001c7c <do_profile_settings.8572+0x544>
+ 8001bf0:	e044      	b.n	8001c7c <do_profile_settings.8644+0x544>
 						for (int i = pos; i < 8; i++)
- 8001bf2:	4b3d      	ldr	r3, [pc, #244]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001bf2:	4b3d      	ldr	r3, [pc, #244]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001bf4:	f993 3000 	ldrsb.w	r3, [r3]
  8001bf8:	61bb      	str	r3, [r7, #24]
- 8001bfa:	e016      	b.n	8001c2a <do_profile_settings.8572+0x4f2>
+ 8001bfa:	e016      	b.n	8001c2a <do_profile_settings.8644+0x4f2>
 							steps[i].time = steps[i+1].time;
  8001bfc:	69bb      	ldr	r3, [r7, #24]
  8001bfe:	3301      	adds	r3, #1
- 8001c00:	4a38      	ldr	r2, [pc, #224]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001c00:	4a38      	ldr	r2, [pc, #224]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001c02:	00db      	lsls	r3, r3, #3
  8001c04:	4413      	add	r3, r2
  8001c06:	685a      	ldr	r2, [r3, #4]
- 8001c08:	4936      	ldr	r1, [pc, #216]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001c08:	4936      	ldr	r1, [pc, #216]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001c0a:	69bb      	ldr	r3, [r7, #24]
  8001c0c:	00db      	lsls	r3, r3, #3
  8001c0e:	440b      	add	r3, r1
@@ -3881,9 +3881,9 @@ void do_interface(void)
 							steps[i].temp = steps[i+1].temp;
  8001c12:	69bb      	ldr	r3, [r7, #24]
  8001c14:	3301      	adds	r3, #1
- 8001c16:	4a33      	ldr	r2, [pc, #204]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001c16:	4a33      	ldr	r2, [pc, #204]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001c18:	f852 2033 	ldr.w	r2, [r2, r3, lsl #3]
- 8001c1c:	4931      	ldr	r1, [pc, #196]	; (8001ce4 <do_profile_settings.8572+0x5ac>)
+ 8001c1c:	4931      	ldr	r1, [pc, #196]	; (8001ce4 <do_profile_settings.8644+0x5ac>)
  8001c1e:	69bb      	ldr	r3, [r7, #24]
  8001c20:	f841 2033 	str.w	r2, [r1, r3, lsl #3]
 						for (int i = pos; i < 8; i++)
@@ -3892,76 +3892,76 @@ void do_interface(void)
  8001c28:	61bb      	str	r3, [r7, #24]
  8001c2a:	69bb      	ldr	r3, [r7, #24]
  8001c2c:	2b07      	cmp	r3, #7
- 8001c2e:	dde5      	ble.n	8001bfc <do_profile_settings.8572+0x4c4>
+ 8001c2e:	dde5      	ble.n	8001bfc <do_profile_settings.8644+0x4c4>
 						max_steps--;
- 8001c30:	4b2b      	ldr	r3, [pc, #172]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001c30:	4b2b      	ldr	r3, [pc, #172]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001c32:	781b      	ldrb	r3, [r3, #0]
  8001c34:	3b01      	subs	r3, #1
  8001c36:	b2da      	uxtb	r2, r3
- 8001c38:	4b29      	ldr	r3, [pc, #164]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001c38:	4b29      	ldr	r3, [pc, #164]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001c3a:	701a      	strb	r2, [r3, #0]
 						if (pos >= max_steps) 	// if it was last position
- 8001c3c:	4b2a      	ldr	r3, [pc, #168]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001c3c:	4b2a      	ldr	r3, [pc, #168]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001c3e:	f993 3000 	ldrsb.w	r3, [r3]
  8001c42:	461a      	mov	r2, r3
- 8001c44:	4b26      	ldr	r3, [pc, #152]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001c44:	4b26      	ldr	r3, [pc, #152]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001c46:	781b      	ldrb	r3, [r3, #0]
  8001c48:	429a      	cmp	r2, r3
- 8001c4a:	db06      	blt.n	8001c5a <do_profile_settings.8572+0x522>
+ 8001c4a:	db06      	blt.n	8001c5a <do_profile_settings.8644+0x522>
 							pos = max_steps-1; 	// move to the previous one
- 8001c4c:	4b24      	ldr	r3, [pc, #144]	; (8001ce0 <do_profile_settings.8572+0x5a8>)
+ 8001c4c:	4b24      	ldr	r3, [pc, #144]	; (8001ce0 <do_profile_settings.8644+0x5a8>)
  8001c4e:	781b      	ldrb	r3, [r3, #0]
  8001c50:	3b01      	subs	r3, #1
  8001c52:	b2db      	uxtb	r3, r3
  8001c54:	b25a      	sxtb	r2, r3
- 8001c56:	4b24      	ldr	r3, [pc, #144]	; (8001ce8 <do_profile_settings.8572+0x5b0>)
+ 8001c56:	4b24      	ldr	r3, [pc, #144]	; (8001ce8 <do_profile_settings.8644+0x5b0>)
  8001c58:	701a      	strb	r2, [r3, #0]
 						profile_state = 1; 	// show profile
- 8001c5a:	4b1b      	ldr	r3, [pc, #108]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001c5a:	4b1b      	ldr	r3, [pc, #108]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001c5c:	2201      	movs	r2, #1
  8001c5e:	701a      	strb	r2, [r3, #0]
- 8001c60:	e00c      	b.n	8001c7c <do_profile_settings.8572+0x544>
+ 8001c60:	e00c      	b.n	8001c7c <do_profile_settings.8644+0x544>
 				if (diff > 0)
  8001c62:	697b      	ldr	r3, [r7, #20]
  8001c64:	2b00      	cmp	r3, #0
- 8001c66:	dd03      	ble.n	8001c70 <do_profile_settings.8572+0x538>
+ 8001c66:	dd03      	ble.n	8001c70 <do_profile_settings.8644+0x538>
 					profile_state = 10;
- 8001c68:	4b17      	ldr	r3, [pc, #92]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001c68:	4b17      	ldr	r3, [pc, #92]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001c6a:	220a      	movs	r2, #10
  8001c6c:	701a      	strb	r2, [r3, #0]
- 8001c6e:	e005      	b.n	8001c7c <do_profile_settings.8572+0x544>
+ 8001c6e:	e005      	b.n	8001c7c <do_profile_settings.8644+0x544>
 				else if (diff < 0)
  8001c70:	697b      	ldr	r3, [r7, #20]
  8001c72:	2b00      	cmp	r3, #0
- 8001c74:	da02      	bge.n	8001c7c <do_profile_settings.8572+0x544>
+ 8001c74:	da02      	bge.n	8001c7c <do_profile_settings.8644+0x544>
 					profile_state = 11;
- 8001c76:	4b14      	ldr	r3, [pc, #80]	; (8001cc8 <do_profile_settings.8572+0x590>)
+ 8001c76:	4b14      	ldr	r3, [pc, #80]	; (8001cc8 <do_profile_settings.8644+0x590>)
  8001c78:	220b      	movs	r2, #11
  8001c7a:	701a      	strb	r2, [r3, #0]
 			show_step_menu();
  8001c7c:	f107 0308 	add.w	r3, r7, #8
  8001c80:	469c      	mov	ip, r3
- 8001c82:	f7ff fce9 	bl	8001658 <show_step_menu.8582>
+ 8001c82:	f7ff fce9 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  8001c86:	2201      	movs	r2, #1
  8001c88:	2109      	movs	r1, #9
- 8001c8a:	4810      	ldr	r0, [pc, #64]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001c8a:	4810      	ldr	r0, [pc, #64]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001c8c:	f7fe fb50 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8001c90:	490f      	ldr	r1, [pc, #60]	; (8001cd0 <do_profile_settings.8572+0x598>)
- 8001c92:	480e      	ldr	r0, [pc, #56]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001c90:	490f      	ldr	r1, [pc, #60]	; (8001cd0 <do_profile_settings.8644+0x598>)
+ 8001c92:	480e      	ldr	r0, [pc, #56]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001c94:	f7fe fb35 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001c98:	2100      	movs	r1, #0
- 8001c9a:	480c      	ldr	r0, [pc, #48]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001c9a:	480c      	ldr	r0, [pc, #48]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001c9c:	f7fe fbce 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 11, 1);
  8001ca0:	2201      	movs	r2, #1
  8001ca2:	210b      	movs	r1, #11
- 8001ca4:	4809      	ldr	r0, [pc, #36]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001ca4:	4809      	ldr	r0, [pc, #36]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001ca6:	f7fe fb43 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001caa:	4b0a      	ldr	r3, [pc, #40]	; (8001cd4 <do_profile_settings.8572+0x59c>)
+ 8001caa:	4b0a      	ldr	r3, [pc, #40]	; (8001cd4 <do_profile_settings.8644+0x59c>)
  8001cac:	781b      	ldrb	r3, [r3, #0]
  8001cae:	2b04      	cmp	r3, #4
  8001cb0:	bf94      	ite	ls
@@ -3971,10 +3971,10 @@ void do_interface(void)
  8001cb8:	461a      	mov	r2, r3
  8001cba:	2300      	movs	r3, #0
  8001cbc:	2101      	movs	r1, #1
- 8001cbe:	4803      	ldr	r0, [pc, #12]	; (8001ccc <do_profile_settings.8572+0x594>)
+ 8001cbe:	4803      	ldr	r0, [pc, #12]	; (8001ccc <do_profile_settings.8644+0x594>)
  8001cc0:	f7fe fad4 	bl	800026c <lcd_mode>
 			break;
- 8001cc4:	e21f      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001cc4:	e21f      	b.n	8002106 <do_profile_settings.8644+0x9ce>
  8001cc6:	bf00      	nop
  8001cc8:	200002cb 	.word	0x200002cb
  8001ccc:	20000570 	.word	0x20000570
@@ -3986,49 +3986,49 @@ void do_interface(void)
  8001ce4:	20000268 	.word	0x20000268
  8001ce8:	200002ca 	.word	0x200002ca
 			if (last_button && (!encoder.pressed)) // wait for confirmation
- 8001cec:	4ba9      	ldr	r3, [pc, #676]	; (8001f94 <do_profile_settings.8572+0x85c>)
+ 8001cec:	4ba9      	ldr	r3, [pc, #676]	; (8001f94 <do_profile_settings.8644+0x85c>)
  8001cee:	781b      	ldrb	r3, [r3, #0]
  8001cf0:	2b00      	cmp	r3, #0
- 8001cf2:	d009      	beq.n	8001d08 <do_profile_settings.8572+0x5d0>
- 8001cf4:	4ba8      	ldr	r3, [pc, #672]	; (8001f98 <do_profile_settings.8572+0x860>)
+ 8001cf2:	d009      	beq.n	8001d08 <do_profile_settings.8644+0x5d0>
+ 8001cf4:	4ba8      	ldr	r3, [pc, #672]	; (8001f98 <do_profile_settings.8644+0x860>)
  8001cf6:	789b      	ldrb	r3, [r3, #2]
  8001cf8:	f083 0301 	eor.w	r3, r3, #1
  8001cfc:	b2db      	uxtb	r3, r3
  8001cfe:	2b00      	cmp	r3, #0
- 8001d00:	d002      	beq.n	8001d08 <do_profile_settings.8572+0x5d0>
+ 8001d00:	d002      	beq.n	8001d08 <do_profile_settings.8644+0x5d0>
 				profile_state = 10;
- 8001d02:	4ba6      	ldr	r3, [pc, #664]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001d02:	4ba6      	ldr	r3, [pc, #664]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001d04:	220a      	movs	r2, #10
  8001d06:	701a      	strb	r2, [r3, #0]
 			lcd_set_xy(&lcd, 0, 0);
  8001d08:	2200      	movs	r2, #0
  8001d0a:	2100      	movs	r1, #0
- 8001d0c:	48a4      	ldr	r0, [pc, #656]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d0c:	48a4      	ldr	r0, [pc, #656]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d0e:	f7fe fb0f 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "Not possible");
- 8001d12:	49a4      	ldr	r1, [pc, #656]	; (8001fa4 <do_profile_settings.8572+0x86c>)
- 8001d14:	48a2      	ldr	r0, [pc, #648]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d12:	49a4      	ldr	r1, [pc, #656]	; (8001fa4 <do_profile_settings.8644+0x86c>)
+ 8001d14:	48a2      	ldr	r0, [pc, #648]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d16:	f7fe faf4 	bl	8000302 <lcd_string>
 			lcd_set_xy(&lcd, 0, 1);
  8001d1a:	2201      	movs	r2, #1
  8001d1c:	2100      	movs	r1, #0
- 8001d1e:	48a0      	ldr	r0, [pc, #640]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d1e:	48a0      	ldr	r0, [pc, #640]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d20:	f7fe fb06 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "max 9 steps ");
- 8001d24:	49a0      	ldr	r1, [pc, #640]	; (8001fa8 <do_profile_settings.8572+0x870>)
- 8001d26:	489e      	ldr	r0, [pc, #632]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d24:	49a0      	ldr	r1, [pc, #640]	; (8001fa8 <do_profile_settings.8644+0x870>)
+ 8001d26:	489e      	ldr	r0, [pc, #632]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d28:	f7fe faeb 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001d2c:	2100      	movs	r1, #0
- 8001d2e:	489c      	ldr	r0, [pc, #624]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d2e:	489c      	ldr	r0, [pc, #624]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d30:	f7fe fb84 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 12, 1);
  8001d34:	2201      	movs	r2, #1
  8001d36:	210c      	movs	r1, #12
- 8001d38:	4899      	ldr	r0, [pc, #612]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d38:	4899      	ldr	r0, [pc, #612]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d3a:	f7fe faf9 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001d3e:	4b9b      	ldr	r3, [pc, #620]	; (8001fac <do_profile_settings.8572+0x874>)
+ 8001d3e:	4b9b      	ldr	r3, [pc, #620]	; (8001fac <do_profile_settings.8644+0x874>)
  8001d40:	781b      	ldrb	r3, [r3, #0]
  8001d42:	2b04      	cmp	r3, #4
  8001d44:	bf94      	ite	ls
@@ -4038,54 +4038,54 @@ void do_interface(void)
  8001d4c:	461a      	mov	r2, r3
  8001d4e:	2300      	movs	r3, #0
  8001d50:	2101      	movs	r1, #1
- 8001d52:	4893      	ldr	r0, [pc, #588]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d52:	4893      	ldr	r0, [pc, #588]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d54:	f7fe fa8a 	bl	800026c <lcd_mode>
 			break;
- 8001d58:	e1d5      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001d58:	e1d5      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (last_button && (!encoder.pressed)) // wait for confirmation
- 8001d5a:	4b8e      	ldr	r3, [pc, #568]	; (8001f94 <do_profile_settings.8572+0x85c>)
+ 8001d5a:	4b8e      	ldr	r3, [pc, #568]	; (8001f94 <do_profile_settings.8644+0x85c>)
  8001d5c:	781b      	ldrb	r3, [r3, #0]
  8001d5e:	2b00      	cmp	r3, #0
- 8001d60:	d009      	beq.n	8001d76 <do_profile_settings.8572+0x63e>
- 8001d62:	4b8d      	ldr	r3, [pc, #564]	; (8001f98 <do_profile_settings.8572+0x860>)
+ 8001d60:	d009      	beq.n	8001d76 <do_profile_settings.8644+0x63e>
+ 8001d62:	4b8d      	ldr	r3, [pc, #564]	; (8001f98 <do_profile_settings.8644+0x860>)
  8001d64:	789b      	ldrb	r3, [r3, #2]
  8001d66:	f083 0301 	eor.w	r3, r3, #1
  8001d6a:	b2db      	uxtb	r3, r3
  8001d6c:	2b00      	cmp	r3, #0
- 8001d6e:	d002      	beq.n	8001d76 <do_profile_settings.8572+0x63e>
+ 8001d6e:	d002      	beq.n	8001d76 <do_profile_settings.8644+0x63e>
 				profile_state = 10;
- 8001d70:	4b8a      	ldr	r3, [pc, #552]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001d70:	4b8a      	ldr	r3, [pc, #552]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001d72:	220a      	movs	r2, #10
  8001d74:	701a      	strb	r2, [r3, #0]
 			lcd_set_xy(&lcd, 0, 0);
  8001d76:	2200      	movs	r2, #0
  8001d78:	2100      	movs	r1, #0
- 8001d7a:	4889      	ldr	r0, [pc, #548]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d7a:	4889      	ldr	r0, [pc, #548]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d7c:	f7fe fad8 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "Not possible");
- 8001d80:	4988      	ldr	r1, [pc, #544]	; (8001fa4 <do_profile_settings.8572+0x86c>)
- 8001d82:	4887      	ldr	r0, [pc, #540]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d80:	4988      	ldr	r1, [pc, #544]	; (8001fa4 <do_profile_settings.8644+0x86c>)
+ 8001d82:	4887      	ldr	r0, [pc, #540]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d84:	f7fe fabd 	bl	8000302 <lcd_string>
 			lcd_set_xy(&lcd, 0, 1);
  8001d88:	2201      	movs	r2, #1
  8001d8a:	2100      	movs	r1, #0
- 8001d8c:	4884      	ldr	r0, [pc, #528]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d8c:	4884      	ldr	r0, [pc, #528]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d8e:	f7fe facf 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "min 1 step  ");
- 8001d92:	4987      	ldr	r1, [pc, #540]	; (8001fb0 <do_profile_settings.8572+0x878>)
- 8001d94:	4882      	ldr	r0, [pc, #520]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d92:	4987      	ldr	r1, [pc, #540]	; (8001fb0 <do_profile_settings.8644+0x878>)
+ 8001d94:	4882      	ldr	r0, [pc, #520]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d96:	f7fe fab4 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001d9a:	2100      	movs	r1, #0
- 8001d9c:	4880      	ldr	r0, [pc, #512]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001d9c:	4880      	ldr	r0, [pc, #512]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001d9e:	f7fe fb4d 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 12, 1);
  8001da2:	2201      	movs	r2, #1
  8001da4:	210c      	movs	r1, #12
- 8001da6:	487e      	ldr	r0, [pc, #504]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001da6:	487e      	ldr	r0, [pc, #504]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001da8:	f7fe fac2 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001dac:	4b7f      	ldr	r3, [pc, #508]	; (8001fac <do_profile_settings.8572+0x874>)
+ 8001dac:	4b7f      	ldr	r3, [pc, #508]	; (8001fac <do_profile_settings.8644+0x874>)
  8001dae:	781b      	ldrb	r3, [r3, #0]
  8001db0:	2b04      	cmp	r3, #4
  8001db2:	bf94      	ite	ls
@@ -4095,71 +4095,71 @@ void do_interface(void)
  8001dba:	461a      	mov	r2, r3
  8001dbc:	2300      	movs	r3, #0
  8001dbe:	2101      	movs	r1, #1
- 8001dc0:	4877      	ldr	r0, [pc, #476]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001dc0:	4877      	ldr	r0, [pc, #476]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001dc2:	f7fe fa53 	bl	800026c <lcd_mode>
 			break;
- 8001dc6:	e19e      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001dc6:	e19e      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001dc8:	697b      	ldr	r3, [r7, #20]
  8001dca:	2b00      	cmp	r3, #0
- 8001dcc:	d10e      	bne.n	8001dec <do_profile_settings.8572+0x6b4>
+ 8001dcc:	d10e      	bne.n	8001dec <do_profile_settings.8644+0x6b4>
 				if (last_button && (!encoder.pressed))
- 8001dce:	4b71      	ldr	r3, [pc, #452]	; (8001f94 <do_profile_settings.8572+0x85c>)
+ 8001dce:	4b71      	ldr	r3, [pc, #452]	; (8001f94 <do_profile_settings.8644+0x85c>)
  8001dd0:	781b      	ldrb	r3, [r3, #0]
  8001dd2:	2b00      	cmp	r3, #0
- 8001dd4:	d017      	beq.n	8001e06 <do_profile_settings.8572+0x6ce>
- 8001dd6:	4b70      	ldr	r3, [pc, #448]	; (8001f98 <do_profile_settings.8572+0x860>)
+ 8001dd4:	d017      	beq.n	8001e06 <do_profile_settings.8644+0x6ce>
+ 8001dd6:	4b70      	ldr	r3, [pc, #448]	; (8001f98 <do_profile_settings.8644+0x860>)
  8001dd8:	789b      	ldrb	r3, [r3, #2]
  8001dda:	f083 0301 	eor.w	r3, r3, #1
  8001dde:	b2db      	uxtb	r3, r3
  8001de0:	2b00      	cmp	r3, #0
- 8001de2:	d010      	beq.n	8001e06 <do_profile_settings.8572+0x6ce>
+ 8001de2:	d010      	beq.n	8001e06 <do_profile_settings.8644+0x6ce>
 					profile_state = 22; // start edit
- 8001de4:	4b6d      	ldr	r3, [pc, #436]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001de4:	4b6d      	ldr	r3, [pc, #436]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001de6:	2216      	movs	r2, #22
  8001de8:	701a      	strb	r2, [r3, #0]
- 8001dea:	e00c      	b.n	8001e06 <do_profile_settings.8572+0x6ce>
+ 8001dea:	e00c      	b.n	8001e06 <do_profile_settings.8644+0x6ce>
 				if (diff > 0)
  8001dec:	697b      	ldr	r3, [r7, #20]
  8001dee:	2b00      	cmp	r3, #0
- 8001df0:	dd03      	ble.n	8001dfa <do_profile_settings.8572+0x6c2>
+ 8001df0:	dd03      	ble.n	8001dfa <do_profile_settings.8644+0x6c2>
 					profile_state = 23;
- 8001df2:	4b6a      	ldr	r3, [pc, #424]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001df2:	4b6a      	ldr	r3, [pc, #424]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001df4:	2217      	movs	r2, #23
  8001df6:	701a      	strb	r2, [r3, #0]
- 8001df8:	e005      	b.n	8001e06 <do_profile_settings.8572+0x6ce>
+ 8001df8:	e005      	b.n	8001e06 <do_profile_settings.8644+0x6ce>
 				else if (diff < 0)
  8001dfa:	697b      	ldr	r3, [r7, #20]
  8001dfc:	2b00      	cmp	r3, #0
- 8001dfe:	da02      	bge.n	8001e06 <do_profile_settings.8572+0x6ce>
+ 8001dfe:	da02      	bge.n	8001e06 <do_profile_settings.8644+0x6ce>
 					profile_state = 10;
- 8001e00:	4b66      	ldr	r3, [pc, #408]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001e00:	4b66      	ldr	r3, [pc, #408]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001e02:	220a      	movs	r2, #10
  8001e04:	701a      	strb	r2, [r3, #0]
 			show_step_menu();
  8001e06:	f107 0308 	add.w	r3, r7, #8
  8001e0a:	469c      	mov	ip, r3
- 8001e0c:	f7ff fc24 	bl	8001658 <show_step_menu.8582>
+ 8001e0c:	f7ff fc24 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  8001e10:	2201      	movs	r2, #1
  8001e12:	2109      	movs	r1, #9
- 8001e14:	4862      	ldr	r0, [pc, #392]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001e14:	4862      	ldr	r0, [pc, #392]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001e16:	f7fe fa8b 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8001e1a:	4966      	ldr	r1, [pc, #408]	; (8001fb4 <do_profile_settings.8572+0x87c>)
- 8001e1c:	4860      	ldr	r0, [pc, #384]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001e1a:	4966      	ldr	r1, [pc, #408]	; (8001fb4 <do_profile_settings.8644+0x87c>)
+ 8001e1c:	4860      	ldr	r0, [pc, #384]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001e1e:	f7fe fa70 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001e22:	2100      	movs	r1, #0
- 8001e24:	485e      	ldr	r0, [pc, #376]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001e24:	485e      	ldr	r0, [pc, #376]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001e26:	f7fe fb09 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 2, 1);
  8001e2a:	2201      	movs	r2, #1
  8001e2c:	2102      	movs	r1, #2
- 8001e2e:	485c      	ldr	r0, [pc, #368]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001e2e:	485c      	ldr	r0, [pc, #368]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001e30:	f7fe fa7e 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001e34:	4b5d      	ldr	r3, [pc, #372]	; (8001fac <do_profile_settings.8572+0x874>)
+ 8001e34:	4b5d      	ldr	r3, [pc, #372]	; (8001fac <do_profile_settings.8644+0x874>)
  8001e36:	781b      	ldrb	r3, [r3, #0]
  8001e38:	2b04      	cmp	r3, #4
  8001e3a:	bf94      	ite	ls
@@ -4169,35 +4169,35 @@ void do_interface(void)
  8001e42:	461a      	mov	r2, r3
  8001e44:	2300      	movs	r3, #0
  8001e46:	2101      	movs	r1, #1
- 8001e48:	4855      	ldr	r0, [pc, #340]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001e48:	4855      	ldr	r0, [pc, #340]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001e4a:	f7fe fa0f 	bl	800026c <lcd_mode>
 			break;
- 8001e4e:	e15a      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001e4e:	e15a      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001e50:	697b      	ldr	r3, [r7, #20]
  8001e52:	2b00      	cmp	r3, #0
- 8001e54:	d10e      	bne.n	8001e74 <do_profile_settings.8572+0x73c>
+ 8001e54:	d10e      	bne.n	8001e74 <do_profile_settings.8644+0x73c>
 				if (last_button && (!encoder.pressed))
- 8001e56:	4b4f      	ldr	r3, [pc, #316]	; (8001f94 <do_profile_settings.8572+0x85c>)
+ 8001e56:	4b4f      	ldr	r3, [pc, #316]	; (8001f94 <do_profile_settings.8644+0x85c>)
  8001e58:	781b      	ldrb	r3, [r3, #0]
  8001e5a:	2b00      	cmp	r3, #0
- 8001e5c:	d021      	beq.n	8001ea2 <do_profile_settings.8572+0x76a>
- 8001e5e:	4b4e      	ldr	r3, [pc, #312]	; (8001f98 <do_profile_settings.8572+0x860>)
+ 8001e5c:	d021      	beq.n	8001ea2 <do_profile_settings.8644+0x76a>
+ 8001e5e:	4b4e      	ldr	r3, [pc, #312]	; (8001f98 <do_profile_settings.8644+0x860>)
  8001e60:	789b      	ldrb	r3, [r3, #2]
  8001e62:	f083 0301 	eor.w	r3, r3, #1
  8001e66:	b2db      	uxtb	r3, r3
  8001e68:	2b00      	cmp	r3, #0
- 8001e6a:	d01a      	beq.n	8001ea2 <do_profile_settings.8572+0x76a>
+ 8001e6a:	d01a      	beq.n	8001ea2 <do_profile_settings.8644+0x76a>
 					profile_state = 21; // stop editing
- 8001e6c:	4b4b      	ldr	r3, [pc, #300]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001e6c:	4b4b      	ldr	r3, [pc, #300]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001e6e:	2215      	movs	r2, #21
  8001e70:	701a      	strb	r2, [r3, #0]
- 8001e72:	e016      	b.n	8001ea2 <do_profile_settings.8572+0x76a>
+ 8001e72:	e016      	b.n	8001ea2 <do_profile_settings.8644+0x76a>
 				steps[pos].temp = change_temperature(steps[pos].temp, diff);
- 8001e74:	4b50      	ldr	r3, [pc, #320]	; (8001fb8 <do_profile_settings.8572+0x880>)
+ 8001e74:	4b50      	ldr	r3, [pc, #320]	; (8001fb8 <do_profile_settings.8644+0x880>)
  8001e76:	f993 3000 	ldrsb.w	r3, [r3]
  8001e7a:	461a      	mov	r2, r3
- 8001e7c:	4b4f      	ldr	r3, [pc, #316]	; (8001fbc <do_profile_settings.8572+0x884>)
+ 8001e7c:	4b4f      	ldr	r3, [pc, #316]	; (8001fbc <do_profile_settings.8644+0x884>)
  8001e7e:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  8001e82:	461a      	mov	r2, r3
  8001e84:	697b      	ldr	r3, [r7, #20]
@@ -4205,109 +4205,109 @@ void do_interface(void)
  8001e88:	46a4      	mov	ip, r4
  8001e8a:	4619      	mov	r1, r3
  8001e8c:	4610      	mov	r0, r2
- 8001e8e:	f7ff fab3 	bl	80013f8 <change_temperature.8554>
+ 8001e8e:	f7ff fab3 	bl	80013f8 <change_temperature.8626>
  8001e92:	4601      	mov	r1, r0
- 8001e94:	4b48      	ldr	r3, [pc, #288]	; (8001fb8 <do_profile_settings.8572+0x880>)
+ 8001e94:	4b48      	ldr	r3, [pc, #288]	; (8001fb8 <do_profile_settings.8644+0x880>)
  8001e96:	f993 3000 	ldrsb.w	r3, [r3]
  8001e9a:	461a      	mov	r2, r3
- 8001e9c:	4b47      	ldr	r3, [pc, #284]	; (8001fbc <do_profile_settings.8572+0x884>)
+ 8001e9c:	4b47      	ldr	r3, [pc, #284]	; (8001fbc <do_profile_settings.8644+0x884>)
  8001e9e:	f843 1032 	str.w	r1, [r3, r2, lsl #3]
 			show_step_menu();
  8001ea2:	f107 0308 	add.w	r3, r7, #8
  8001ea6:	469c      	mov	ip, r3
- 8001ea8:	f7ff fbd6 	bl	8001658 <show_step_menu.8582>
+ 8001ea8:	f7ff fbd6 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  8001eac:	2201      	movs	r2, #1
  8001eae:	2109      	movs	r1, #9
- 8001eb0:	483b      	ldr	r0, [pc, #236]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001eb0:	483b      	ldr	r0, [pc, #236]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001eb2:	f7fe fa3d 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8001eb6:	493f      	ldr	r1, [pc, #252]	; (8001fb4 <do_profile_settings.8572+0x87c>)
- 8001eb8:	4839      	ldr	r0, [pc, #228]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001eb6:	493f      	ldr	r1, [pc, #252]	; (8001fb4 <do_profile_settings.8644+0x87c>)
+ 8001eb8:	4839      	ldr	r0, [pc, #228]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001eba:	f7fe fa22 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001ebe:	2100      	movs	r1, #0
- 8001ec0:	4837      	ldr	r0, [pc, #220]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001ec0:	4837      	ldr	r0, [pc, #220]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001ec2:	f7fe fabb 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 2, 1);
  8001ec6:	2201      	movs	r2, #1
  8001ec8:	2102      	movs	r1, #2
- 8001eca:	4835      	ldr	r0, [pc, #212]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001eca:	4835      	ldr	r0, [pc, #212]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001ecc:	f7fe fa30 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
  8001ed0:	2301      	movs	r3, #1
  8001ed2:	2200      	movs	r2, #0
  8001ed4:	2101      	movs	r1, #1
- 8001ed6:	4832      	ldr	r0, [pc, #200]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001ed6:	4832      	ldr	r0, [pc, #200]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001ed8:	f7fe f9c8 	bl	800026c <lcd_mode>
 			break;
- 8001edc:	e113      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001edc:	e113      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001ede:	697b      	ldr	r3, [r7, #20]
  8001ee0:	2b00      	cmp	r3, #0
- 8001ee2:	d10e      	bne.n	8001f02 <do_profile_settings.8572+0x7ca>
+ 8001ee2:	d10e      	bne.n	8001f02 <do_profile_settings.8644+0x7ca>
 				if (last_button && (!encoder.pressed))
- 8001ee4:	4b2b      	ldr	r3, [pc, #172]	; (8001f94 <do_profile_settings.8572+0x85c>)
+ 8001ee4:	4b2b      	ldr	r3, [pc, #172]	; (8001f94 <do_profile_settings.8644+0x85c>)
  8001ee6:	781b      	ldrb	r3, [r3, #0]
  8001ee8:	2b00      	cmp	r3, #0
- 8001eea:	d017      	beq.n	8001f1c <do_profile_settings.8572+0x7e4>
- 8001eec:	4b2a      	ldr	r3, [pc, #168]	; (8001f98 <do_profile_settings.8572+0x860>)
+ 8001eea:	d017      	beq.n	8001f1c <do_profile_settings.8644+0x7e4>
+ 8001eec:	4b2a      	ldr	r3, [pc, #168]	; (8001f98 <do_profile_settings.8644+0x860>)
  8001eee:	789b      	ldrb	r3, [r3, #2]
  8001ef0:	f083 0301 	eor.w	r3, r3, #1
  8001ef4:	b2db      	uxtb	r3, r3
  8001ef6:	2b00      	cmp	r3, #0
- 8001ef8:	d010      	beq.n	8001f1c <do_profile_settings.8572+0x7e4>
+ 8001ef8:	d010      	beq.n	8001f1c <do_profile_settings.8644+0x7e4>
 					profile_state = 24; // start edit
- 8001efa:	4b28      	ldr	r3, [pc, #160]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001efa:	4b28      	ldr	r3, [pc, #160]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001efc:	2218      	movs	r2, #24
  8001efe:	701a      	strb	r2, [r3, #0]
- 8001f00:	e00c      	b.n	8001f1c <do_profile_settings.8572+0x7e4>
+ 8001f00:	e00c      	b.n	8001f1c <do_profile_settings.8644+0x7e4>
 				if (diff > 0)
  8001f02:	697b      	ldr	r3, [r7, #20]
  8001f04:	2b00      	cmp	r3, #0
- 8001f06:	dd03      	ble.n	8001f10 <do_profile_settings.8572+0x7d8>
+ 8001f06:	dd03      	ble.n	8001f10 <do_profile_settings.8644+0x7d8>
 					profile_state = 11;
- 8001f08:	4b24      	ldr	r3, [pc, #144]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001f08:	4b24      	ldr	r3, [pc, #144]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001f0a:	220b      	movs	r2, #11
  8001f0c:	701a      	strb	r2, [r3, #0]
- 8001f0e:	e005      	b.n	8001f1c <do_profile_settings.8572+0x7e4>
+ 8001f0e:	e005      	b.n	8001f1c <do_profile_settings.8644+0x7e4>
 				else if (diff < 0)
  8001f10:	697b      	ldr	r3, [r7, #20]
  8001f12:	2b00      	cmp	r3, #0
- 8001f14:	da02      	bge.n	8001f1c <do_profile_settings.8572+0x7e4>
+ 8001f14:	da02      	bge.n	8001f1c <do_profile_settings.8644+0x7e4>
 					profile_state = 21;
- 8001f16:	4b21      	ldr	r3, [pc, #132]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001f16:	4b21      	ldr	r3, [pc, #132]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001f18:	2215      	movs	r2, #21
  8001f1a:	701a      	strb	r2, [r3, #0]
 			show_step_menu();
  8001f1c:	f107 0308 	add.w	r3, r7, #8
  8001f20:	469c      	mov	ip, r3
- 8001f22:	f7ff fb99 	bl	8001658 <show_step_menu.8582>
+ 8001f22:	f7ff fb99 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 0, 1);
  8001f26:	2201      	movs	r2, #1
  8001f28:	2100      	movs	r1, #0
- 8001f2a:	481d      	ldr	r0, [pc, #116]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001f2a:	481d      	ldr	r0, [pc, #116]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001f2c:	f7fe fa00 	bl	8000330 <lcd_set_xy>
 			lcd_set_xy(&lcd, 9, 1);
  8001f30:	2201      	movs	r2, #1
  8001f32:	2109      	movs	r1, #9
- 8001f34:	481a      	ldr	r0, [pc, #104]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001f34:	481a      	ldr	r0, [pc, #104]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001f36:	f7fe f9fb 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8001f3a:	491e      	ldr	r1, [pc, #120]	; (8001fb4 <do_profile_settings.8572+0x87c>)
- 8001f3c:	4818      	ldr	r0, [pc, #96]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001f3a:	491e      	ldr	r1, [pc, #120]	; (8001fb4 <do_profile_settings.8644+0x87c>)
+ 8001f3c:	4818      	ldr	r0, [pc, #96]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001f3e:	f7fe f9e0 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8001f42:	2100      	movs	r1, #0
- 8001f44:	4816      	ldr	r0, [pc, #88]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001f44:	4816      	ldr	r0, [pc, #88]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001f46:	f7fe fa79 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 8, 1);
  8001f4a:	2201      	movs	r2, #1
  8001f4c:	2108      	movs	r1, #8
- 8001f4e:	4814      	ldr	r0, [pc, #80]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001f4e:	4814      	ldr	r0, [pc, #80]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001f50:	f7fe f9ee 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8001f54:	4b15      	ldr	r3, [pc, #84]	; (8001fac <do_profile_settings.8572+0x874>)
+ 8001f54:	4b15      	ldr	r3, [pc, #84]	; (8001fac <do_profile_settings.8644+0x874>)
  8001f56:	781b      	ldrb	r3, [r3, #0]
  8001f58:	2b04      	cmp	r3, #4
  8001f5a:	bf94      	ite	ls
@@ -4317,30 +4317,30 @@ void do_interface(void)
  8001f62:	461a      	mov	r2, r3
  8001f64:	2300      	movs	r3, #0
  8001f66:	2101      	movs	r1, #1
- 8001f68:	480d      	ldr	r0, [pc, #52]	; (8001fa0 <do_profile_settings.8572+0x868>)
+ 8001f68:	480d      	ldr	r0, [pc, #52]	; (8001fa0 <do_profile_settings.8644+0x868>)
  8001f6a:	f7fe f97f 	bl	800026c <lcd_mode>
 			break;
- 8001f6e:	e0ca      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8001f6e:	e0ca      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			if (diff == 0)
  8001f70:	697b      	ldr	r3, [r7, #20]
  8001f72:	2b00      	cmp	r3, #0
- 8001f74:	d124      	bne.n	8001fc0 <do_profile_settings.8572+0x888>
+ 8001f74:	d124      	bne.n	8001fc0 <do_profile_settings.8644+0x888>
 				if (last_button && (!encoder.pressed))
- 8001f76:	4b07      	ldr	r3, [pc, #28]	; (8001f94 <do_profile_settings.8572+0x85c>)
+ 8001f76:	4b07      	ldr	r3, [pc, #28]	; (8001f94 <do_profile_settings.8644+0x85c>)
  8001f78:	781b      	ldrb	r3, [r3, #0]
  8001f7a:	2b00      	cmp	r3, #0
- 8001f7c:	d037      	beq.n	8001fee <do_profile_settings.8572+0x8b6>
- 8001f7e:	4b06      	ldr	r3, [pc, #24]	; (8001f98 <do_profile_settings.8572+0x860>)
+ 8001f7c:	d037      	beq.n	8001fee <do_profile_settings.8644+0x8b6>
+ 8001f7e:	4b06      	ldr	r3, [pc, #24]	; (8001f98 <do_profile_settings.8644+0x860>)
  8001f80:	789b      	ldrb	r3, [r3, #2]
  8001f82:	f083 0301 	eor.w	r3, r3, #1
  8001f86:	b2db      	uxtb	r3, r3
  8001f88:	2b00      	cmp	r3, #0
- 8001f8a:	d030      	beq.n	8001fee <do_profile_settings.8572+0x8b6>
+ 8001f8a:	d030      	beq.n	8001fee <do_profile_settings.8644+0x8b6>
 					profile_state = 23; // stop editing
- 8001f8c:	4b03      	ldr	r3, [pc, #12]	; (8001f9c <do_profile_settings.8572+0x864>)
+ 8001f8c:	4b03      	ldr	r3, [pc, #12]	; (8001f9c <do_profile_settings.8644+0x864>)
  8001f8e:	2217      	movs	r2, #23
  8001f90:	701a      	strb	r2, [r3, #0]
- 8001f92:	e02c      	b.n	8001fee <do_profile_settings.8572+0x8b6>
+ 8001f92:	e02c      	b.n	8001fee <do_profile_settings.8644+0x8b6>
  8001f94:	200002d0 	.word	0x200002d0
  8001f98:	20000234 	.word	0x20000234
  8001f9c:	200002cb 	.word	0x200002cb
@@ -4353,105 +4353,105 @@ void do_interface(void)
  8001fb8:	200002ca 	.word	0x200002ca
  8001fbc:	20000268 	.word	0x20000268
 				steps[pos].time = change_time(steps[pos].time, diff, true);
- 8001fc0:	4b55      	ldr	r3, [pc, #340]	; (8002118 <do_profile_settings.8572+0x9e0>)
+ 8001fc0:	4b55      	ldr	r3, [pc, #340]	; (8002118 <do_profile_settings.8644+0x9e0>)
  8001fc2:	f993 3000 	ldrsb.w	r3, [r3]
- 8001fc6:	4a55      	ldr	r2, [pc, #340]	; (800211c <do_profile_settings.8572+0x9e4>)
+ 8001fc6:	4a55      	ldr	r2, [pc, #340]	; (800211c <do_profile_settings.8644+0x9e4>)
  8001fc8:	00db      	lsls	r3, r3, #3
  8001fca:	4413      	add	r3, r2
  8001fcc:	685b      	ldr	r3, [r3, #4]
  8001fce:	697a      	ldr	r2, [r7, #20]
  8001fd0:	b211      	sxth	r1, r2
- 8001fd2:	4a51      	ldr	r2, [pc, #324]	; (8002118 <do_profile_settings.8572+0x9e0>)
+ 8001fd2:	4a51      	ldr	r2, [pc, #324]	; (8002118 <do_profile_settings.8644+0x9e0>)
  8001fd4:	f992 2000 	ldrsb.w	r2, [r2]
  8001fd8:	4615      	mov	r5, r2
  8001fda:	46a4      	mov	ip, r4
  8001fdc:	2201      	movs	r2, #1
  8001fde:	4618      	mov	r0, r3
- 8001fe0:	f7ff fa42 	bl	8001468 <change_time.8560>
+ 8001fe0:	f7ff fa42 	bl	8001468 <change_time.8632>
  8001fe4:	4602      	mov	r2, r0
- 8001fe6:	494d      	ldr	r1, [pc, #308]	; (800211c <do_profile_settings.8572+0x9e4>)
+ 8001fe6:	494d      	ldr	r1, [pc, #308]	; (800211c <do_profile_settings.8644+0x9e4>)
  8001fe8:	00eb      	lsls	r3, r5, #3
  8001fea:	440b      	add	r3, r1
  8001fec:	605a      	str	r2, [r3, #4]
 			show_step_menu();
  8001fee:	f107 0308 	add.w	r3, r7, #8
  8001ff2:	469c      	mov	ip, r3
- 8001ff4:	f7ff fb30 	bl	8001658 <show_step_menu.8582>
+ 8001ff4:	f7ff fb30 	bl	8001658 <show_step_menu.8654>
 			lcd_set_xy(&lcd, 9, 1);
  8001ff8:	2201      	movs	r2, #1
  8001ffa:	2109      	movs	r1, #9
- 8001ffc:	4848      	ldr	r0, [pc, #288]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8001ffc:	4848      	ldr	r0, [pc, #288]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8001ffe:	f7fe f997 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, " +x");
- 8002002:	4948      	ldr	r1, [pc, #288]	; (8002124 <do_profile_settings.8572+0x9ec>)
- 8002004:	4846      	ldr	r0, [pc, #280]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002002:	4948      	ldr	r1, [pc, #288]	; (8002124 <do_profile_settings.8644+0x9ec>)
+ 8002004:	4846      	ldr	r0, [pc, #280]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002006:	f7fe f97c 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  800200a:	2100      	movs	r1, #0
- 800200c:	4844      	ldr	r0, [pc, #272]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 800200c:	4844      	ldr	r0, [pc, #272]	; (8002120 <do_profile_settings.8644+0x9e8>)
  800200e:	f7fe fa15 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 8, 1);
  8002012:	2201      	movs	r2, #1
  8002014:	2108      	movs	r1, #8
- 8002016:	4842      	ldr	r0, [pc, #264]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002016:	4842      	ldr	r0, [pc, #264]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002018:	f7fe f98a 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
  800201c:	2301      	movs	r3, #1
  800201e:	2200      	movs	r2, #0
  8002020:	2101      	movs	r1, #1
- 8002022:	483f      	ldr	r0, [pc, #252]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002022:	483f      	ldr	r0, [pc, #252]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002024:	f7fe f922 	bl	800026c <lcd_mode>
 			break;
- 8002028:	e06d      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8002028:	e06d      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			lcd_set_xy(&lcd, 0, 0);
  800202a:	2200      	movs	r2, #0
  800202c:	2100      	movs	r1, #0
- 800202e:	483c      	ldr	r0, [pc, #240]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 800202e:	483c      	ldr	r0, [pc, #240]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002030:	f7fe f97e 	bl	8000330 <lcd_set_xy>
 			lcd_write_data(&lcd, ' ');
  8002034:	2120      	movs	r1, #32
- 8002036:	483a      	ldr	r0, [pc, #232]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002036:	483a      	ldr	r0, [pc, #232]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002038:	f7fe fa00 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, scSIGMA);
  800203c:	21f6      	movs	r1, #246	; 0xf6
- 800203e:	4838      	ldr	r0, [pc, #224]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 800203e:	4838      	ldr	r0, [pc, #224]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002040:	f7fe f9fc 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, ' ');
  8002044:	2120      	movs	r1, #32
- 8002046:	4836      	ldr	r0, [pc, #216]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002046:	4836      	ldr	r0, [pc, #216]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002048:	f7fe f9f8 	bl	800043c <lcd_write_data>
 			lcd_write_data(&lcd, max_steps + '0');
- 800204c:	4b36      	ldr	r3, [pc, #216]	; (8002128 <do_profile_settings.8572+0x9f0>)
+ 800204c:	4b36      	ldr	r3, [pc, #216]	; (8002128 <do_profile_settings.8644+0x9f0>)
  800204e:	781b      	ldrb	r3, [r3, #0]
  8002050:	3330      	adds	r3, #48	; 0x30
  8002052:	b2db      	uxtb	r3, r3
  8002054:	4619      	mov	r1, r3
- 8002056:	4832      	ldr	r0, [pc, #200]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002056:	4832      	ldr	r0, [pc, #200]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002058:	f7fe f9f0 	bl	800043c <lcd_write_data>
 			lcd_string(&lcd, " steps  ");
- 800205c:	4933      	ldr	r1, [pc, #204]	; (800212c <do_profile_settings.8572+0x9f4>)
- 800205e:	4830      	ldr	r0, [pc, #192]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 800205c:	4933      	ldr	r1, [pc, #204]	; (800212c <do_profile_settings.8644+0x9f4>)
+ 800205e:	4830      	ldr	r0, [pc, #192]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002060:	f7fe f94f 	bl	8000302 <lcd_string>
 			lcd_set_xy(&lcd, 0, 1);
  8002064:	2201      	movs	r2, #1
  8002066:	2100      	movs	r1, #0
- 8002068:	482d      	ldr	r0, [pc, #180]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002068:	482d      	ldr	r0, [pc, #180]	; (8002120 <do_profile_settings.8644+0x9e8>)
  800206a:	f7fe f961 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "start prof. ");
- 800206e:	4930      	ldr	r1, [pc, #192]	; (8002130 <do_profile_settings.8572+0x9f8>)
- 8002070:	482b      	ldr	r0, [pc, #172]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 800206e:	4930      	ldr	r1, [pc, #192]	; (8002130 <do_profile_settings.8644+0x9f8>)
+ 8002070:	482b      	ldr	r0, [pc, #172]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002072:	f7fe f946 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ccENTER);
  8002076:	2100      	movs	r1, #0
- 8002078:	4829      	ldr	r0, [pc, #164]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002078:	4829      	ldr	r0, [pc, #164]	; (8002120 <do_profile_settings.8644+0x9e8>)
  800207a:	f7fe f9df 	bl	800043c <lcd_write_data>
 			lcd_set_xy(&lcd, 12, 1);
  800207e:	2201      	movs	r2, #1
  8002080:	210c      	movs	r1, #12
- 8002082:	4827      	ldr	r0, [pc, #156]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 8002082:	4827      	ldr	r0, [pc, #156]	; (8002120 <do_profile_settings.8644+0x9e8>)
  8002084:	f7fe f954 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8002088:	4b2a      	ldr	r3, [pc, #168]	; (8002134 <do_profile_settings.8572+0x9fc>)
+ 8002088:	4b2a      	ldr	r3, [pc, #168]	; (8002134 <do_profile_settings.8644+0x9fc>)
  800208a:	781b      	ldrb	r3, [r3, #0]
  800208c:	2b04      	cmp	r3, #4
  800208e:	bf94      	ite	ls
@@ -4461,72 +4461,72 @@ void do_interface(void)
  8002096:	461a      	mov	r2, r3
  8002098:	2300      	movs	r3, #0
  800209a:	2101      	movs	r1, #1
- 800209c:	4820      	ldr	r0, [pc, #128]	; (8002120 <do_profile_settings.8572+0x9e8>)
+ 800209c:	4820      	ldr	r0, [pc, #128]	; (8002120 <do_profile_settings.8644+0x9e8>)
  800209e:	f7fe f8e5 	bl	800026c <lcd_mode>
 			if (diff == 0)
  80020a2:	697b      	ldr	r3, [r7, #20]
  80020a4:	2b00      	cmp	r3, #0
- 80020a6:	d110      	bne.n	80020ca <do_profile_settings.8572+0x992>
+ 80020a6:	d110      	bne.n	80020ca <do_profile_settings.8644+0x992>
 				if (last_button && (!encoder.pressed))
- 80020a8:	4b23      	ldr	r3, [pc, #140]	; (8002138 <do_profile_settings.8572+0xa00>)
+ 80020a8:	4b23      	ldr	r3, [pc, #140]	; (8002138 <do_profile_settings.8644+0xa00>)
  80020aa:	781b      	ldrb	r3, [r3, #0]
  80020ac:	2b00      	cmp	r3, #0
- 80020ae:	d029      	beq.n	8002104 <do_profile_settings.8572+0x9cc>
- 80020b0:	4b22      	ldr	r3, [pc, #136]	; (800213c <do_profile_settings.8572+0xa04>)
+ 80020ae:	d029      	beq.n	8002104 <do_profile_settings.8644+0x9cc>
+ 80020b0:	4b22      	ldr	r3, [pc, #136]	; (800213c <do_profile_settings.8644+0xa04>)
  80020b2:	789b      	ldrb	r3, [r3, #2]
  80020b4:	f083 0301 	eor.w	r3, r3, #1
  80020b8:	b2db      	uxtb	r3, r3
  80020ba:	2b00      	cmp	r3, #0
- 80020bc:	d022      	beq.n	8002104 <do_profile_settings.8572+0x9cc>
+ 80020bc:	d022      	beq.n	8002104 <do_profile_settings.8644+0x9cc>
 					lcd_mini_clear(&lcd);
  80020be:	46a4      	mov	ip, r4
- 80020c0:	4817      	ldr	r0, [pc, #92]	; (8002120 <do_profile_settings.8572+0x9e8>)
- 80020c2:	f7fe fdb9 	bl	8000c38 <lcd_mini_clear.8550>
+ 80020c0:	4817      	ldr	r0, [pc, #92]	; (8002120 <do_profile_settings.8644+0x9e8>)
+ 80020c2:	f7fe fdb9 	bl	8000c38 <lcd_mini_clear.8622>
 					return true;
  80020c6:	2301      	movs	r3, #1
- 80020c8:	e022      	b.n	8002110 <do_profile_settings.8572+0x9d8>
+ 80020c8:	e022      	b.n	8002110 <do_profile_settings.8644+0x9d8>
 				if (diff > 0)
  80020ca:	697b      	ldr	r3, [r7, #20]
  80020cc:	2b00      	cmp	r3, #0
- 80020ce:	dd03      	ble.n	80020d8 <do_profile_settings.8572+0x9a0>
+ 80020ce:	dd03      	ble.n	80020d8 <do_profile_settings.8644+0x9a0>
 					pos = 0;
- 80020d0:	4b11      	ldr	r3, [pc, #68]	; (8002118 <do_profile_settings.8572+0x9e0>)
+ 80020d0:	4b11      	ldr	r3, [pc, #68]	; (8002118 <do_profile_settings.8644+0x9e0>)
  80020d2:	2200      	movs	r2, #0
  80020d4:	701a      	strb	r2, [r3, #0]
- 80020d6:	e009      	b.n	80020ec <do_profile_settings.8572+0x9b4>
+ 80020d6:	e009      	b.n	80020ec <do_profile_settings.8644+0x9b4>
 				else if (diff < 0)
  80020d8:	697b      	ldr	r3, [r7, #20]
  80020da:	2b00      	cmp	r3, #0
- 80020dc:	da06      	bge.n	80020ec <do_profile_settings.8572+0x9b4>
+ 80020dc:	da06      	bge.n	80020ec <do_profile_settings.8644+0x9b4>
 					pos = max_steps - 1;
- 80020de:	4b12      	ldr	r3, [pc, #72]	; (8002128 <do_profile_settings.8572+0x9f0>)
+ 80020de:	4b12      	ldr	r3, [pc, #72]	; (8002128 <do_profile_settings.8644+0x9f0>)
  80020e0:	781b      	ldrb	r3, [r3, #0]
  80020e2:	3b01      	subs	r3, #1
  80020e4:	b2db      	uxtb	r3, r3
  80020e6:	b25a      	sxtb	r2, r3
- 80020e8:	4b0b      	ldr	r3, [pc, #44]	; (8002118 <do_profile_settings.8572+0x9e0>)
+ 80020e8:	4b0b      	ldr	r3, [pc, #44]	; (8002118 <do_profile_settings.8644+0x9e0>)
  80020ea:	701a      	strb	r2, [r3, #0]
 				profile_state = 1;
- 80020ec:	4b14      	ldr	r3, [pc, #80]	; (8002140 <do_profile_settings.8572+0xa08>)
+ 80020ec:	4b14      	ldr	r3, [pc, #80]	; (8002140 <do_profile_settings.8644+0xa08>)
  80020ee:	2201      	movs	r2, #1
  80020f0:	701a      	strb	r2, [r3, #0]
 			break;
- 80020f2:	e007      	b.n	8002104 <do_profile_settings.8572+0x9cc>
+ 80020f2:	e007      	b.n	8002104 <do_profile_settings.8644+0x9cc>
 			global_error |= errFATAL;
- 80020f4:	4b13      	ldr	r3, [pc, #76]	; (8002144 <do_profile_settings.8572+0xa0c>)
+ 80020f4:	4b13      	ldr	r3, [pc, #76]	; (8002144 <do_profile_settings.8644+0xa0c>)
  80020f6:	781b      	ldrb	r3, [r3, #0]
  80020f8:	f043 0340 	orr.w	r3, r3, #64	; 0x40
  80020fc:	b2da      	uxtb	r2, r3
- 80020fe:	4b11      	ldr	r3, [pc, #68]	; (8002144 <do_profile_settings.8572+0xa0c>)
+ 80020fe:	4b11      	ldr	r3, [pc, #68]	; (8002144 <do_profile_settings.8644+0xa0c>)
  8002100:	701a      	strb	r2, [r3, #0]
 			break;
- 8002102:	e000      	b.n	8002106 <do_profile_settings.8572+0x9ce>
+ 8002102:	e000      	b.n	8002106 <do_profile_settings.8644+0x9ce>
 			break;
  8002104:	bf00      	nop
 		last_button = encoder.pressed;
- 8002106:	4b0d      	ldr	r3, [pc, #52]	; (800213c <do_profile_settings.8572+0xa04>)
+ 8002106:	4b0d      	ldr	r3, [pc, #52]	; (800213c <do_profile_settings.8644+0xa04>)
  8002108:	789a      	ldrb	r2, [r3, #2]
- 800210a:	4b0b      	ldr	r3, [pc, #44]	; (8002138 <do_profile_settings.8572+0xa00>)
+ 800210a:	4b0b      	ldr	r3, [pc, #44]	; (8002138 <do_profile_settings.8644+0xa00>)
  800210c:	701a      	strb	r2, [r3, #0]
 		return false;
  800210e:	2300      	movs	r3, #0
@@ -4548,7 +4548,7 @@ void do_interface(void)
  8002140:	200002cb 	.word	0x200002cb
  8002144:	20000230 	.word	0x20000230
 
-08002148 <do_reflow.8608>:
+08002148 <do_reflow.8680>:
 	{
  8002148:	b5b0      	push	{r4, r5, r7, lr}
  800214a:	b088      	sub	sp, #32
@@ -4560,97 +4560,97 @@ void do_interface(void)
 		if (reset)
  8002158:	79fb      	ldrb	r3, [r7, #7]
  800215a:	2b00      	cmp	r3, #0
- 800215c:	d00e      	beq.n	800217c <do_reflow.8608+0x34>
+ 800215c:	d00e      	beq.n	800217c <do_reflow.8680+0x34>
 			last_time = HAL_GetTick();
  800215e:	f001 fcad 	bl	8003abc <HAL_GetTick>
  8002162:	4603      	mov	r3, r0
- 8002164:	4a9f      	ldr	r2, [pc, #636]	; (80023e4 <do_reflow.8608+0x29c>)
+ 8002164:	4a9f      	ldr	r2, [pc, #636]	; (80023e4 <do_reflow.8680+0x29c>)
  8002166:	6013      	str	r3, [r2, #0]
 			peep_first_time = true;
- 8002168:	4b9f      	ldr	r3, [pc, #636]	; (80023e8 <do_reflow.8608+0x2a0>)
+ 8002168:	4b9f      	ldr	r3, [pc, #636]	; (80023e8 <do_reflow.8680+0x2a0>)
  800216a:	2201      	movs	r2, #1
  800216c:	701a      	strb	r2, [r3, #0]
 			last_button = false;
- 800216e:	4b9f      	ldr	r3, [pc, #636]	; (80023ec <do_reflow.8608+0x2a4>)
+ 800216e:	4b9f      	ldr	r3, [pc, #636]	; (80023ec <do_reflow.8680+0x2a4>)
  8002170:	2200      	movs	r2, #0
  8002172:	701a      	strb	r2, [r3, #0]
 			pos = 0;
- 8002174:	4b9e      	ldr	r3, [pc, #632]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 8002174:	4b9e      	ldr	r3, [pc, #632]	; (80023f0 <do_reflow.8680+0x2a8>)
  8002176:	2200      	movs	r2, #0
  8002178:	701a      	strb	r2, [r3, #0]
 			return;
- 800217a:	e311      	b.n	80027a0 <do_reflow.8608+0x658>
+ 800217a:	e311      	b.n	80027a0 <do_reflow.8680+0x658>
 		int32_t dt = ((int32_t)(temperature_SP<<2)) -
- 800217c:	4b9d      	ldr	r3, [pc, #628]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 800217c:	4b9d      	ldr	r3, [pc, #628]	; (80023f4 <do_reflow.8680+0x2ac>)
  800217e:	881b      	ldrh	r3, [r3, #0]
  8002180:	009b      	lsls	r3, r3, #2
 					 ((int32_t)MAX6675.temperature);
- 8002182:	4a9d      	ldr	r2, [pc, #628]	; (80023f8 <do_reflow.8608+0x2b0>)
+ 8002182:	4a9d      	ldr	r2, [pc, #628]	; (80023f8 <do_reflow.8680+0x2b0>)
  8002184:	8812      	ldrh	r2, [r2, #0]
 		int32_t dt = ((int32_t)(temperature_SP<<2)) -
  8002186:	1a9b      	subs	r3, r3, r2
  8002188:	61fb      	str	r3, [r7, #28]
 		if (pos >= (2*max_steps))
- 800218a:	4b99      	ldr	r3, [pc, #612]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 800218a:	4b99      	ldr	r3, [pc, #612]	; (80023f0 <do_reflow.8680+0x2a8>)
  800218c:	781b      	ldrb	r3, [r3, #0]
  800218e:	b2db      	uxtb	r3, r3
  8002190:	461a      	mov	r2, r3
- 8002192:	4b9a      	ldr	r3, [pc, #616]	; (80023fc <do_reflow.8608+0x2b4>)
+ 8002192:	4b9a      	ldr	r3, [pc, #616]	; (80023fc <do_reflow.8680+0x2b4>)
  8002194:	781b      	ldrb	r3, [r3, #0]
  8002196:	005b      	lsls	r3, r3, #1
  8002198:	429a      	cmp	r2, r3
- 800219a:	db76      	blt.n	800228a <do_reflow.8608+0x142>
+ 800219a:	db76      	blt.n	800228a <do_reflow.8680+0x142>
 			if (peep_first_time)
- 800219c:	4b92      	ldr	r3, [pc, #584]	; (80023e8 <do_reflow.8608+0x2a0>)
+ 800219c:	4b92      	ldr	r3, [pc, #584]	; (80023e8 <do_reflow.8680+0x2a0>)
  800219e:	781b      	ldrb	r3, [r3, #0]
  80021a0:	2b00      	cmp	r3, #0
- 80021a2:	d005      	beq.n	80021b0 <do_reflow.8608+0x68>
+ 80021a2:	d005      	beq.n	80021b0 <do_reflow.8680+0x68>
 				peep.peep = true;
- 80021a4:	4b96      	ldr	r3, [pc, #600]	; (8002400 <do_reflow.8608+0x2b8>)
+ 80021a4:	4b96      	ldr	r3, [pc, #600]	; (8002400 <do_reflow.8680+0x2b8>)
  80021a6:	2201      	movs	r2, #1
  80021a8:	701a      	strb	r2, [r3, #0]
 				peep_first_time = false;
- 80021aa:	4b8f      	ldr	r3, [pc, #572]	; (80023e8 <do_reflow.8608+0x2a0>)
+ 80021aa:	4b8f      	ldr	r3, [pc, #572]	; (80023e8 <do_reflow.8680+0x2a0>)
  80021ac:	2200      	movs	r2, #0
  80021ae:	701a      	strb	r2, [r3, #0]
 			if (encoder.pressed)
- 80021b0:	4b94      	ldr	r3, [pc, #592]	; (8002404 <do_reflow.8608+0x2bc>)
+ 80021b0:	4b94      	ldr	r3, [pc, #592]	; (8002404 <do_reflow.8680+0x2bc>)
  80021b2:	789b      	ldrb	r3, [r3, #2]
  80021b4:	2b00      	cmp	r3, #0
- 80021b6:	d002      	beq.n	80021be <do_reflow.8608+0x76>
+ 80021b6:	d002      	beq.n	80021be <do_reflow.8680+0x76>
 				peep.peep = false;
- 80021b8:	4b91      	ldr	r3, [pc, #580]	; (8002400 <do_reflow.8608+0x2b8>)
+ 80021b8:	4b91      	ldr	r3, [pc, #580]	; (8002400 <do_reflow.8680+0x2b8>)
  80021ba:	2200      	movs	r2, #0
  80021bc:	701a      	strb	r2, [r3, #0]
 			temperature_SP = 0;
- 80021be:	4b8d      	ldr	r3, [pc, #564]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 80021be:	4b8d      	ldr	r3, [pc, #564]	; (80023f4 <do_reflow.8680+0x2ac>)
  80021c0:	2200      	movs	r2, #0
  80021c2:	801a      	strh	r2, [r3, #0]
 			lcd_set_xy(&lcd, 0, 0);
  80021c4:	2200      	movs	r2, #0
  80021c6:	2100      	movs	r1, #0
- 80021c8:	488f      	ldr	r0, [pc, #572]	; (8002408 <do_reflow.8608+0x2c0>)
+ 80021c8:	488f      	ldr	r0, [pc, #572]	; (8002408 <do_reflow.8680+0x2c0>)
  80021ca:	f7fe f8b1 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "Cooldown    ");
- 80021ce:	498f      	ldr	r1, [pc, #572]	; (800240c <do_reflow.8608+0x2c4>)
- 80021d0:	488d      	ldr	r0, [pc, #564]	; (8002408 <do_reflow.8608+0x2c0>)
+ 80021ce:	498f      	ldr	r1, [pc, #572]	; (800240c <do_reflow.8680+0x2c4>)
+ 80021d0:	488d      	ldr	r0, [pc, #564]	; (8002408 <do_reflow.8680+0x2c0>)
  80021d2:	f7fe f896 	bl	8000302 <lcd_string>
 			lcd_set_xy(&lcd, 7, 1);
  80021d6:	2201      	movs	r2, #1
  80021d8:	2107      	movs	r1, #7
- 80021da:	488b      	ldr	r0, [pc, #556]	; (8002408 <do_reflow.8608+0x2c0>)
+ 80021da:	488b      	ldr	r0, [pc, #556]	; (8002408 <do_reflow.8680+0x2c0>)
  80021dc:	f7fe f8a8 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "+");
- 80021e0:	498b      	ldr	r1, [pc, #556]	; (8002410 <do_reflow.8608+0x2c8>)
- 80021e2:	4889      	ldr	r0, [pc, #548]	; (8002408 <do_reflow.8608+0x2c0>)
+ 80021e0:	498b      	ldr	r1, [pc, #556]	; (8002410 <do_reflow.8680+0x2c8>)
+ 80021e2:	4889      	ldr	r0, [pc, #548]	; (8002408 <do_reflow.8680+0x2c0>)
  80021e4:	f7fe f88d 	bl	8000302 <lcd_string>
 			lcd_string(&lcd, int2time((HAL_GetTick() - last_time)/1000, time_buf));
  80021e8:	f001 fc68 	bl	8003abc <HAL_GetTick>
  80021ec:	4602      	mov	r2, r0
- 80021ee:	4b7d      	ldr	r3, [pc, #500]	; (80023e4 <do_reflow.8608+0x29c>)
+ 80021ee:	4b7d      	ldr	r3, [pc, #500]	; (80023e4 <do_reflow.8680+0x29c>)
  80021f0:	681b      	ldr	r3, [r3, #0]
  80021f2:	1ad3      	subs	r3, r2, r3
- 80021f4:	4a87      	ldr	r2, [pc, #540]	; (8002414 <do_reflow.8608+0x2cc>)
+ 80021f4:	4a87      	ldr	r2, [pc, #540]	; (8002414 <do_reflow.8680+0x2cc>)
  80021f6:	fba2 2303 	umull	r2, r3, r2, r3
  80021fa:	099b      	lsrs	r3, r3, #6
  80021fc:	f107 0210 	add.w	r2, r7, #16
@@ -4659,41 +4659,41 @@ void do_interface(void)
  8002204:	f7fe f9d6 	bl	80005b4 <int2time>
  8002208:	4603      	mov	r3, r0
  800220a:	4619      	mov	r1, r3
- 800220c:	487e      	ldr	r0, [pc, #504]	; (8002408 <do_reflow.8608+0x2c0>)
+ 800220c:	487e      	ldr	r0, [pc, #504]	; (8002408 <do_reflow.8680+0x2c0>)
  800220e:	f7fe f878 	bl	8000302 <lcd_string>
 			lcd_write_data(&lcd, ' ');
  8002212:	2120      	movs	r1, #32
- 8002214:	487c      	ldr	r0, [pc, #496]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002214:	487c      	ldr	r0, [pc, #496]	; (8002408 <do_reflow.8680+0x2c0>)
  8002216:	f7fe f911 	bl	800043c <lcd_write_data>
 			if (peep.peep)
- 800221a:	4b79      	ldr	r3, [pc, #484]	; (8002400 <do_reflow.8608+0x2b8>)
+ 800221a:	4b79      	ldr	r3, [pc, #484]	; (8002400 <do_reflow.8680+0x2b8>)
  800221c:	781b      	ldrb	r3, [r3, #0]
  800221e:	2b00      	cmp	r3, #0
- 8002220:	d023      	beq.n	800226a <do_reflow.8608+0x122>
+ 8002220:	d023      	beq.n	800226a <do_reflow.8680+0x122>
 				lcd_set_xy(&lcd, 0, 1);
  8002222:	2201      	movs	r2, #1
  8002224:	2100      	movs	r1, #0
- 8002226:	4878      	ldr	r0, [pc, #480]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002226:	4878      	ldr	r0, [pc, #480]	; (8002408 <do_reflow.8680+0x2c0>)
  8002228:	f7fe f882 	bl	8000330 <lcd_set_xy>
 				lcd_string(&lcd, "mute");
- 800222c:	497a      	ldr	r1, [pc, #488]	; (8002418 <do_reflow.8608+0x2d0>)
- 800222e:	4876      	ldr	r0, [pc, #472]	; (8002408 <do_reflow.8608+0x2c0>)
+ 800222c:	497a      	ldr	r1, [pc, #488]	; (8002418 <do_reflow.8680+0x2d0>)
+ 800222e:	4876      	ldr	r0, [pc, #472]	; (8002408 <do_reflow.8680+0x2c0>)
  8002230:	f7fe f867 	bl	8000302 <lcd_string>
 				lcd_write_data(&lcd, ccENTER);
  8002234:	2100      	movs	r1, #0
- 8002236:	4874      	ldr	r0, [pc, #464]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002236:	4874      	ldr	r0, [pc, #464]	; (8002408 <do_reflow.8680+0x2c0>)
  8002238:	f7fe f900 	bl	800043c <lcd_write_data>
 				lcd_string(&lcd, "  ");
- 800223c:	4977      	ldr	r1, [pc, #476]	; (800241c <do_reflow.8608+0x2d4>)
- 800223e:	4872      	ldr	r0, [pc, #456]	; (8002408 <do_reflow.8608+0x2c0>)
+ 800223c:	4977      	ldr	r1, [pc, #476]	; (800241c <do_reflow.8680+0x2d4>)
+ 800223e:	4872      	ldr	r0, [pc, #456]	; (8002408 <do_reflow.8680+0x2c0>)
  8002240:	f7fe f85f 	bl	8000302 <lcd_string>
 				lcd_set_xy(&lcd, 4, 1);
  8002244:	2201      	movs	r2, #1
  8002246:	2104      	movs	r1, #4
- 8002248:	486f      	ldr	r0, [pc, #444]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002248:	486f      	ldr	r0, [pc, #444]	; (8002408 <do_reflow.8680+0x2c0>)
  800224a:	f7fe f871 	bl	8000330 <lcd_set_xy>
 				lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 800224e:	4b74      	ldr	r3, [pc, #464]	; (8002420 <do_reflow.8608+0x2d8>)
+ 800224e:	4b74      	ldr	r3, [pc, #464]	; (8002420 <do_reflow.8680+0x2d8>)
  8002250:	781b      	ldrb	r3, [r3, #0]
  8002252:	2b04      	cmp	r3, #4
  8002254:	bf94      	ite	ls
@@ -4703,46 +4703,46 @@ void do_interface(void)
  800225c:	461a      	mov	r2, r3
  800225e:	2300      	movs	r3, #0
  8002260:	2101      	movs	r1, #1
- 8002262:	4869      	ldr	r0, [pc, #420]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002262:	4869      	ldr	r0, [pc, #420]	; (8002408 <do_reflow.8680+0x2c0>)
  8002264:	f7fe f802 	bl	800026c <lcd_mode>
 			return;
- 8002268:	e29a      	b.n	80027a0 <do_reflow.8608+0x658>
+ 8002268:	e29a      	b.n	80027a0 <do_reflow.8680+0x658>
 				lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
  800226a:	2300      	movs	r3, #0
  800226c:	2200      	movs	r2, #0
  800226e:	2101      	movs	r1, #1
- 8002270:	4865      	ldr	r0, [pc, #404]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002270:	4865      	ldr	r0, [pc, #404]	; (8002408 <do_reflow.8680+0x2c0>)
  8002272:	f7fd fffb 	bl	800026c <lcd_mode>
 				lcd_set_xy(&lcd, 0, 1);
  8002276:	2201      	movs	r2, #1
  8002278:	2100      	movs	r1, #0
- 800227a:	4863      	ldr	r0, [pc, #396]	; (8002408 <do_reflow.8608+0x2c0>)
+ 800227a:	4863      	ldr	r0, [pc, #396]	; (8002408 <do_reflow.8680+0x2c0>)
  800227c:	f7fe f858 	bl	8000330 <lcd_set_xy>
 				lcd_string(&lcd, "       ");
- 8002280:	4968      	ldr	r1, [pc, #416]	; (8002424 <do_reflow.8608+0x2dc>)
- 8002282:	4861      	ldr	r0, [pc, #388]	; (8002408 <do_reflow.8608+0x2c0>)
+ 8002280:	4968      	ldr	r1, [pc, #416]	; (8002424 <do_reflow.8680+0x2dc>)
+ 8002282:	4861      	ldr	r0, [pc, #388]	; (8002408 <do_reflow.8680+0x2c0>)
  8002284:	f7fe f83d 	bl	8000302 <lcd_string>
 			return;
- 8002288:	e28a      	b.n	80027a0 <do_reflow.8608+0x658>
+ 8002288:	e28a      	b.n	80027a0 <do_reflow.8680+0x658>
 		if (pos%2 == 0)
- 800228a:	4b59      	ldr	r3, [pc, #356]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 800228a:	4b59      	ldr	r3, [pc, #356]	; (80023f0 <do_reflow.8680+0x2a8>)
  800228c:	781b      	ldrb	r3, [r3, #0]
  800228e:	b2db      	uxtb	r3, r3
  8002290:	f003 0301 	and.w	r3, r3, #1
  8002294:	b2db      	uxtb	r3, r3
  8002296:	2b00      	cmp	r3, #0
- 8002298:	d158      	bne.n	800234c <do_reflow.8608+0x204>
+ 8002298:	d158      	bne.n	800234c <do_reflow.8680+0x204>
 			temperature_SP = steps[pos>>1].temp;
- 800229a:	4b55      	ldr	r3, [pc, #340]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 800229a:	4b55      	ldr	r3, [pc, #340]	; (80023f0 <do_reflow.8680+0x2a8>)
  800229c:	781b      	ldrb	r3, [r3, #0]
  800229e:	b2db      	uxtb	r3, r3
  80022a0:	085b      	lsrs	r3, r3, #1
  80022a2:	b2db      	uxtb	r3, r3
  80022a4:	461a      	mov	r2, r3
- 80022a6:	4b60      	ldr	r3, [pc, #384]	; (8002428 <do_reflow.8608+0x2e0>)
+ 80022a6:	4b60      	ldr	r3, [pc, #384]	; (8002428 <do_reflow.8680+0x2e0>)
  80022a8:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  80022ac:	b29a      	uxth	r2, r3
- 80022ae:	4b51      	ldr	r3, [pc, #324]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 80022ae:	4b51      	ldr	r3, [pc, #324]	; (80023f4 <do_reflow.8680+0x2ac>)
  80022b0:	801a      	strh	r2, [r3, #0]
 			time_buf[0] = '+';
  80022b2:	232b      	movs	r3, #43	; 0x2b
@@ -4750,10 +4750,10 @@ void do_interface(void)
 			int2time((HAL_GetTick() - last_time)/1000, time_buf+1);
  80022b6:	f001 fc01 	bl	8003abc <HAL_GetTick>
  80022ba:	4602      	mov	r2, r0
- 80022bc:	4b49      	ldr	r3, [pc, #292]	; (80023e4 <do_reflow.8608+0x29c>)
+ 80022bc:	4b49      	ldr	r3, [pc, #292]	; (80023e4 <do_reflow.8680+0x29c>)
  80022be:	681b      	ldr	r3, [r3, #0]
  80022c0:	1ad3      	subs	r3, r2, r3
- 80022c2:	4a54      	ldr	r2, [pc, #336]	; (8002414 <do_reflow.8608+0x2cc>)
+ 80022c2:	4a54      	ldr	r2, [pc, #336]	; (8002414 <do_reflow.8680+0x2cc>)
  80022c4:	fba2 2303 	umull	r2, r3, r2, r3
  80022c8:	099a      	lsrs	r2, r3, #6
  80022ca:	f107 0310 	add.w	r3, r7, #16
@@ -4764,138 +4764,138 @@ void do_interface(void)
 			lcd_set_xy(&lcd, 0, 1);
  80022d8:	2201      	movs	r2, #1
  80022da:	2100      	movs	r1, #0
- 80022dc:	484a      	ldr	r0, [pc, #296]	; (8002408 <do_reflow.8608+0x2c0>)
+ 80022dc:	484a      	ldr	r0, [pc, #296]	; (8002408 <do_reflow.8680+0x2c0>)
  80022de:	f7fe f827 	bl	8000330 <lcd_set_xy>
 			lcd_string(&lcd, "goto");
- 80022e2:	4952      	ldr	r1, [pc, #328]	; (800242c <do_reflow.8608+0x2e4>)
- 80022e4:	4848      	ldr	r0, [pc, #288]	; (8002408 <do_reflow.8608+0x2c0>)
+ 80022e2:	4952      	ldr	r1, [pc, #328]	; (800242c <do_reflow.8680+0x2e4>)
+ 80022e4:	4848      	ldr	r0, [pc, #288]	; (8002408 <do_reflow.8680+0x2c0>)
  80022e6:	f7fe f80c 	bl	8000302 <lcd_string>
 			if ((dt > -(4<<2)) && (dt < (4<<2)))
  80022ea:	69fb      	ldr	r3, [r7, #28]
  80022ec:	f113 0f0f 	cmn.w	r3, #15
- 80022f0:	db26      	blt.n	8002340 <do_reflow.8608+0x1f8>
+ 80022f0:	db26      	blt.n	8002340 <do_reflow.8680+0x1f8>
  80022f2:	69fb      	ldr	r3, [r7, #28]
  80022f4:	2b0f      	cmp	r3, #15
- 80022f6:	dc23      	bgt.n	8002340 <do_reflow.8608+0x1f8>
+ 80022f6:	dc23      	bgt.n	8002340 <do_reflow.8680+0x1f8>
 				if (HAL_GetTick() - check_time > 3000) // we should be at least some time in range
  80022f8:	f001 fbe0 	bl	8003abc <HAL_GetTick>
  80022fc:	4602      	mov	r2, r0
- 80022fe:	4b4c      	ldr	r3, [pc, #304]	; (8002430 <do_reflow.8608+0x2e8>)
+ 80022fe:	4b4c      	ldr	r3, [pc, #304]	; (8002430 <do_reflow.8680+0x2e8>)
  8002300:	681b      	ldr	r3, [r3, #0]
  8002302:	1ad3      	subs	r3, r2, r3
  8002304:	f640 32b8 	movw	r2, #3000	; 0xbb8
  8002308:	4293      	cmp	r3, r2
- 800230a:	f240 80bb 	bls.w	8002484 <do_reflow.8608+0x33c>
+ 800230a:	f240 80bb 	bls.w	8002484 <do_reflow.8680+0x33c>
 					last_time = HAL_GetTick();
  800230e:	f001 fbd5 	bl	8003abc <HAL_GetTick>
  8002312:	4603      	mov	r3, r0
- 8002314:	4a33      	ldr	r2, [pc, #204]	; (80023e4 <do_reflow.8608+0x29c>)
+ 8002314:	4a33      	ldr	r2, [pc, #204]	; (80023e4 <do_reflow.8680+0x29c>)
  8002316:	6013      	str	r3, [r2, #0]
 					pos++;
- 8002318:	4b35      	ldr	r3, [pc, #212]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 8002318:	4b35      	ldr	r3, [pc, #212]	; (80023f0 <do_reflow.8680+0x2a8>)
  800231a:	781b      	ldrb	r3, [r3, #0]
  800231c:	b2db      	uxtb	r3, r3
  800231e:	3301      	adds	r3, #1
  8002320:	b2da      	uxtb	r2, r3
- 8002322:	4b33      	ldr	r3, [pc, #204]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 8002322:	4b33      	ldr	r3, [pc, #204]	; (80023f0 <do_reflow.8680+0x2a8>)
  8002324:	701a      	strb	r2, [r3, #0]
 					temperature_SP = steps[pos>>1].temp;
- 8002326:	4b32      	ldr	r3, [pc, #200]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 8002326:	4b32      	ldr	r3, [pc, #200]	; (80023f0 <do_reflow.8680+0x2a8>)
  8002328:	781b      	ldrb	r3, [r3, #0]
  800232a:	b2db      	uxtb	r3, r3
  800232c:	085b      	lsrs	r3, r3, #1
  800232e:	b2db      	uxtb	r3, r3
  8002330:	461a      	mov	r2, r3
- 8002332:	4b3d      	ldr	r3, [pc, #244]	; (8002428 <do_reflow.8608+0x2e0>)
+ 8002332:	4b3d      	ldr	r3, [pc, #244]	; (8002428 <do_reflow.8680+0x2e0>)
  8002334:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  8002338:	b29a      	uxth	r2, r3
- 800233a:	4b2e      	ldr	r3, [pc, #184]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 800233a:	4b2e      	ldr	r3, [pc, #184]	; (80023f4 <do_reflow.8680+0x2ac>)
  800233c:	801a      	strh	r2, [r3, #0]
 				if (HAL_GetTick() - check_time > 3000) // we should be at least some time in range
- 800233e:	e0a1      	b.n	8002484 <do_reflow.8608+0x33c>
+ 800233e:	e0a1      	b.n	8002484 <do_reflow.8680+0x33c>
 				check_time = HAL_GetTick();
  8002340:	f001 fbbc 	bl	8003abc <HAL_GetTick>
  8002344:	4603      	mov	r3, r0
- 8002346:	4a3a      	ldr	r2, [pc, #232]	; (8002430 <do_reflow.8608+0x2e8>)
+ 8002346:	4a3a      	ldr	r2, [pc, #232]	; (8002430 <do_reflow.8680+0x2e8>)
  8002348:	6013      	str	r3, [r2, #0]
- 800234a:	e09b      	b.n	8002484 <do_reflow.8608+0x33c>
+ 800234a:	e09b      	b.n	8002484 <do_reflow.8680+0x33c>
 			temperature_SP = steps[pos>>1].temp;
- 800234c:	4b28      	ldr	r3, [pc, #160]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 800234c:	4b28      	ldr	r3, [pc, #160]	; (80023f0 <do_reflow.8680+0x2a8>)
  800234e:	781b      	ldrb	r3, [r3, #0]
  8002350:	b2db      	uxtb	r3, r3
  8002352:	085b      	lsrs	r3, r3, #1
  8002354:	b2db      	uxtb	r3, r3
  8002356:	461a      	mov	r2, r3
- 8002358:	4b33      	ldr	r3, [pc, #204]	; (8002428 <do_reflow.8608+0x2e0>)
+ 8002358:	4b33      	ldr	r3, [pc, #204]	; (8002428 <do_reflow.8680+0x2e0>)
  800235a:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  800235e:	b29a      	uxth	r2, r3
- 8002360:	4b24      	ldr	r3, [pc, #144]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 8002360:	4b24      	ldr	r3, [pc, #144]	; (80023f4 <do_reflow.8680+0x2ac>)
  8002362:	801a      	strh	r2, [r3, #0]
 			if (HAL_GetTick() - last_time >= steps[pos>>1].time*1000)
  8002364:	f001 fbaa 	bl	8003abc <HAL_GetTick>
  8002368:	4602      	mov	r2, r0
- 800236a:	4b1e      	ldr	r3, [pc, #120]	; (80023e4 <do_reflow.8608+0x29c>)
+ 800236a:	4b1e      	ldr	r3, [pc, #120]	; (80023e4 <do_reflow.8680+0x29c>)
  800236c:	681b      	ldr	r3, [r3, #0]
  800236e:	1ad2      	subs	r2, r2, r3
- 8002370:	4b1f      	ldr	r3, [pc, #124]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 8002370:	4b1f      	ldr	r3, [pc, #124]	; (80023f0 <do_reflow.8680+0x2a8>)
  8002372:	781b      	ldrb	r3, [r3, #0]
  8002374:	b2db      	uxtb	r3, r3
  8002376:	085b      	lsrs	r3, r3, #1
  8002378:	b2db      	uxtb	r3, r3
- 800237a:	492b      	ldr	r1, [pc, #172]	; (8002428 <do_reflow.8608+0x2e0>)
+ 800237a:	492b      	ldr	r1, [pc, #172]	; (8002428 <do_reflow.8680+0x2e0>)
  800237c:	00db      	lsls	r3, r3, #3
  800237e:	440b      	add	r3, r1
  8002380:	685b      	ldr	r3, [r3, #4]
  8002382:	f44f 717a 	mov.w	r1, #1000	; 0x3e8
  8002386:	fb01 f303 	mul.w	r3, r1, r3
  800238a:	429a      	cmp	r2, r3
- 800238c:	d352      	bcc.n	8002434 <do_reflow.8608+0x2ec>
+ 800238c:	d352      	bcc.n	8002434 <do_reflow.8680+0x2ec>
 				last_time = HAL_GetTick();
  800238e:	f001 fb95 	bl	8003abc <HAL_GetTick>
  8002392:	4603      	mov	r3, r0
- 8002394:	4a13      	ldr	r2, [pc, #76]	; (80023e4 <do_reflow.8608+0x29c>)
+ 8002394:	4a13      	ldr	r2, [pc, #76]	; (80023e4 <do_reflow.8680+0x29c>)
  8002396:	6013      	str	r3, [r2, #0]
 				check_time = HAL_GetTick();
  8002398:	f001 fb90 	bl	8003abc <HAL_GetTick>
  800239c:	4603      	mov	r3, r0
- 800239e:	4a24      	ldr	r2, [pc, #144]	; (8002430 <do_reflow.8608+0x2e8>)
+ 800239e:	4a24      	ldr	r2, [pc, #144]	; (8002430 <do_reflow.8680+0x2e8>)
  80023a0:	6013      	str	r3, [r2, #0]
 				pos++;
- 80023a2:	4b13      	ldr	r3, [pc, #76]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 80023a2:	4b13      	ldr	r3, [pc, #76]	; (80023f0 <do_reflow.8680+0x2a8>)
  80023a4:	781b      	ldrb	r3, [r3, #0]
  80023a6:	b2db      	uxtb	r3, r3
  80023a8:	3301      	adds	r3, #1
  80023aa:	b2da      	uxtb	r2, r3
- 80023ac:	4b10      	ldr	r3, [pc, #64]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 80023ac:	4b10      	ldr	r3, [pc, #64]	; (80023f0 <do_reflow.8680+0x2a8>)
  80023ae:	701a      	strb	r2, [r3, #0]
 				if (pos < (2*max_steps))
- 80023b0:	4b0f      	ldr	r3, [pc, #60]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 80023b0:	4b0f      	ldr	r3, [pc, #60]	; (80023f0 <do_reflow.8680+0x2a8>)
  80023b2:	781b      	ldrb	r3, [r3, #0]
  80023b4:	b2db      	uxtb	r3, r3
  80023b6:	461a      	mov	r2, r3
- 80023b8:	4b10      	ldr	r3, [pc, #64]	; (80023fc <do_reflow.8608+0x2b4>)
+ 80023b8:	4b10      	ldr	r3, [pc, #64]	; (80023fc <do_reflow.8680+0x2b4>)
  80023ba:	781b      	ldrb	r3, [r3, #0]
  80023bc:	005b      	lsls	r3, r3, #1
  80023be:	429a      	cmp	r2, r3
- 80023c0:	da0c      	bge.n	80023dc <do_reflow.8608+0x294>
+ 80023c0:	da0c      	bge.n	80023dc <do_reflow.8680+0x294>
 					temperature_SP = steps[pos>>1].temp;
- 80023c2:	4b0b      	ldr	r3, [pc, #44]	; (80023f0 <do_reflow.8608+0x2a8>)
+ 80023c2:	4b0b      	ldr	r3, [pc, #44]	; (80023f0 <do_reflow.8680+0x2a8>)
  80023c4:	781b      	ldrb	r3, [r3, #0]
  80023c6:	b2db      	uxtb	r3, r3
  80023c8:	085b      	lsrs	r3, r3, #1
  80023ca:	b2db      	uxtb	r3, r3
  80023cc:	461a      	mov	r2, r3
- 80023ce:	4b16      	ldr	r3, [pc, #88]	; (8002428 <do_reflow.8608+0x2e0>)
+ 80023ce:	4b16      	ldr	r3, [pc, #88]	; (8002428 <do_reflow.8680+0x2e0>)
  80023d0:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  80023d4:	b29a      	uxth	r2, r3
- 80023d6:	4b07      	ldr	r3, [pc, #28]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 80023d6:	4b07      	ldr	r3, [pc, #28]	; (80023f4 <do_reflow.8680+0x2ac>)
  80023d8:	801a      	strh	r2, [r3, #0]
- 80023da:	e053      	b.n	8002484 <do_reflow.8608+0x33c>
+ 80023da:	e053      	b.n	8002484 <do_reflow.8680+0x33c>
 					temperature_SP = 0;
- 80023dc:	4b05      	ldr	r3, [pc, #20]	; (80023f4 <do_reflow.8608+0x2ac>)
+ 80023dc:	4b05      	ldr	r3, [pc, #20]	; (80023f4 <do_reflow.8680+0x2ac>)
  80023de:	2200      	movs	r2, #0
  80023e0:	801a      	strh	r2, [r3, #0]
- 80023e2:	e04f      	b.n	8002484 <do_reflow.8608+0x33c>
+ 80023e2:	e04f      	b.n	8002484 <do_reflow.8680+0x33c>
  80023e4:	200002d4 	.word	0x200002d4
  80023e8:	20000028 	.word	0x20000028
  80023ec:	200002d8 	.word	0x200002d8
@@ -4920,22 +4920,22 @@ void do_interface(void)
  8002434:	232d      	movs	r3, #45	; 0x2d
  8002436:	743b      	strb	r3, [r7, #16]
 				int2time(steps[pos>>1].time - (HAL_GetTick() - last_time + 1000)/1000, time_buf+1);
- 8002438:	4b9a      	ldr	r3, [pc, #616]	; (80026a4 <do_reflow.8608+0x55c>)
+ 8002438:	4b9a      	ldr	r3, [pc, #616]	; (80026a4 <do_reflow.8680+0x55c>)
  800243a:	781b      	ldrb	r3, [r3, #0]
  800243c:	b2db      	uxtb	r3, r3
  800243e:	085b      	lsrs	r3, r3, #1
  8002440:	b2db      	uxtb	r3, r3
- 8002442:	4a99      	ldr	r2, [pc, #612]	; (80026a8 <do_reflow.8608+0x560>)
+ 8002442:	4a99      	ldr	r2, [pc, #612]	; (80026a8 <do_reflow.8680+0x560>)
  8002444:	00db      	lsls	r3, r3, #3
  8002446:	4413      	add	r3, r2
  8002448:	685d      	ldr	r5, [r3, #4]
  800244a:	f001 fb37 	bl	8003abc <HAL_GetTick>
  800244e:	4602      	mov	r2, r0
- 8002450:	4b96      	ldr	r3, [pc, #600]	; (80026ac <do_reflow.8608+0x564>)
+ 8002450:	4b96      	ldr	r3, [pc, #600]	; (80026ac <do_reflow.8680+0x564>)
  8002452:	681b      	ldr	r3, [r3, #0]
  8002454:	1ad3      	subs	r3, r2, r3
  8002456:	f503 737a 	add.w	r3, r3, #1000	; 0x3e8
- 800245a:	4a95      	ldr	r2, [pc, #596]	; (80026b0 <do_reflow.8608+0x568>)
+ 800245a:	4a95      	ldr	r2, [pc, #596]	; (80026b0 <do_reflow.8680+0x568>)
  800245c:	fba2 2303 	umull	r2, r3, r2, r3
  8002460:	099b      	lsrs	r3, r3, #6
  8002462:	1aea      	subs	r2, r5, r3
@@ -4947,23 +4947,23 @@ void do_interface(void)
 				lcd_set_xy(&lcd, 0, 1);
  8002472:	2201      	movs	r2, #1
  8002474:	2100      	movs	r1, #0
- 8002476:	488f      	ldr	r0, [pc, #572]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002476:	488f      	ldr	r0, [pc, #572]	; (80026b4 <do_reflow.8680+0x56c>)
  8002478:	f7fd ff5a 	bl	8000330 <lcd_set_xy>
 				lcd_string(&lcd, "hold");
- 800247c:	498e      	ldr	r1, [pc, #568]	; (80026b8 <do_reflow.8608+0x570>)
- 800247e:	488d      	ldr	r0, [pc, #564]	; (80026b4 <do_reflow.8608+0x56c>)
+ 800247c:	498e      	ldr	r1, [pc, #568]	; (80026b8 <do_reflow.8680+0x570>)
+ 800247e:	488d      	ldr	r0, [pc, #564]	; (80026b4 <do_reflow.8680+0x56c>)
  8002480:	f7fd ff3f 	bl	8000302 <lcd_string>
 		lcd_set_xy(&lcd, 0, 0);
  8002484:	2200      	movs	r2, #0
  8002486:	2100      	movs	r1, #0
- 8002488:	488a      	ldr	r0, [pc, #552]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002488:	488a      	ldr	r0, [pc, #552]	; (80026b4 <do_reflow.8680+0x56c>)
  800248a:	f7fd ff51 	bl	8000330 <lcd_set_xy>
 		lcd_write_data(&lcd, '#');
  800248e:	2123      	movs	r1, #35	; 0x23
- 8002490:	4888      	ldr	r0, [pc, #544]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002490:	4888      	ldr	r0, [pc, #544]	; (80026b4 <do_reflow.8680+0x56c>)
  8002492:	f7fd ffd3 	bl	800043c <lcd_write_data>
 		lcd_write_data(&lcd, (pos>>1)+'1');
- 8002496:	4b83      	ldr	r3, [pc, #524]	; (80026a4 <do_reflow.8608+0x55c>)
+ 8002496:	4b83      	ldr	r3, [pc, #524]	; (80026a4 <do_reflow.8680+0x55c>)
  8002498:	781b      	ldrb	r3, [r3, #0]
  800249a:	b2db      	uxtb	r3, r3
  800249c:	085b      	lsrs	r3, r3, #1
@@ -4971,32 +4971,32 @@ void do_interface(void)
  80024a0:	3331      	adds	r3, #49	; 0x31
  80024a2:	b2db      	uxtb	r3, r3
  80024a4:	4619      	mov	r1, r3
- 80024a6:	4883      	ldr	r0, [pc, #524]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024a6:	4883      	ldr	r0, [pc, #524]	; (80026b4 <do_reflow.8680+0x56c>)
  80024a8:	f7fd ffc8 	bl	800043c <lcd_write_data>
 		lcd_write_data(&lcd, '/');
  80024ac:	212f      	movs	r1, #47	; 0x2f
- 80024ae:	4881      	ldr	r0, [pc, #516]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024ae:	4881      	ldr	r0, [pc, #516]	; (80026b4 <do_reflow.8680+0x56c>)
  80024b0:	f7fd ffc4 	bl	800043c <lcd_write_data>
 		lcd_write_data(&lcd, max_steps + '0');
- 80024b4:	4b81      	ldr	r3, [pc, #516]	; (80026bc <do_reflow.8608+0x574>)
+ 80024b4:	4b81      	ldr	r3, [pc, #516]	; (80026bc <do_reflow.8680+0x574>)
  80024b6:	781b      	ldrb	r3, [r3, #0]
  80024b8:	3330      	adds	r3, #48	; 0x30
  80024ba:	b2db      	uxtb	r3, r3
  80024bc:	4619      	mov	r1, r3
- 80024be:	487d      	ldr	r0, [pc, #500]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024be:	487d      	ldr	r0, [pc, #500]	; (80026b4 <do_reflow.8680+0x56c>)
  80024c0:	f7fd ffbc 	bl	800043c <lcd_write_data>
 		lcd_set_xy(&lcd, 7, 1);
  80024c4:	2201      	movs	r2, #1
  80024c6:	2107      	movs	r1, #7
- 80024c8:	487a      	ldr	r0, [pc, #488]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024c8:	487a      	ldr	r0, [pc, #488]	; (80026b4 <do_reflow.8680+0x56c>)
  80024ca:	f7fd ff31 	bl	8000330 <lcd_set_xy>
 		lcd_string(&lcd, (char*)time_buf);
  80024ce:	f107 0310 	add.w	r3, r7, #16
  80024d2:	4619      	mov	r1, r3
- 80024d4:	4877      	ldr	r0, [pc, #476]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024d4:	4877      	ldr	r0, [pc, #476]	; (80026b4 <do_reflow.8680+0x56c>)
  80024d6:	f7fd ff14 	bl	8000302 <lcd_string>
 		int2string(temperature_SP, buf, sizeof(buf));
- 80024da:	4b79      	ldr	r3, [pc, #484]	; (80026c0 <do_reflow.8608+0x578>)
+ 80024da:	4b79      	ldr	r3, [pc, #484]	; (80026c0 <do_reflow.8680+0x578>)
  80024dc:	881b      	ldrh	r3, [r3, #0]
  80024de:	4618      	mov	r0, r3
  80024e0:	f107 030c 	add.w	r3, r7, #12
@@ -5006,51 +5006,51 @@ void do_interface(void)
 		lcd_set_xy(&lcd, 7, 0);
  80024ec:	2200      	movs	r2, #0
  80024ee:	2107      	movs	r1, #7
- 80024f0:	4870      	ldr	r0, [pc, #448]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024f0:	4870      	ldr	r0, [pc, #448]	; (80026b4 <do_reflow.8680+0x56c>)
  80024f2:	f7fd ff1d 	bl	8000330 <lcd_set_xy>
 		lcd_out(&lcd, buf, sizeof(buf));
  80024f6:	f107 030c 	add.w	r3, r7, #12
  80024fa:	2203      	movs	r2, #3
  80024fc:	4619      	mov	r1, r3
- 80024fe:	486d      	ldr	r0, [pc, #436]	; (80026b4 <do_reflow.8608+0x56c>)
+ 80024fe:	486d      	ldr	r0, [pc, #436]	; (80026b4 <do_reflow.8680+0x56c>)
  8002500:	f7fd fee1 	bl	80002c6 <lcd_out>
 		lcd_write_data(&lcd, scGRAD); // grad
  8002504:	21df      	movs	r1, #223	; 0xdf
- 8002506:	486b      	ldr	r0, [pc, #428]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002506:	486b      	ldr	r0, [pc, #428]	; (80026b4 <do_reflow.8680+0x56c>)
  8002508:	f7fd ff98 	bl	800043c <lcd_write_data>
 		lcd_write_data(&lcd, scAR); // arrow right
  800250c:	217e      	movs	r1, #126	; 0x7e
- 800250e:	4869      	ldr	r0, [pc, #420]	; (80026b4 <do_reflow.8608+0x56c>)
+ 800250e:	4869      	ldr	r0, [pc, #420]	; (80026b4 <do_reflow.8680+0x56c>)
  8002510:	f7fd ff94 	bl	800043c <lcd_write_data>
 		lcd_set_xy(&lcd, 9, 0);
  8002514:	2200      	movs	r2, #0
  8002516:	2109      	movs	r1, #9
- 8002518:	4866      	ldr	r0, [pc, #408]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002518:	4866      	ldr	r0, [pc, #408]	; (80026b4 <do_reflow.8680+0x56c>)
  800251a:	f7fd ff09 	bl	8000330 <lcd_set_xy>
 		if (last_pos != pos)
- 800251e:	4b69      	ldr	r3, [pc, #420]	; (80026c4 <do_reflow.8608+0x57c>)
+ 800251e:	4b69      	ldr	r3, [pc, #420]	; (80026c4 <do_reflow.8680+0x57c>)
  8002520:	781a      	ldrb	r2, [r3, #0]
- 8002522:	4b60      	ldr	r3, [pc, #384]	; (80026a4 <do_reflow.8608+0x55c>)
+ 8002522:	4b60      	ldr	r3, [pc, #384]	; (80026a4 <do_reflow.8680+0x55c>)
  8002524:	781b      	ldrb	r3, [r3, #0]
  8002526:	b2db      	uxtb	r3, r3
  8002528:	429a      	cmp	r2, r3
- 800252a:	d002      	beq.n	8002532 <do_reflow.8608+0x3ea>
+ 800252a:	d002      	beq.n	8002532 <do_reflow.8680+0x3ea>
 			rf_ui_state = 0;
- 800252c:	4b66      	ldr	r3, [pc, #408]	; (80026c8 <do_reflow.8608+0x580>)
+ 800252c:	4b66      	ldr	r3, [pc, #408]	; (80026c8 <do_reflow.8680+0x580>)
  800252e:	2200      	movs	r2, #0
  8002530:	701a      	strb	r2, [r3, #0]
 		last_pos = pos;
- 8002532:	4b5c      	ldr	r3, [pc, #368]	; (80026a4 <do_reflow.8608+0x55c>)
+ 8002532:	4b5c      	ldr	r3, [pc, #368]	; (80026a4 <do_reflow.8680+0x55c>)
  8002534:	781b      	ldrb	r3, [r3, #0]
  8002536:	b2da      	uxtb	r2, r3
- 8002538:	4b62      	ldr	r3, [pc, #392]	; (80026c4 <do_reflow.8608+0x57c>)
+ 8002538:	4b62      	ldr	r3, [pc, #392]	; (80026c4 <do_reflow.8680+0x57c>)
  800253a:	701a      	strb	r2, [r3, #0]
 		switch (rf_ui_state)
- 800253c:	4b62      	ldr	r3, [pc, #392]	; (80026c8 <do_reflow.8608+0x580>)
+ 800253c:	4b62      	ldr	r3, [pc, #392]	; (80026c8 <do_reflow.8680+0x580>)
  800253e:	781b      	ldrb	r3, [r3, #0]
  8002540:	2b04      	cmp	r3, #4
- 8002542:	f200 811a 	bhi.w	800277a <do_reflow.8608+0x632>
- 8002546:	a201      	add	r2, pc, #4	; (adr r2, 800254c <do_reflow.8608+0x404>)
+ 8002542:	f200 811a 	bhi.w	800277a <do_reflow.8680+0x632>
+ 8002546:	a201      	add	r2, pc, #4	; (adr r2, 800254c <do_reflow.8680+0x404>)
  8002548:	f852 f023 	ldr.w	pc, [r2, r3, lsl #2]
  800254c:	08002561 	.word	0x08002561
  8002550:	08002569 	.word	0x08002569
@@ -5058,18 +5058,18 @@ void do_interface(void)
  8002558:	08002651 	.word	0x08002651
  800255c:	080026dd 	.word	0x080026dd
 			rf_ui_state = 1;
- 8002560:	4b59      	ldr	r3, [pc, #356]	; (80026c8 <do_reflow.8608+0x580>)
+ 8002560:	4b59      	ldr	r3, [pc, #356]	; (80026c8 <do_reflow.8680+0x580>)
  8002562:	2201      	movs	r2, #1
  8002564:	701a      	strb	r2, [r3, #0]
 			break;
- 8002566:	e113      	b.n	8002790 <do_reflow.8608+0x648>
+ 8002566:	e113      	b.n	8002790 <do_reflow.8680+0x648>
 			lcd_set_xy(&lcd, 9, 0);
  8002568:	2200      	movs	r2, #0
  800256a:	2109      	movs	r1, #9
- 800256c:	4851      	ldr	r0, [pc, #324]	; (80026b4 <do_reflow.8608+0x56c>)
+ 800256c:	4851      	ldr	r0, [pc, #324]	; (80026b4 <do_reflow.8680+0x56c>)
  800256e:	f7fd fedf 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 8002572:	4b56      	ldr	r3, [pc, #344]	; (80026cc <do_reflow.8608+0x584>)
+ 8002572:	4b56      	ldr	r3, [pc, #344]	; (80026cc <do_reflow.8680+0x584>)
  8002574:	781b      	ldrb	r3, [r3, #0]
  8002576:	2b04      	cmp	r3, #4
  8002578:	bf94      	ite	ls
@@ -5079,63 +5079,63 @@ void do_interface(void)
  8002580:	461a      	mov	r2, r3
  8002582:	2300      	movs	r3, #0
  8002584:	2101      	movs	r1, #1
- 8002586:	484b      	ldr	r0, [pc, #300]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002586:	484b      	ldr	r0, [pc, #300]	; (80026b4 <do_reflow.8680+0x56c>)
  8002588:	f7fd fe70 	bl	800026c <lcd_mode>
 			if (((encoder.value) != (last_encoder)) && (pos&0b1)) // we are on working temperature
- 800258c:	4b50      	ldr	r3, [pc, #320]	; (80026d0 <do_reflow.8608+0x588>)
+ 800258c:	4b50      	ldr	r3, [pc, #320]	; (80026d0 <do_reflow.8680+0x588>)
  800258e:	881a      	ldrh	r2, [r3, #0]
- 8002590:	4b50      	ldr	r3, [pc, #320]	; (80026d4 <do_reflow.8608+0x58c>)
+ 8002590:	4b50      	ldr	r3, [pc, #320]	; (80026d4 <do_reflow.8680+0x58c>)
  8002592:	881b      	ldrh	r3, [r3, #0]
  8002594:	429a      	cmp	r2, r3
- 8002596:	d009      	beq.n	80025ac <do_reflow.8608+0x464>
- 8002598:	4b42      	ldr	r3, [pc, #264]	; (80026a4 <do_reflow.8608+0x55c>)
+ 8002596:	d009      	beq.n	80025ac <do_reflow.8680+0x464>
+ 8002598:	4b42      	ldr	r3, [pc, #264]	; (80026a4 <do_reflow.8680+0x55c>)
  800259a:	781b      	ldrb	r3, [r3, #0]
  800259c:	b2db      	uxtb	r3, r3
  800259e:	f003 0301 	and.w	r3, r3, #1
  80025a2:	2b00      	cmp	r3, #0
- 80025a4:	d002      	beq.n	80025ac <do_reflow.8608+0x464>
+ 80025a4:	d002      	beq.n	80025ac <do_reflow.8680+0x464>
 				rf_ui_state = 3;
- 80025a6:	4b48      	ldr	r3, [pc, #288]	; (80026c8 <do_reflow.8608+0x580>)
+ 80025a6:	4b48      	ldr	r3, [pc, #288]	; (80026c8 <do_reflow.8680+0x580>)
  80025a8:	2203      	movs	r2, #3
  80025aa:	701a      	strb	r2, [r3, #0]
 			if ((last_button) && (!encoder.pressed))
- 80025ac:	4b4a      	ldr	r3, [pc, #296]	; (80026d8 <do_reflow.8608+0x590>)
+ 80025ac:	4b4a      	ldr	r3, [pc, #296]	; (80026d8 <do_reflow.8680+0x590>)
  80025ae:	781b      	ldrb	r3, [r3, #0]
  80025b0:	2b00      	cmp	r3, #0
- 80025b2:	f000 80e6 	beq.w	8002782 <do_reflow.8608+0x63a>
- 80025b6:	4b46      	ldr	r3, [pc, #280]	; (80026d0 <do_reflow.8608+0x588>)
+ 80025b2:	f000 80e6 	beq.w	8002782 <do_reflow.8680+0x63a>
+ 80025b6:	4b46      	ldr	r3, [pc, #280]	; (80026d0 <do_reflow.8680+0x588>)
  80025b8:	789b      	ldrb	r3, [r3, #2]
  80025ba:	f083 0301 	eor.w	r3, r3, #1
  80025be:	b2db      	uxtb	r3, r3
  80025c0:	2b00      	cmp	r3, #0
- 80025c2:	f000 80de 	beq.w	8002782 <do_reflow.8608+0x63a>
+ 80025c2:	f000 80de 	beq.w	8002782 <do_reflow.8680+0x63a>
 				rf_ui_state = 2;
- 80025c6:	4b40      	ldr	r3, [pc, #256]	; (80026c8 <do_reflow.8608+0x580>)
+ 80025c6:	4b40      	ldr	r3, [pc, #256]	; (80026c8 <do_reflow.8680+0x580>)
  80025c8:	2202      	movs	r2, #2
  80025ca:	701a      	strb	r2, [r3, #0]
 			break;
- 80025cc:	e0d9      	b.n	8002782 <do_reflow.8608+0x63a>
+ 80025cc:	e0d9      	b.n	8002782 <do_reflow.8680+0x63a>
 			if (encoder.value != last_encoder)
- 80025ce:	4b40      	ldr	r3, [pc, #256]	; (80026d0 <do_reflow.8608+0x588>)
+ 80025ce:	4b40      	ldr	r3, [pc, #256]	; (80026d0 <do_reflow.8680+0x588>)
  80025d0:	881a      	ldrh	r2, [r3, #0]
- 80025d2:	4b40      	ldr	r3, [pc, #256]	; (80026d4 <do_reflow.8608+0x58c>)
+ 80025d2:	4b40      	ldr	r3, [pc, #256]	; (80026d4 <do_reflow.8680+0x58c>)
  80025d4:	881b      	ldrh	r3, [r3, #0]
  80025d6:	429a      	cmp	r2, r3
- 80025d8:	d01e      	beq.n	8002618 <do_reflow.8608+0x4d0>
+ 80025d8:	d01e      	beq.n	8002618 <do_reflow.8680+0x4d0>
 				steps[pos>>1].temp = change_temperature(steps[pos>>1].temp,
- 80025da:	4b32      	ldr	r3, [pc, #200]	; (80026a4 <do_reflow.8608+0x55c>)
+ 80025da:	4b32      	ldr	r3, [pc, #200]	; (80026a4 <do_reflow.8680+0x55c>)
  80025dc:	781b      	ldrb	r3, [r3, #0]
  80025de:	b2db      	uxtb	r3, r3
  80025e0:	085b      	lsrs	r3, r3, #1
  80025e2:	b2db      	uxtb	r3, r3
  80025e4:	461a      	mov	r2, r3
- 80025e6:	4b30      	ldr	r3, [pc, #192]	; (80026a8 <do_reflow.8608+0x560>)
+ 80025e6:	4b30      	ldr	r3, [pc, #192]	; (80026a8 <do_reflow.8680+0x560>)
  80025e8:	f853 3032 	ldr.w	r3, [r3, r2, lsl #3]
  80025ec:	4618      	mov	r0, r3
 											encoder.value - last_encoder);
- 80025ee:	4b38      	ldr	r3, [pc, #224]	; (80026d0 <do_reflow.8608+0x588>)
+ 80025ee:	4b38      	ldr	r3, [pc, #224]	; (80026d0 <do_reflow.8680+0x588>)
  80025f0:	881a      	ldrh	r2, [r3, #0]
- 80025f2:	4b38      	ldr	r3, [pc, #224]	; (80026d4 <do_reflow.8608+0x58c>)
+ 80025f2:	4b38      	ldr	r3, [pc, #224]	; (80026d4 <do_reflow.8680+0x58c>)
  80025f4:	881b      	ldrh	r3, [r3, #0]
  80025f6:	1ad3      	subs	r3, r2, r3
  80025f8:	b29b      	uxth	r3, r3
@@ -5143,51 +5143,51 @@ void do_interface(void)
  80025fa:	b21b      	sxth	r3, r3
  80025fc:	46a4      	mov	ip, r4
  80025fe:	4619      	mov	r1, r3
- 8002600:	f7fe fefa 	bl	80013f8 <change_temperature.8554>
+ 8002600:	f7fe fefa 	bl	80013f8 <change_temperature.8626>
  8002604:	4601      	mov	r1, r0
- 8002606:	4b27      	ldr	r3, [pc, #156]	; (80026a4 <do_reflow.8608+0x55c>)
+ 8002606:	4b27      	ldr	r3, [pc, #156]	; (80026a4 <do_reflow.8680+0x55c>)
  8002608:	781b      	ldrb	r3, [r3, #0]
  800260a:	b2db      	uxtb	r3, r3
  800260c:	085b      	lsrs	r3, r3, #1
  800260e:	b2db      	uxtb	r3, r3
  8002610:	461a      	mov	r2, r3
- 8002612:	4b25      	ldr	r3, [pc, #148]	; (80026a8 <do_reflow.8608+0x560>)
+ 8002612:	4b25      	ldr	r3, [pc, #148]	; (80026a8 <do_reflow.8680+0x560>)
  8002614:	f843 1032 	str.w	r1, [r3, r2, lsl #3]
 			lcd_set_xy(&lcd, 9, 0);
  8002618:	2200      	movs	r2, #0
  800261a:	2109      	movs	r1, #9
- 800261c:	4825      	ldr	r0, [pc, #148]	; (80026b4 <do_reflow.8608+0x56c>)
+ 800261c:	4825      	ldr	r0, [pc, #148]	; (80026b4 <do_reflow.8680+0x56c>)
  800261e:	f7fd fe87 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
  8002622:	2301      	movs	r3, #1
  8002624:	2200      	movs	r2, #0
  8002626:	2101      	movs	r1, #1
- 8002628:	4822      	ldr	r0, [pc, #136]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002628:	4822      	ldr	r0, [pc, #136]	; (80026b4 <do_reflow.8680+0x56c>)
  800262a:	f7fd fe1f 	bl	800026c <lcd_mode>
 			if ((last_button) && (!encoder.pressed))
- 800262e:	4b2a      	ldr	r3, [pc, #168]	; (80026d8 <do_reflow.8608+0x590>)
+ 800262e:	4b2a      	ldr	r3, [pc, #168]	; (80026d8 <do_reflow.8680+0x590>)
  8002630:	781b      	ldrb	r3, [r3, #0]
  8002632:	2b00      	cmp	r3, #0
- 8002634:	f000 80a7 	beq.w	8002786 <do_reflow.8608+0x63e>
- 8002638:	4b25      	ldr	r3, [pc, #148]	; (80026d0 <do_reflow.8608+0x588>)
+ 8002634:	f000 80a7 	beq.w	8002786 <do_reflow.8680+0x63e>
+ 8002638:	4b25      	ldr	r3, [pc, #148]	; (80026d0 <do_reflow.8680+0x588>)
  800263a:	789b      	ldrb	r3, [r3, #2]
  800263c:	f083 0301 	eor.w	r3, r3, #1
  8002640:	b2db      	uxtb	r3, r3
  8002642:	2b00      	cmp	r3, #0
- 8002644:	f000 809f 	beq.w	8002786 <do_reflow.8608+0x63e>
+ 8002644:	f000 809f 	beq.w	8002786 <do_reflow.8680+0x63e>
 				rf_ui_state = 1;
- 8002648:	4b1f      	ldr	r3, [pc, #124]	; (80026c8 <do_reflow.8608+0x580>)
+ 8002648:	4b1f      	ldr	r3, [pc, #124]	; (80026c8 <do_reflow.8680+0x580>)
  800264a:	2201      	movs	r2, #1
  800264c:	701a      	strb	r2, [r3, #0]
 			break;
- 800264e:	e09a      	b.n	8002786 <do_reflow.8608+0x63e>
+ 800264e:	e09a      	b.n	8002786 <do_reflow.8680+0x63e>
 			lcd_set_xy(&lcd, 11, 1);
  8002650:	2201      	movs	r2, #1
  8002652:	210b      	movs	r1, #11
- 8002654:	4817      	ldr	r0, [pc, #92]	; (80026b4 <do_reflow.8608+0x56c>)
+ 8002654:	4817      	ldr	r0, [pc, #92]	; (80026b4 <do_reflow.8680+0x56c>)
  8002656:	f7fd fe6b 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
- 800265a:	4b1c      	ldr	r3, [pc, #112]	; (80026cc <do_reflow.8608+0x584>)
+ 800265a:	4b1c      	ldr	r3, [pc, #112]	; (80026cc <do_reflow.8680+0x584>)
  800265c:	781b      	ldrb	r3, [r3, #0]
  800265e:	2b04      	cmp	r3, #4
  8002660:	bf94      	ite	ls
@@ -5197,36 +5197,36 @@ void do_interface(void)
  8002668:	461a      	mov	r2, r3
  800266a:	2300      	movs	r3, #0
  800266c:	2101      	movs	r1, #1
- 800266e:	4811      	ldr	r0, [pc, #68]	; (80026b4 <do_reflow.8608+0x56c>)
+ 800266e:	4811      	ldr	r0, [pc, #68]	; (80026b4 <do_reflow.8680+0x56c>)
  8002670:	f7fd fdfc 	bl	800026c <lcd_mode>
 			if ((encoder.value) != (last_encoder))
- 8002674:	4b16      	ldr	r3, [pc, #88]	; (80026d0 <do_reflow.8608+0x588>)
+ 8002674:	4b16      	ldr	r3, [pc, #88]	; (80026d0 <do_reflow.8680+0x588>)
  8002676:	881a      	ldrh	r2, [r3, #0]
- 8002678:	4b16      	ldr	r3, [pc, #88]	; (80026d4 <do_reflow.8608+0x58c>)
+ 8002678:	4b16      	ldr	r3, [pc, #88]	; (80026d4 <do_reflow.8680+0x58c>)
  800267a:	881b      	ldrh	r3, [r3, #0]
  800267c:	429a      	cmp	r2, r3
- 800267e:	d002      	beq.n	8002686 <do_reflow.8608+0x53e>
+ 800267e:	d002      	beq.n	8002686 <do_reflow.8680+0x53e>
 				rf_ui_state = 1;
- 8002680:	4b11      	ldr	r3, [pc, #68]	; (80026c8 <do_reflow.8608+0x580>)
+ 8002680:	4b11      	ldr	r3, [pc, #68]	; (80026c8 <do_reflow.8680+0x580>)
  8002682:	2201      	movs	r2, #1
  8002684:	701a      	strb	r2, [r3, #0]
 			if ((last_button) && (!encoder.pressed))
- 8002686:	4b14      	ldr	r3, [pc, #80]	; (80026d8 <do_reflow.8608+0x590>)
+ 8002686:	4b14      	ldr	r3, [pc, #80]	; (80026d8 <do_reflow.8680+0x590>)
  8002688:	781b      	ldrb	r3, [r3, #0]
  800268a:	2b00      	cmp	r3, #0
- 800268c:	d07d      	beq.n	800278a <do_reflow.8608+0x642>
- 800268e:	4b10      	ldr	r3, [pc, #64]	; (80026d0 <do_reflow.8608+0x588>)
+ 800268c:	d07d      	beq.n	800278a <do_reflow.8680+0x642>
+ 800268e:	4b10      	ldr	r3, [pc, #64]	; (80026d0 <do_reflow.8680+0x588>)
  8002690:	789b      	ldrb	r3, [r3, #2]
  8002692:	f083 0301 	eor.w	r3, r3, #1
  8002696:	b2db      	uxtb	r3, r3
  8002698:	2b00      	cmp	r3, #0
- 800269a:	d076      	beq.n	800278a <do_reflow.8608+0x642>
+ 800269a:	d076      	beq.n	800278a <do_reflow.8680+0x642>
 				rf_ui_state = 4;
- 800269c:	4b0a      	ldr	r3, [pc, #40]	; (80026c8 <do_reflow.8608+0x580>)
+ 800269c:	4b0a      	ldr	r3, [pc, #40]	; (80026c8 <do_reflow.8680+0x580>)
  800269e:	2204      	movs	r2, #4
  80026a0:	701a      	strb	r2, [r3, #0]
 			break;
- 80026a2:	e072      	b.n	800278a <do_reflow.8608+0x642>
+ 80026a2:	e072      	b.n	800278a <do_reflow.8680+0x642>
  80026a4:	200002d9 	.word	0x200002d9
  80026a8:	20000268 	.word	0x20000268
  80026ac:	200002d4 	.word	0x200002d4
@@ -5242,38 +5242,38 @@ void do_interface(void)
  80026d4:	200002e2 	.word	0x200002e2
  80026d8:	200002d8 	.word	0x200002d8
 			if (encoder.value != last_encoder)
- 80026dc:	4b32      	ldr	r3, [pc, #200]	; (80027a8 <do_reflow.8608+0x660>)
+ 80026dc:	4b32      	ldr	r3, [pc, #200]	; (80027a8 <do_reflow.8680+0x660>)
  80026de:	881a      	ldrh	r2, [r3, #0]
- 80026e0:	4b32      	ldr	r3, [pc, #200]	; (80027ac <do_reflow.8608+0x664>)
+ 80026e0:	4b32      	ldr	r3, [pc, #200]	; (80027ac <do_reflow.8680+0x664>)
  80026e2:	881b      	ldrh	r3, [r3, #0]
  80026e4:	429a      	cmp	r2, r3
- 80026e6:	d02e      	beq.n	8002746 <do_reflow.8608+0x5fe>
+ 80026e6:	d02e      	beq.n	8002746 <do_reflow.8680+0x5fe>
 				uint32_t tmp = (HAL_GetTick() - last_time)/1000;
  80026e8:	f001 f9e8 	bl	8003abc <HAL_GetTick>
  80026ec:	4602      	mov	r2, r0
- 80026ee:	4b30      	ldr	r3, [pc, #192]	; (80027b0 <do_reflow.8608+0x668>)
+ 80026ee:	4b30      	ldr	r3, [pc, #192]	; (80027b0 <do_reflow.8680+0x668>)
  80026f0:	681b      	ldr	r3, [r3, #0]
  80026f2:	1ad3      	subs	r3, r2, r3
- 80026f4:	4a2f      	ldr	r2, [pc, #188]	; (80027b4 <do_reflow.8608+0x66c>)
+ 80026f4:	4a2f      	ldr	r2, [pc, #188]	; (80027b4 <do_reflow.8680+0x66c>)
  80026f6:	fba2 2303 	umull	r2, r3, r2, r3
  80026fa:	099b      	lsrs	r3, r3, #6
  80026fc:	61bb      	str	r3, [r7, #24]
 				steps[pos>>1].time = tmp + change_time(steps[pos>>1].time - tmp,
- 80026fe:	4b2e      	ldr	r3, [pc, #184]	; (80027b8 <do_reflow.8608+0x670>)
+ 80026fe:	4b2e      	ldr	r3, [pc, #184]	; (80027b8 <do_reflow.8680+0x670>)
  8002700:	781b      	ldrb	r3, [r3, #0]
  8002702:	b2db      	uxtb	r3, r3
  8002704:	085b      	lsrs	r3, r3, #1
  8002706:	b2db      	uxtb	r3, r3
- 8002708:	4a2c      	ldr	r2, [pc, #176]	; (80027bc <do_reflow.8608+0x674>)
+ 8002708:	4a2c      	ldr	r2, [pc, #176]	; (80027bc <do_reflow.8680+0x674>)
  800270a:	00db      	lsls	r3, r3, #3
  800270c:	4413      	add	r3, r2
  800270e:	685a      	ldr	r2, [r3, #4]
  8002710:	69bb      	ldr	r3, [r7, #24]
  8002712:	1ad0      	subs	r0, r2, r3
 															encoder.value - last_encoder,
- 8002714:	4b24      	ldr	r3, [pc, #144]	; (80027a8 <do_reflow.8608+0x660>)
+ 8002714:	4b24      	ldr	r3, [pc, #144]	; (80027a8 <do_reflow.8680+0x660>)
  8002716:	881a      	ldrh	r2, [r3, #0]
- 8002718:	4b24      	ldr	r3, [pc, #144]	; (80027ac <do_reflow.8608+0x664>)
+ 8002718:	4b24      	ldr	r3, [pc, #144]	; (80027ac <do_reflow.8680+0x664>)
  800271a:	881b      	ldrh	r3, [r3, #0]
  800271c:	1ad3      	subs	r3, r2, r3
  800271e:	b29b      	uxth	r3, r3
@@ -5282,9 +5282,9 @@ void do_interface(void)
  8002722:	46a4      	mov	ip, r4
  8002724:	2200      	movs	r2, #0
  8002726:	4619      	mov	r1, r3
- 8002728:	f7fe fe9e 	bl	8001468 <change_time.8560>
+ 8002728:	f7fe fe9e 	bl	8001468 <change_time.8632>
  800272c:	4602      	mov	r2, r0
- 800272e:	4b22      	ldr	r3, [pc, #136]	; (80027b8 <do_reflow.8608+0x670>)
+ 800272e:	4b22      	ldr	r3, [pc, #136]	; (80027b8 <do_reflow.8680+0x670>)
  8002730:	781b      	ldrb	r3, [r3, #0]
  8002732:	b2db      	uxtb	r3, r3
  8002734:	085b      	lsrs	r3, r3, #1
@@ -5292,64 +5292,64 @@ void do_interface(void)
  8002738:	4618      	mov	r0, r3
  800273a:	69bb      	ldr	r3, [r7, #24]
  800273c:	441a      	add	r2, r3
- 800273e:	491f      	ldr	r1, [pc, #124]	; (80027bc <do_reflow.8608+0x674>)
+ 800273e:	491f      	ldr	r1, [pc, #124]	; (80027bc <do_reflow.8680+0x674>)
  8002740:	00c3      	lsls	r3, r0, #3
  8002742:	440b      	add	r3, r1
  8002744:	605a      	str	r2, [r3, #4]
 			lcd_set_xy(&lcd, 11, 1);
  8002746:	2201      	movs	r2, #1
  8002748:	210b      	movs	r1, #11
- 800274a:	481d      	ldr	r0, [pc, #116]	; (80027c0 <do_reflow.8608+0x678>)
+ 800274a:	481d      	ldr	r0, [pc, #116]	; (80027c0 <do_reflow.8680+0x678>)
  800274c:	f7fd fdf0 	bl	8000330 <lcd_set_xy>
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
  8002750:	2301      	movs	r3, #1
  8002752:	2200      	movs	r2, #0
  8002754:	2101      	movs	r1, #1
- 8002756:	481a      	ldr	r0, [pc, #104]	; (80027c0 <do_reflow.8608+0x678>)
+ 8002756:	481a      	ldr	r0, [pc, #104]	; (80027c0 <do_reflow.8680+0x678>)
  8002758:	f7fd fd88 	bl	800026c <lcd_mode>
 			if ((last_button) && (!encoder.pressed))
- 800275c:	4b19      	ldr	r3, [pc, #100]	; (80027c4 <do_reflow.8608+0x67c>)
+ 800275c:	4b19      	ldr	r3, [pc, #100]	; (80027c4 <do_reflow.8680+0x67c>)
  800275e:	781b      	ldrb	r3, [r3, #0]
  8002760:	2b00      	cmp	r3, #0
- 8002762:	d014      	beq.n	800278e <do_reflow.8608+0x646>
- 8002764:	4b10      	ldr	r3, [pc, #64]	; (80027a8 <do_reflow.8608+0x660>)
+ 8002762:	d014      	beq.n	800278e <do_reflow.8680+0x646>
+ 8002764:	4b10      	ldr	r3, [pc, #64]	; (80027a8 <do_reflow.8680+0x660>)
  8002766:	789b      	ldrb	r3, [r3, #2]
  8002768:	f083 0301 	eor.w	r3, r3, #1
  800276c:	b2db      	uxtb	r3, r3
  800276e:	2b00      	cmp	r3, #0
- 8002770:	d00d      	beq.n	800278e <do_reflow.8608+0x646>
+ 8002770:	d00d      	beq.n	800278e <do_reflow.8680+0x646>
 				rf_ui_state = 3;
- 8002772:	4b15      	ldr	r3, [pc, #84]	; (80027c8 <do_reflow.8608+0x680>)
+ 8002772:	4b15      	ldr	r3, [pc, #84]	; (80027c8 <do_reflow.8680+0x680>)
  8002774:	2203      	movs	r2, #3
  8002776:	701a      	strb	r2, [r3, #0]
 			break;
- 8002778:	e009      	b.n	800278e <do_reflow.8608+0x646>
+ 8002778:	e009      	b.n	800278e <do_reflow.8680+0x646>
 			rf_ui_state = 0;
- 800277a:	4b13      	ldr	r3, [pc, #76]	; (80027c8 <do_reflow.8608+0x680>)
+ 800277a:	4b13      	ldr	r3, [pc, #76]	; (80027c8 <do_reflow.8680+0x680>)
  800277c:	2200      	movs	r2, #0
  800277e:	701a      	strb	r2, [r3, #0]
 			break;
- 8002780:	e006      	b.n	8002790 <do_reflow.8608+0x648>
+ 8002780:	e006      	b.n	8002790 <do_reflow.8680+0x648>
 			break;
  8002782:	bf00      	nop
- 8002784:	e004      	b.n	8002790 <do_reflow.8608+0x648>
+ 8002784:	e004      	b.n	8002790 <do_reflow.8680+0x648>
 			break;
  8002786:	bf00      	nop
- 8002788:	e002      	b.n	8002790 <do_reflow.8608+0x648>
+ 8002788:	e002      	b.n	8002790 <do_reflow.8680+0x648>
 			break;
  800278a:	bf00      	nop
- 800278c:	e000      	b.n	8002790 <do_reflow.8608+0x648>
+ 800278c:	e000      	b.n	8002790 <do_reflow.8680+0x648>
 			break;
  800278e:	bf00      	nop
 		last_encoder = encoder.value;
- 8002790:	4b05      	ldr	r3, [pc, #20]	; (80027a8 <do_reflow.8608+0x660>)
+ 8002790:	4b05      	ldr	r3, [pc, #20]	; (80027a8 <do_reflow.8680+0x660>)
  8002792:	881a      	ldrh	r2, [r3, #0]
- 8002794:	4b05      	ldr	r3, [pc, #20]	; (80027ac <do_reflow.8608+0x664>)
+ 8002794:	4b05      	ldr	r3, [pc, #20]	; (80027ac <do_reflow.8680+0x664>)
  8002796:	801a      	strh	r2, [r3, #0]
 		last_button = encoder.pressed;
- 8002798:	4b03      	ldr	r3, [pc, #12]	; (80027a8 <do_reflow.8608+0x660>)
+ 8002798:	4b03      	ldr	r3, [pc, #12]	; (80027a8 <do_reflow.8680+0x660>)
  800279a:	789a      	ldrb	r2, [r3, #2]
- 800279c:	4b09      	ldr	r3, [pc, #36]	; (80027c4 <do_reflow.8608+0x67c>)
+ 800279c:	4b09      	ldr	r3, [pc, #36]	; (80027c4 <do_reflow.8680+0x67c>)
  800279e:	701a      	strb	r2, [r3, #0]
 	}
  80027a0:	3720      	adds	r7, #32
@@ -5366,7 +5366,7 @@ void do_interface(void)
  80027c4:	200002d8 	.word	0x200002d8
  80027c8:	200002e1 	.word	0x200002e1
 
-080027cc <deltaT.8658>:
+080027cc <deltaT.8730>:
 	static const int32_t I=0.00153*32768;
 	static const int32_t D=10*32768;
 	static const int32_t limit_top=25*4/0.00153; // max 25% of PWM
@@ -5383,22 +5383,22 @@ void do_interface(void)
 		static int32_t arr[size];
 		static bool first_time = true;
 		if (first_time)
- 80027da:	4b1c      	ldr	r3, [pc, #112]	; (800284c <deltaT.8658+0x80>)
+ 80027da:	4b1c      	ldr	r3, [pc, #112]	; (800284c <deltaT.8730+0x80>)
  80027dc:	781b      	ldrb	r3, [r3, #0]
  80027de:	2b00      	cmp	r3, #0
- 80027e0:	d010      	beq.n	8002804 <deltaT.8658+0x38>
+ 80027e0:	d010      	beq.n	8002804 <deltaT.8730+0x38>
 		{
 			first_time = false;
- 80027e2:	4b1a      	ldr	r3, [pc, #104]	; (800284c <deltaT.8658+0x80>)
+ 80027e2:	4b1a      	ldr	r3, [pc, #104]	; (800284c <deltaT.8730+0x80>)
  80027e4:	2200      	movs	r2, #0
  80027e6:	701a      	strb	r2, [r3, #0]
 			for (int i = 0; i < size; i++)
  80027e8:	2300      	movs	r3, #0
  80027ea:	617b      	str	r3, [r7, #20]
- 80027ec:	e007      	b.n	80027fe <deltaT.8658+0x32>
+ 80027ec:	e007      	b.n	80027fe <deltaT.8730+0x32>
 				arr[i] = PV;
  80027ee:	88fa      	ldrh	r2, [r7, #6]
- 80027f0:	4917      	ldr	r1, [pc, #92]	; (8002850 <deltaT.8658+0x84>)
+ 80027f0:	4917      	ldr	r1, [pc, #92]	; (8002850 <deltaT.8730+0x84>)
  80027f2:	697b      	ldr	r3, [r7, #20]
  80027f4:	f841 2023 	str.w	r2, [r1, r3, lsl #2]
 			for (int i = 0; i < size; i++)
@@ -5407,23 +5407,23 @@ void do_interface(void)
  80027fc:	617b      	str	r3, [r7, #20]
  80027fe:	697b      	ldr	r3, [r7, #20]
  8002800:	2b03      	cmp	r3, #3
- 8002802:	ddf4      	ble.n	80027ee <deltaT.8658+0x22>
+ 8002802:	ddf4      	ble.n	80027ee <deltaT.8730+0x22>
 		}
 		int32_t temp = arr[0];
- 8002804:	4b12      	ldr	r3, [pc, #72]	; (8002850 <deltaT.8658+0x84>)
+ 8002804:	4b12      	ldr	r3, [pc, #72]	; (8002850 <deltaT.8730+0x84>)
  8002806:	681b      	ldr	r3, [r3, #0]
  8002808:	60fb      	str	r3, [r7, #12]
 		for (int i = 1; i < size; i++)
  800280a:	2301      	movs	r3, #1
  800280c:	613b      	str	r3, [r7, #16]
- 800280e:	e00b      	b.n	8002828 <deltaT.8658+0x5c>
+ 800280e:	e00b      	b.n	8002828 <deltaT.8730+0x5c>
 			arr[i-1] = arr[i];
  8002810:	693b      	ldr	r3, [r7, #16]
  8002812:	3b01      	subs	r3, #1
- 8002814:	490e      	ldr	r1, [pc, #56]	; (8002850 <deltaT.8658+0x84>)
+ 8002814:	490e      	ldr	r1, [pc, #56]	; (8002850 <deltaT.8730+0x84>)
  8002816:	693a      	ldr	r2, [r7, #16]
  8002818:	f851 2022 	ldr.w	r2, [r1, r2, lsl #2]
- 800281c:	490c      	ldr	r1, [pc, #48]	; (8002850 <deltaT.8658+0x84>)
+ 800281c:	490c      	ldr	r1, [pc, #48]	; (8002850 <deltaT.8730+0x84>)
  800281e:	f841 2023 	str.w	r2, [r1, r3, lsl #2]
 		for (int i = 1; i < size; i++)
  8002822:	693b      	ldr	r3, [r7, #16]
@@ -5431,17 +5431,17 @@ void do_interface(void)
  8002826:	613b      	str	r3, [r7, #16]
  8002828:	693b      	ldr	r3, [r7, #16]
  800282a:	2b03      	cmp	r3, #3
- 800282c:	ddf0      	ble.n	8002810 <deltaT.8658+0x44>
+ 800282c:	ddf0      	ble.n	8002810 <deltaT.8730+0x44>
 		arr[size-1] = PV;
  800282e:	88fb      	ldrh	r3, [r7, #6]
- 8002830:	4a07      	ldr	r2, [pc, #28]	; (8002850 <deltaT.8658+0x84>)
+ 8002830:	4a07      	ldr	r2, [pc, #28]	; (8002850 <deltaT.8730+0x84>)
  8002832:	60d3      	str	r3, [r2, #12]
 		return (temp - PV)/size;
  8002834:	88fb      	ldrh	r3, [r7, #6]
  8002836:	68fa      	ldr	r2, [r7, #12]
  8002838:	1ad3      	subs	r3, r2, r3
  800283a:	2b00      	cmp	r3, #0
- 800283c:	da00      	bge.n	8002840 <deltaT.8658+0x74>
+ 800283c:	da00      	bge.n	8002840 <deltaT.8730+0x74>
  800283e:	3303      	adds	r3, #3
  8002840:	109b      	asrs	r3, r3, #2
 	}
@@ -5591,7 +5591,7 @@ uint8_t pid(uint16_t PV, uint16_t SP)
  8002926:	f107 0208 	add.w	r2, r7, #8
  800292a:	4694      	mov	ip, r2
  800292c:	4618      	mov	r0, r3
- 800292e:	f7ff ff4d 	bl	80027cc <deltaT.8658>
+ 800292e:	f7ff ff4d 	bl	80027cc <deltaT.8730>
  8002932:	4602      	mov	r2, r0
  8002934:	4b2c      	ldr	r3, [pc, #176]	; (80029e8 <pid+0x194>)
  8002936:	681b      	ldr	r3, [r3, #0]
@@ -5676,13 +5676,13 @@ uint8_t pid(uint16_t PV, uint16_t SP)
  80029c8:	bd80      	pop	{r7, pc}
  80029ca:	bf00      	nop
  80029cc:	2000002c 	.word	0x2000002c
- 80029d0:	0800da24 	.word	0x0800da24
+ 80029d0:	0800edb0 	.word	0x0800edb0
  80029d4:	200002e4 	.word	0x200002e4
- 80029d8:	0800da28 	.word	0x0800da28
+ 80029d8:	0800edb4 	.word	0x0800edb4
  80029dc:	20000230 	.word	0x20000230
  80029e0:	20000246 	.word	0x20000246
- 80029e4:	0800da2c 	.word	0x0800da2c
- 80029e8:	0800da30 	.word	0x0800da30
+ 80029e4:	0800edb8 	.word	0x0800edb8
+ 80029e8:	0800edbc 	.word	0x0800edbc
  80029ec:	200005d0 	.word	0x200005d0
 
 080029f0 <HAL_TIM_OC_DelayElapsedCallback>:
@@ -8593,7 +8593,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  80039f8:	20000214 	.word	0x20000214
   ldr r2, =_sidata
- 80039fc:	0800da80 	.word	0x0800da80
+ 80039fc:	0800ee0c 	.word	0x0800ee0c
   ldr r2, =_sbss
  8003a00:	20000214 	.word	0x20000214
   ldr r4, =_ebss
@@ -15661,7 +15661,7 @@ if (((RCC_ClkInitStruct->ClockType) & RCC_CLOCKTYPE_PCLK1) == RCC_CLOCKTYPE_PCLK
  80065de:	bf00      	nop
  80065e0:	40022000 	.word	0x40022000
  80065e4:	40021000 	.word	0x40021000
- 80065e8:	0800da34 	.word	0x0800da34
+ 80065e8:	0800edc0 	.word	0x0800edc0
  80065ec:	20000034 	.word	0x20000034
  80065f0:	20000038 	.word	0x20000038
 
@@ -32206,10 +32206,10 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800ccd6:	4798      	blx	r3
  800ccd8:	3601      	adds	r6, #1
  800ccda:	e7f2      	b.n	800ccc2 <__libc_init_array+0x1e>
- 800ccdc:	0800da78 	.word	0x0800da78
- 800cce0:	0800da78 	.word	0x0800da78
- 800cce4:	0800da78 	.word	0x0800da78
- 800cce8:	0800da7c 	.word	0x0800da7c
+ 800ccdc:	0800ee04 	.word	0x0800ee04
+ 800cce0:	0800ee04 	.word	0x0800ee04
+ 800cce4:	0800ee04 	.word	0x0800ee04
+ 800cce8:	0800ee08 	.word	0x0800ee08
 
 0800ccec <memset>:
  800ccec:	4603      	mov	r3, r0
@@ -32544,11 +32544,11 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800d000:	f000 f87c 	bl	800d0fc <_printf_i>
  800d004:	e7eb      	b.n	800cfde <_svfiprintf_r+0x1c2>
  800d006:	bf00      	nop
- 800d008:	0800da44 	.word	0x0800da44
- 800d00c:	0800da4e 	.word	0x0800da4e
+ 800d008:	0800edd0 	.word	0x0800edd0
+ 800d00c:	0800edda 	.word	0x0800edda
  800d010:	00000000 	.word	0x00000000
  800d014:	0800cd65 	.word	0x0800cd65
- 800d018:	0800da4a 	.word	0x0800da4a
+ 800d018:	0800edd6 	.word	0x0800edd6
 
 0800d01c <_printf_common>:
  800d01c:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -32885,8 +32885,8 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800d338:	2500      	movs	r5, #0
  800d33a:	f104 0619 	add.w	r6, r4, #25
  800d33e:	e7f5      	b.n	800d32c <_printf_i+0x230>
- 800d340:	0800da55 	.word	0x0800da55
- 800d344:	0800da66 	.word	0x0800da66
+ 800d340:	0800ede1 	.word	0x0800ede1
+ 800d344:	0800edf2 	.word	0x0800edf2
 
 0800d348 <memchr>:
  800d348:	4603      	mov	r3, r0
