@@ -1310,7 +1310,7 @@ void do_interface(void)
 	if (global_error)
 	{
 		ui_state = uiMALFUNCTION;
-		peep.melody = melodyTHREENOTES;
+		peep.melody = melodyLOSE_LIFE;
 		peep.peep = true;
 	}
 
