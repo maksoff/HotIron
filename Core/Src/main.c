@@ -41,6 +41,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define HOT_TEMP (40) // temperature to show the HOT indicator
+#define HOT_HYST (2)  // hysteresis for led blink
 #define MAX_TEMP (270) // upper limit
 #define STEP_TEMP (5) // how much to change the temperature with each encoder tick
 
@@ -94,19 +95,19 @@ enum {
 uint8_t global_error = errOK;
 uint8_t ticktack = 0; // using for display blink
 
-
-#define encoder_value (TIM3->CNT)
-struct sBUTTON {
+struct sENCODER {
+	uint16_t value;
 	bool pressed;
 	bool long_press;
-} button = {.pressed = false, .long_press = false};
+} encoder = {.value = 0, .pressed = false, .long_press = false};
 
 
 struct sMAX6675 {
 	uint16_t temperature; // precise to 0.25 grad
-	bool data_valid;
 	uint8_t ascii[7];  // converted to ASCII
-} MAX6675 = {.data_valid = false, .temperature = 0};
+	bool data_valid;	// check if MAX6675 bits are correct
+	bool hot;			// check if temperature too hot
+} MAX6675 = {.data_valid = false, .temperature = 0, .hot = false};
 
 uint16_t pwm_value = 0;
 uint16_t temperature_SP = 0;
@@ -115,7 +116,8 @@ struct sPID {
 	int32_t I;
 	int32_t D;
 } PID;
-bool tick = false;
+
+bool tick = false; // used to sync update USB output with Temperature & PID update
 
 
 typedef struct {
@@ -129,9 +131,10 @@ const sSTEPS steps_default[] = {
 };
 
 struct {
-	bool peep;
-	bool stop;
-} peep = {false, false};
+	uint8_t melody;
+	bool peep; // enabled if high
+	bool stop; // set to 1 to stop the PWM after next cycle, PWM_STOP sets to 0
+} peep = {melodyLEVEL_COMPLETE, false, false};
 
 /* USER CODE END PV */
 
@@ -252,6 +255,10 @@ void init_lcd(void)
 	  lcd_clear(&lcd);
 }
 
+/**
+ * updates button state, checks if button long pressed
+ * also updates encoder value register
+ */
 void do_button(void)
 {
 	const uint32_t time_for_long_press = 700;
@@ -260,17 +267,23 @@ void do_button(void)
 	static uint32_t but_time = 0;
 	if (HAL_GetTick() - last_time < 20)
 		return;
-	button.pressed = !HAL_GPIO_ReadPin(enc_s_GPIO_Port, enc_s_Pin);
-	if (button.pressed)
+	encoder.pressed = !HAL_GPIO_ReadPin(enc_s_GPIO_Port, enc_s_Pin);
+	if (encoder.pressed)
 	{
 		if (!last_button)
 			but_time = HAL_GetTick();
 		if (HAL_GetTick() - but_time > time_for_long_press)
-			button.long_press = true;
+			encoder.long_press = true;
 	}
 	else
-		button.long_press = false;
-	last_button = button.pressed;
+		encoder.long_press = false;
+	last_button = encoder.pressed;
+
+	/**
+	 * reads register value and drops non-significant byte
+	 * also inverts direction of encoder
+	 */
+	encoder.value = (-((int16_t)(TIM3->CNT)))>>1;
 
 	last_time = HAL_GetTick();
 }
@@ -319,11 +332,18 @@ void ascii_max6675(void)
 					MAX6675.ascii[i--] = ' ';
 			}
 			MAX6675.ascii[4] = '.';
+
+			if (MAX6675.hot && (MAX6675.temperature < (HOT_TEMP<<2)))
+				MAX6675.hot = false;
+			else if ((!MAX6675.hot) &&
+					(MAX6675.temperature > ((HOT_TEMP + HOT_HYST)<<2)))
+				MAX6675.hot = true;
 		}
 		else
 		{
 			for (int i = 0; i < sizeof(MAX6675); i ++)
 				MAX6675.ascii[i] = 'x';
+			MAX6675.hot = true;
 		}
 }
 
@@ -372,18 +392,19 @@ void do_peep(void)
 			peep_state = 1;
 			break;
 		case 1: // load note and start
-			if (notes[peep_note].size) // if something to play, start PWM with DMA
+			if (melody[peep.melody].melody[peep_note].size) // if something to play, start PWM with DMA
 			{
 				HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
-						(uint32_t *)notes[peep_note].note, notes[peep_note].size);
+						(uint32_t *)melody[peep.melody].melody[peep_note].note,
+						melody[peep.melody].melody[peep_note].size);
 			}
 			last_time = HAL_GetTick();
 			peep_state = 2;
 			break;
 		case 2: // wait note length
-			if (HAL_GetTick() - last_time > notes[peep_note].time)
+			if (HAL_GetTick() - last_time > melody[peep.melody].melody[peep_note].time)
 			{
-				if (notes[peep_note].size == 0)
+				if (melody[peep.melody].melody[peep_note].size == 0)
 				{
 					// we need only pause, PWM & DMA already disabled
 					peep_state = 4;
@@ -400,14 +421,22 @@ void do_peep(void)
 				peep_state = 4;
 			break;
 		case 4: // check if next note to play
-			if (++peep_note < notes_size)
+			if (++peep_note < melody[peep.melody].size)
 			{
 				peep_state = 1; // play next note
 			}
 			else
 			{
-				// we are finished, start again
-				peep_state = 0;
+				if (melody[peep.melody].play_once)
+				{
+					// play only once
+					peep.peep = false; // so, we are finished
+				}
+				else
+				{
+					// we are finished, start again
+					peep_state = 0;
+				}
 			}
 			break;
 		default:
@@ -474,11 +503,13 @@ void do_interface(void)
 	 * @param diff - delta from encoder
 	 * @return - value to set
 	 */
-	uint32_t change_temperature(uint32_t t, int32_t diff)
+	uint32_t change_temperature(uint32_t t, int16_t diff)
 	{
+		if (diff == 0)
+			return t;
 		int32_t temp = (int32_t)t; // to avoid zero-cross
 		temp = (temp / STEP_TEMP) * STEP_TEMP; // round for more beauty
-		temp += (diff>>1)*STEP_TEMP;
+		temp += (diff)*STEP_TEMP;
 		if (temp < 0)
 			temp = 0;
 		if (temp > MAX_TEMP)
@@ -492,7 +523,7 @@ void do_interface(void)
 	 * @param diff - delta from encoder
 	 * @return - value to set
 	 */
-	uint32_t change_time(uint32_t t, int32_t diff)
+	uint32_t change_time(uint32_t t, int16_t diff, bool round)
 	{
 		int32_t temp = (int32_t)t; // to avoid zero-cross
 		int32_t step = 5; // how much to change the time in seconds
@@ -513,8 +544,9 @@ void do_interface(void)
 		else
 			step = 1800;
 
-		temp = (temp / step) * step; // round
-		temp += (diff>>1)*step;
+		if (round)
+			temp = (temp / step) * step; // round
+		temp += (diff)*step;
 		if (temp < 5)
 			temp = 5;
 		if (temp > 900*60)
@@ -528,29 +560,21 @@ void do_interface(void)
 	void heatplate(bool reset)
 	{
 		static uint16_t last_encoder = 0;
-		static volatile int16_t diff = 0;
-		static const uint16_t upper_limit=(MAX_TEMP/STEP_TEMP*2);
-
 		static uint32_t last_time = 0;
 
 		if (reset)
 		{
-			last_encoder = encoder_value;
-			diff = 0;
+			last_encoder = encoder.value;
 			last_time = HAL_GetTick();
 			return;
 		}
 
-		diff-=(int16_t)(encoder_value - last_encoder);
-		last_encoder = encoder_value;
 
-		if (diff < 0)
-			diff = 0;
-		if (diff > upper_limit)
-			diff = upper_limit; // between 0*2 and MAX_TEMP*2
-
-		if (button.pressed)
-			diff = 0;
+		if (encoder.pressed)
+			temperature_SP = 0;
+		temperature_SP = change_temperature(temperature_SP,
+							encoder.value - last_encoder);
+		last_encoder = encoder.value;
 
 		// show time
 		uint8_t tbuf[6];
@@ -561,7 +585,6 @@ void do_interface(void)
 
 		// show temperature
 		uint8_t buf[3];
-		temperature_SP = STEP_TEMP*(diff>>1);
 		int2string(temperature_SP, buf, sizeof(buf));
 		lcd_set_xy(&lcd, 7, 0);
 		lcd_out(&lcd, buf, sizeof(buf));
@@ -574,7 +597,7 @@ void do_interface(void)
 
 	/**
 	 * profile settings
-	 * provides interfece to edit/add/remove steps
+	 * provides interface to edit/add/remove steps
 	 */
 	bool do_profile_settings(bool reset)
 	{
@@ -582,24 +605,27 @@ void do_interface(void)
 		static uint8_t profile_state = 0;
 		static uint32_t last_time = 0;
 		static uint16_t last_encoder = 0;
-		static volatile int16_t diff = 0;
 		static bool last_button = false;
 
 		uint8_t time_buf[5];
 
 		if (reset)
 		{
-			last_encoder = encoder_value;
-			diff = 0;
+			last_encoder = encoder.value;
 			pos = 0;
 			profile_state = 0;
 			last_time = HAL_GetTick();
 			return false;
 		}
+
 		if (HAL_GetTick() - last_time < 1000)
 		{
 			return false; // delay to show intro text
 		}
+
+
+		int32_t diff = encoder.value - last_encoder;
+		last_encoder = encoder.value;
 
 		void show_step_menu(void)
 		{
@@ -625,9 +651,6 @@ void do_interface(void)
 			lcd_string(&lcd, " step   ");
 		}
 
-		diff-=(int16_t)(encoder_value - last_encoder);
-		last_encoder = encoder_value;
-
 		switch (profile_state)
 		{
 		case 0: // init
@@ -637,20 +660,18 @@ void do_interface(void)
 		case 1: // select profile
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 					profile_state = 10;
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					pos++;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					pos--;
-					diff = 0;
 				}
 			}
 			if ((pos < 0) || (pos >= max_steps))
@@ -672,20 +693,18 @@ void do_interface(void)
 		case 10: // confirm current profile
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 					profile_state = 1; // stop editing
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					profile_state = 21;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					profile_state = 12;
-					diff = 0;
 				}
 			}
 
@@ -700,7 +719,7 @@ void do_interface(void)
 		case 11: // add new step
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 				{
 					if (max_steps >= 9)
 						profile_state = 13;
@@ -722,15 +741,13 @@ void do_interface(void)
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					profile_state = 12;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					profile_state = 23;
-					diff = 0;
 				}
 			}
 
@@ -746,7 +763,7 @@ void do_interface(void)
 		case 12: // delete current step
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 				{
 					if (max_steps <= 1)
 						profile_state = 14;
@@ -766,15 +783,13 @@ void do_interface(void)
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					profile_state = 10;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					profile_state = 11;
-					diff = 0;
 				}
 			}
 
@@ -788,7 +803,7 @@ void do_interface(void)
 
 			break;
 		case 13: // can't add steps anymore
-			if (last_button && (!button.pressed)) // wait for confirmation
+			if (last_button && (!encoder.pressed)) // wait for confirmation
 				profile_state = 10;
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "Not possible");
@@ -799,7 +814,7 @@ void do_interface(void)
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			break;
 		case 14: // can't delete steps anymore
-			if (last_button && (!button.pressed)) // wait for confirmation
+			if (last_button && (!encoder.pressed)) // wait for confirmation
 				profile_state = 10;
 			lcd_set_xy(&lcd, 0, 0);
 			lcd_string(&lcd, "Not possible");
@@ -812,20 +827,18 @@ void do_interface(void)
 		case 21: // wait temperature edit
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 					profile_state = 22; // start edit
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					profile_state = 23;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					profile_state = 10;
-					diff = 0;
 				}
 			}
 
@@ -841,13 +854,12 @@ void do_interface(void)
 		case 22: // edit temperature
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 					profile_state = 21; // stop editing
 			}
 			else
 			{
 				steps[pos].temp = change_temperature(steps[pos].temp, diff);
-				diff = 0;
 			}
 
 			show_step_menu();
@@ -863,20 +875,18 @@ void do_interface(void)
 		case 23: // wait time edit
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 					profile_state = 24; // start edit
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					profile_state = 11;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					profile_state = 21;
-					diff = 0;
 				}
 			}
 
@@ -894,13 +904,12 @@ void do_interface(void)
 		case 24: // edit time
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 					profile_state = 23; // stop editing
 			}
 			else
 			{
-				steps[pos].time = change_time(steps[pos].time, diff);
-				diff = 0;
+				steps[pos].time = change_time(steps[pos].time, diff, true);
 			}
 
 			show_step_menu();
@@ -926,7 +935,7 @@ void do_interface(void)
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
 			if (diff == 0)
 			{
-				if (last_button && (!button.pressed))
+				if (last_button && (!encoder.pressed))
 				{
 					lcd_mini_clear(&lcd);
 					return true;
@@ -934,15 +943,13 @@ void do_interface(void)
 			}
 			else
 			{
-				if (diff > 1)
+				if (diff > 0)
 				{
 					pos = 0;
-					diff = 0;
 				}
-				else if (diff < -1)
+				else if (diff < 0)
 				{
 					pos = max_steps - 1;
-					diff = 0;
 				}
 				profile_state = 1;
 			}
@@ -952,7 +959,7 @@ void do_interface(void)
 			break;
 		}
 
-		last_button = button.pressed;
+		last_button = encoder.pressed;
 		return false;
 	}
 
@@ -984,11 +991,12 @@ void do_interface(void)
 		{
 			if (peep_first_time)
 			{
+				peep.melody = melodyLEVEL_COMPLETE;
 				peep.peep = true;
 				peep_first_time = false;
 			}
 
-			if (button.pressed)
+			if (encoder.pressed)
 				peep.peep = false;
 
 			temperature_SP = 0;
@@ -1033,6 +1041,9 @@ void do_interface(void)
 					last_time = HAL_GetTick();
 					pos++;
 					temperature_SP = steps[pos>>1].temp;
+
+					peep.melody = melodyCOIN;
+					peep.peep = true;
 				}
 			}
 			else
@@ -1050,7 +1061,12 @@ void do_interface(void)
 				check_time = HAL_GetTick();
 				pos++;
 				if (pos < (2*max_steps))
+				{
 					temperature_SP = steps[pos>>1].temp;
+
+					peep.melody = melodyCOIN;
+					peep.peep = true;
+				}
 				else
 					temperature_SP = 0;
 			}
@@ -1095,58 +1111,56 @@ void do_interface(void)
 		}
 		last_pos = pos;
 		static uint16_t last_encoder = 0;
-		static volatile int16_t diff = 0;
-
-		diff-=(int16_t)(encoder_value - last_encoder);
 
 		switch (rf_ui_state)
 		{
 		case 0: // reset all to default view
-			diff = 0;
 			rf_ui_state = 1;
 			break;
 		case 1: // wait for temperature edit
 			lcd_set_xy(&lcd, 9, 0);
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
-			if (((encoder_value & 0b10) != (last_encoder & 0b10)) && (pos&0b1))
+			if (((encoder.value) != (last_encoder)) && (pos&0b1)) // we are on working temperature
 				rf_ui_state = 3;
-			if ((last_button) && (!button.pressed))
+			if ((last_button) && (!encoder.pressed))
 				rf_ui_state = 2;
 			break;
 		case 2: // edit temperature
-			if (diff)
-				steps[pos>>1].temp = change_temperature(steps[pos>>1].temp, diff);
+			if (encoder.value != last_encoder)
+				steps[pos>>1].temp = change_temperature(steps[pos>>1].temp,
+											encoder.value - last_encoder);
 			lcd_set_xy(&lcd, 9, 0);
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
-			if ((last_button) && (!button.pressed))
+			if ((last_button) && (!encoder.pressed))
 				rf_ui_state = 1;
 			break;
 		case 3: // wait for time edit
 			lcd_set_xy(&lcd, 11, 1);
 			lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
-			if ((encoder_value & 0b10) != (last_encoder & 0b10))
+			if ((encoder.value) != (last_encoder))
 				rf_ui_state = 1;
-			if ((last_button) && (!button.pressed))
+			if ((last_button) && (!encoder.pressed))
 				rf_ui_state = 4;
 			break;
 		case 4: // edit time
-			if (diff)
+			if (encoder.value != last_encoder)
 			{
 				uint32_t tmp = (HAL_GetTick() - last_time)/1000;
-				steps[pos>>1].time = 1 + tmp + change_time(steps[pos>>1].time - tmp + 2, diff);
+				steps[pos>>1].time = tmp + change_time(steps[pos>>1].time - tmp,
+															encoder.value - last_encoder,
+															false);
 			}
 			lcd_set_xy(&lcd, 11, 1);
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, BLINK);
-			if ((last_button) && (!button.pressed))
+			if ((last_button) && (!encoder.pressed))
 				rf_ui_state = 3;
 			break;
 		default:
 			rf_ui_state = 0;
 			break;
 		}
-		diff = 0;
-		last_encoder = encoder_value;
-		last_button = button.pressed;
+		last_encoder = encoder.value;
+		last_button = encoder.pressed;
 
 	}
 	// ****** END DO_REFLOW *************** //
@@ -1185,7 +1199,7 @@ void do_interface(void)
 
 	lcd_set_xy(&lcd, 13, 1);
 	// first symbol
-	if (button.pressed)
+	if (encoder.pressed)
 		lcd_write_data(&lcd, scDOT);
 	else
 		lcd_write_data(&lcd, ' ');
@@ -1194,7 +1208,7 @@ void do_interface(void)
 		lcd_write_data(&lcd, ' ');
 	else
 	{
-		if ((temperature_SP == 0) && (MAX6675.temperature < (HOT_TEMP<<2)))
+		if ((temperature_SP == 0) && (!MAX6675.hot))
 			lcd_write_data(&lcd, '-');
 		else if (((pwm_value + 9)/10)*3 > ticktack)
 		{
@@ -1216,9 +1230,9 @@ void do_interface(void)
 
 	}
 	// last symbol
-	if ((MAX6675.temperature > (HOT_TEMP<<2)) || (!MAX6675.data_valid))
+	if ((MAX6675.hot) || (!MAX6675.data_valid))
 	{
-		// todo enable red leds!
+		HAL_GPIO_WritePin(HOT_LEDS_GPIO_Port, HOT_LEDS_Pin, 1);
 		if (ticktack < 5)
 			lcd_write_data(&lcd, ccHOT);
 		else
@@ -1226,6 +1240,7 @@ void do_interface(void)
 	}
 	else
 	{
+		HAL_GPIO_WritePin(HOT_LEDS_GPIO_Port, HOT_LEDS_Pin, 0);
 		if (ticktack < 5)
 			lcd_write_data(&lcd, ccDOT);
 		else
@@ -1283,10 +1298,8 @@ void do_interface(void)
 
 	/************************************/
 
-	uint8_t enc_val = (encoder_value>>1)&0b1;
 
-
-	if (button.long_press)
+	if (encoder.long_press)
 	{
 		ui_state = uiLONG_PRESS;
 		temperature_SP = 0;
@@ -1297,6 +1310,7 @@ void do_interface(void)
 	if (global_error)
 	{
 		ui_state = uiMALFUNCTION;
+		peep.melody = melodyTHREENOTES;
 		peep.peep = true;
 	}
 
@@ -1310,7 +1324,7 @@ void do_interface(void)
 		lcd_write_data(&lcd, ccENTER);
 		lcd_set_xy(&lcd, 12, 1);
 		lcd_mode(&lcd, ENABLE, (ticktack < 5), NO_BLINK);
-		if (!button.pressed && last_button)
+		if (!encoder.pressed && last_button)
 		{
 			lcd_mode(&lcd, ENABLE, CURSOR_DISABLE, NO_BLINK);
 			ui_state = uiMENUenter;
@@ -1322,7 +1336,7 @@ void do_interface(void)
 		lcd_string(&lcd, "T set to 0  ");
 		lcd_set_xy(&lcd, 0, 1);
 		lcd_string(&lcd, "err. cleared ");
-		if (!button.pressed)
+		if (!encoder.pressed)
 			ui_state = uiMENUenter;
 		break;
 	case uiMENUenter:
@@ -1331,18 +1345,18 @@ void do_interface(void)
 		lcd_string(&lcd, " Profile");
 		lcd_set_xy(&lcd, 0, 1);
 		lcd_string(&lcd, " Heatplate");
-		lcd_set_xy(&lcd, 0, (encoder_value>>1)&0b1);
+		lcd_set_xy(&lcd, 0, (encoder.value)&0b1);
 		lcd_write_data(&lcd, scAR);
 		ui_state = uiMENU;
 		break;
 	case uiMENU:
-		lcd_set_xy(&lcd, 0, enc_val);
+		lcd_set_xy(&lcd, 0, (encoder.value)&0b1);
 		lcd_write_data(&lcd, scAR);
-		lcd_set_xy(&lcd, 0, 1 - enc_val);
+		lcd_set_xy(&lcd, 0, 1 - ((encoder.value)&0b1));
 		lcd_write_data(&lcd, ' ');
-		if (!button.pressed && last_button)
+		if (!encoder.pressed && last_button)
 		{
-			ui_state = enc_val?uiHEATPLATEenter:uiSETTINGSenter;
+			ui_state = ((encoder.value)&0b1)?uiHEATPLATEenter:uiSETTINGSenter;
 		}
 		break;
 	case uiHEATPLATEenter:
@@ -1401,7 +1415,8 @@ void do_interface(void)
 		ui_state = uiMALFUNCTION;
 		break;
 	}
-	last_button = button.pressed;
+	last_button = encoder.pressed;
+
 }
 
 
@@ -1567,7 +1582,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  do_button(); // update button status
+	  do_button(); // update encoder status
 	  do_blink(); // led heartbeat
 	  do_usb();  // output debug information
 	  do_interface(); // here happens the magic
@@ -1920,7 +1935,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, LED_Pin|HOT_LEDS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, hd_7_Pin|hd_6_Pin|hd_RS_Pin|hd_E_Pin
@@ -1932,12 +1947,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, debug_a_Pin|debug_b_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
+  /*Configure GPIO pins : LED_Pin HOT_LEDS_Pin */
+  GPIO_InitStruct.Pin = LED_Pin|HOT_LEDS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : hd_7_Pin hd_6_Pin hd_RS_Pin hd_E_Pin
                            hd_4_Pin hd_5_Pin debug_a_Pin debug_b_Pin */
