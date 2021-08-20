@@ -1512,6 +1512,33 @@ const sNOTES coin[] = // mario coin
 
 const uint8_t coin_size = sizeof(coin)/sizeof(coin[0]);
 
+
+const sNOTES lose_life[] = // mario lose a life
+{
+		{Gd3, Gd3_size, tq/2},
+		{PAUSE, mtq},
+		{A3, A3_size, tq/2},
+		{PAUSE, mtq},
+		{Ad3, Ad3_size, tq/2},
+		{PAUSE, tq},
+		{B3, B3_size, tq},
+		{PAUSE, mtq},
+		{F4, F4_size, tq},
+		{PAUSE, mtq},
+		{F4, F4_size, tq},
+		{PAUSE, mtq},
+		{F4, F4_size, tq},
+		{PAUSE, mtq},
+		{E4, E4_size, tq},
+		{PAUSE, mtq},
+		{D4, D4_size, tq},
+		{PAUSE, mtq},
+		{C4, C4_size, tq},
+		{PAUSE, 1000},
+};
+
+const uint8_t lose_life_size = sizeof(lose_life)/sizeof(lose_life[0]);
+
 typedef struct {
 	const sNOTES * melody;
 	const uint16_t size;
@@ -1521,12 +1548,14 @@ typedef struct {
 enum {
 	melodyTHREENOTES,
 	melodyLEVEL_COMPLETE,
+	melodyLOSE_LIFE,
 	melodyCOIN,
 };
 
 const sMELODY melody[] = {
 		{threenotes, threenotes_size, false},
 		{level_complete, level_complete_size, false},
+		{lose_life, lose_life_size, false},
 		{coin, coin_size, true},
 };
 
