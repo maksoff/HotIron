@@ -31,3 +31,167 @@ coin
 	
 	
 [(523.25, 'C2'), (554.36, 'Cd2'), (587.32, 'D2'), (622.26, 'Dd2'), (659.26, 'E2'), (698.46, 'F2'), (739.98, 'Fd2'), (784.0, 'G2'), (830.6, 'Gd2'), (880.0, 'A2'), (932.32, 'Ad2'), (987.75, 'H2'), (1046.5, 'C3'), (1108.7, 'Cd3'), (1174.6, 'D3'), (1244.5, 'Dd3'), (1318.5, 'E3'), (1396.9, 'F3'), (1480.0, 'Fd3'), (1568.0, 'G3'), (1661.2, 'Gd3'), (1720.0, 'A3'), (1864.6, 'Ad3'), (1975.5, 'H3'), (2093.0, 'C4'), (2217.4, 'Cd4'), (2349.2, 'D4'), (2489.0, 'Dd4'), (2637.0, 'E4'), (2793.8, 'F4'), (2960.0, 'Fd4'), (3136.0, 'G4'), (3332.4, 'Gd4'), (3440.0, 'A4'), (3729.2, 'Ad4'), (3951.0, 'H4')]
+
+// LEVEL COMPLETE 
+
+g2 c3 e3 g3 c4 e4 G4 e4
+
+ab2 c3 eb3 ab3 c4 eb4 Ab4 eb4
+
+bb2 d3 f3 bb3 d4 f4 Bb4 - bb4 bb4 bb4
+
+C4
+
+ 
+
+{'Ab3', '-', 'G2', 'E4', 'Eb4', 'Ab2', 'C4', 'F4', 'Bb4', 'E3', 'Bb3',
+
+'G4', 'G3', 'Eb3', 'D3', 'Ab4', 'C3', 'D4', 'F3', 'Bb2'}
+
+ 
+
+for row in text:
+
+                for i in row:
+
+                               if i[0] == '-':
+
+                                               print('{PAUSE, tq},')
+
+                                               continue
+
+                               print('{', end='')
+
+                               print('{0}, {0}_size, '.format(i.capitalize()), end='')
+
+                               if i[0] > 'a':
+
+                                               print('tq},')
+
+                               else:
+
+                                               print('tq*2},')
+
+                               print('{PAUSE, mtq},')
+
+                print('')
+
+ 
+
+               
+
+{G2, G2_size, tq},
+
+{PAUSE, mtq},
+
+{C3, C3_size, tq},
+
+{PAUSE, mtq},
+
+{E3, E3_size, tq},
+
+{PAUSE, mtq},
+
+{G3, G3_size, tq},
+
+{PAUSE, mtq},
+
+{C4, C4_size, tq},
+
+{PAUSE, mtq},
+
+{E4, E4_size, tq},
+
+{PAUSE, mtq},
+
+{G4, G4_size, tq*2},
+
+{PAUSE, mtq},
+
+{E4, E4_size, tq},
+
+{PAUSE, mtq},
+
+ 
+
+{Ab2, Ab2_size, tq},
+
+{PAUSE, mtq},
+
+{C3, C3_size, tq},
+
+{PAUSE, mtq},
+
+{Eb3, Eb3_size, tq},
+
+{PAUSE, mtq},
+
+{Ab3, Ab3_size, tq},
+
+{PAUSE, mtq},
+
+{C4, C4_size, tq},
+
+{PAUSE, mtq},
+
+{Eb4, Eb4_size, tq},
+
+{PAUSE, mtq},
+
+{Ab4, Ab4_size, tq*2},
+
+{PAUSE, mtq},
+
+{Eb4, Eb4_size, tq},
+
+{PAUSE, mtq},
+
+ 
+
+{Bb2, Bb2_size, tq},
+
+{PAUSE, mtq},
+
+{D3, D3_size, tq},
+
+{PAUSE, mtq},
+
+{F3, F3_size, tq},
+
+{PAUSE, mtq},
+
+{Bb3, Bb3_size, tq},
+
+{PAUSE, mtq},
+
+{D4, D4_size, tq},
+
+{PAUSE, mtq},
+
+{F4, F4_size, tq},
+
+{PAUSE, mtq},
+
+{Bb4, Bb4_size, tq*2},
+
+{PAUSE, mtq},
+
+{PAUSE, tq},
+
+{Bb4, Bb4_size, tq},
+
+{PAUSE, mtq},
+
+{Bb4, Bb4_size, tq},
+
+{PAUSE, mtq},
+
+{Bb4, Bb4_size, tq},
+
+{PAUSE, mtq},
+
+ 
+
+{C45, C5_size, tq*4},
+
+{PAUSE, mtq},

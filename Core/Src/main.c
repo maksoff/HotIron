@@ -131,9 +131,10 @@ const sSTEPS steps_default[] = {
 };
 
 struct {
+	uint8_t melody;
 	bool peep; // enabled if high
 	bool stop; // set to 1 to stop the PWM after next cycle, PWM_STOP sets to 0
-} peep = {false, false};
+} peep = {melodyLEVEL_COMPLETE, false, false};
 
 /* USER CODE END PV */
 
@@ -391,18 +392,19 @@ void do_peep(void)
 			peep_state = 1;
 			break;
 		case 1: // load note and start
-			if (notes[peep_note].size) // if something to play, start PWM with DMA
+			if (melody[peep.melody].melody[peep_note].size) // if something to play, start PWM with DMA
 			{
 				HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_2,
-						(uint32_t *)notes[peep_note].note, notes[peep_note].size);
+						(uint32_t *)melody[peep.melody].melody[peep_note].note,
+						melody[peep.melody].melody[peep_note].size);
 			}
 			last_time = HAL_GetTick();
 			peep_state = 2;
 			break;
 		case 2: // wait note length
-			if (HAL_GetTick() - last_time > notes[peep_note].time)
+			if (HAL_GetTick() - last_time > melody[peep.melody].melody[peep_note].time)
 			{
-				if (notes[peep_note].size == 0)
+				if (melody[peep.melody].melody[peep_note].size == 0)
 				{
 					// we need only pause, PWM & DMA already disabled
 					peep_state = 4;
@@ -419,14 +421,22 @@ void do_peep(void)
 				peep_state = 4;
 			break;
 		case 4: // check if next note to play
-			if (++peep_note < notes_size)
+			if (++peep_note < melody[peep.melody].size)
 			{
 				peep_state = 1; // play next note
 			}
 			else
 			{
-				// we are finished, start again
-				peep_state = 0;
+				if (melody[peep.melody].play_once)
+				{
+					// play only once
+					peep.peep = false; // so, we are finished
+				}
+				else
+				{
+					// we are finished, start again
+					peep_state = 0;
+				}
 			}
 			break;
 		default:
@@ -981,6 +991,7 @@ void do_interface(void)
 		{
 			if (peep_first_time)
 			{
+				peep.melody = melodyLEVEL_COMPLETE;
 				peep.peep = true;
 				peep_first_time = false;
 			}
@@ -1030,6 +1041,9 @@ void do_interface(void)
 					last_time = HAL_GetTick();
 					pos++;
 					temperature_SP = steps[pos>>1].temp;
+
+					peep.melody = melodyCOIN;
+					peep.peep = true;
 				}
 			}
 			else
@@ -1047,7 +1061,12 @@ void do_interface(void)
 				check_time = HAL_GetTick();
 				pos++;
 				if (pos < (2*max_steps))
+				{
 					temperature_SP = steps[pos>>1].temp;
+
+					peep.melody = melodyCOIN;
+					peep.peep = true;
+				}
 				else
 					temperature_SP = 0;
 			}
@@ -1291,6 +1310,7 @@ void do_interface(void)
 	if (global_error)
 	{
 		ui_state = uiMALFUNCTION;
+		peep.melody = melodyTHREENOTES;
 		peep.peep = true;
 	}
 

@@ -8,6 +8,20 @@
 #ifndef INC_NOTES_H_
 #define INC_NOTES_H_
 
+#include "main.h"
+
+const uint8_t E5[71] = {
+  0,    0,    1,    2,    4,    6,    9,   12,   15,   19,
+ 23,   28,   33,   38,   43,   48,   54,   59,   65,   71,
+ 76,   82,   87,   92,   97,  102,  106,  110,  114,  117,
+120,  122,  124,  125,  126,  127,  127,  126,  125,  124,
+122,  120,  117,  114,  110,  106,  102,   97,   92,   87,
+ 82,   76,   71,   65,   59,   54,   48,   43,   38,   33,
+ 28,   23,   19,   15,   12,    9,    6,    4,    2,    1,
+  0,  };
+
+const uint16_t E5_size = sizeof(E5)/sizeof(E5[0]);
+
 const uint8_t C5[90] = {
   0,    0,    1,    1,    2,    4,    5,    7,   10,   12,
  15,   18,   21,   24,   28,   32,   36,   40,   44,   48,
@@ -1369,7 +1383,7 @@ const sNOTES threenotes[] =
 const uint8_t threenotes_size = sizeof(threenotes)/sizeof(threenotes[0]);
 
 
-const sNOTES notes[] = // mario level complete
+const sNOTES level_complete[] = // mario level complete
 {
 	{G2, G2_size, tq},
 
@@ -1487,6 +1501,34 @@ const sNOTES notes[] = // mario level complete
 	{PAUSE, 1000}
 };
 
-const uint8_t notes_size = sizeof(notes)/sizeof(notes[0]);
+const uint8_t level_complete_size = sizeof(level_complete)/sizeof(level_complete[0]);
+
+const sNOTES coin[] = // mario coin
+{
+		{B4, B4_size, tq},
+		{PAUSE, mtq},
+		{E5, E5_size, tq*2} // should be 3 but two sound better
+};
+
+const uint8_t coin_size = sizeof(coin)/sizeof(coin[0]);
+
+typedef struct {
+	const sNOTES * melody;
+	const uint16_t size;
+	const bool play_once;
+} sMELODY;
+
+enum {
+	melodyTHREENOTES,
+	melodyLEVEL_COMPLETE,
+	melodyCOIN,
+};
+
+const sMELODY melody[] = {
+		{threenotes, threenotes_size, false},
+		{level_complete, level_complete_size, false},
+		{coin, coin_size, true},
+};
+
 
 #endif /* INC_NOTES_H_ */
