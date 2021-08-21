@@ -10,6 +10,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 import tkinter as tk
 import tkinter.ttk as ttk
 import sys
@@ -44,7 +45,6 @@ if (port):
 else:
     print('Nothing found')
     # TODO quit
-
 ## help functions
 
 data = None
@@ -145,12 +145,32 @@ class Application(tk.Frame):
         data = update_data()
         if (self.update):
             self.a0.clear()
-            self.a0.plot(data[:,0], data[:,1], color='blue')
+            self.a0.plot(data[:,0], data[:,1], color='blue', label='Measured T')
+            self.a0.plot(data[:,0], data[:,2], ':', color='red', label='Target T')
             self.a0.set_ylim(0, 300)
+            self.a0.legend(loc=1)
             self.a0.grid(b=True, axis='both', which='major')
+            self.a0.grid(b=True, axis='both', which='minor', linewidth=0.3, linestyle=':')
+            self.a0.set_ylabel('Temperature')
             self.a0.set_title(dt_string + ' ' + self.figtitle.get())
+
+            self.a0.yaxis.set_major_locator(MultipleLocator(50))
+            self.a0.yaxis.set_minor_locator(MultipleLocator(10))
+
+            self.a1.clear()
+            self.a1.plot(data[:,0], data[:,3], lw='2', label='Power')
+            self.a1.plot(data[:,0], data[:,4], 'k--', label='P', alpha=0.7)
+            self.a1.plot(data[:,0], data[:,5], 'b--', label='I', alpha=0.7)
+            self.a1.plot(data[:,0], data[:,6], 'r--', label='D', alpha=0.7)
+            self.a1.set_ylim(-30, 105)
+            self.a1.grid(b=True, axis='both', which='major', linestyle='-')
+            self.a1.set_ylabel('Power')
+            self.a1.legend(loc=1)
+                        
+            self.a1.set_xlabel('Time')
+            
             self.canvas.draw()
-        self.after(900, self.plot)
+        self.after(700, self.plot)
         #here set axes
 
 def on_closing():
