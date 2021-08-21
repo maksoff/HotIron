@@ -355,7 +355,7 @@ void do_usb(void)
 
 	uint8_t buf[200];
 	uint16_t n = snprintf((char*)buf, 200,
-			"Tick: %lu; PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r",
+			"Tick: %lu; PV: %u.%02u; SP: %u; PWM: %u; P: %li; I: %li; D: %li\r\n",
 						HAL_GetTick()/1000,
 						MAX6675.temperature>>2,
 						((MAX6675.temperature)&0b11)*25,
