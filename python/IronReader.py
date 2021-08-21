@@ -1,0 +1,15 @@
+import serial
+import serial.tools.list_ports
+
+
+
+ports = serial.tools.list_ports.comports()
+
+for port, desc, hwid in sorted(ports):
+        print("{}: {} [{}]".format(port, desc, hwid))
+
+ser = serial.Serial('COM10', 115200, timeout=10)
+print(ser.name)
+while True:
+    s = ser.readline()
+    print(s)
