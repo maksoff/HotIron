@@ -85,15 +85,18 @@ class Application(tk.Frame):
         
 
     def createWidgets(self):
-        fig=plt.figure(figsize=(10,6))
-        ax=fig.add_axes([0.05,0.05,0.9,0.9])
-        canvas=FigureCanvasTkAgg(fig,master=root)
-        canvas.get_tk_widget().grid(row=1,column=0, columnspan=5)
-        canvas.draw()
+        self.fig, (self.a0, self.a1) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        self.fig.set_size_inches(12, 7)
+        self.fig.set_dpi(100)
+        self.fig.subplots_adjust(left=0.07, right=0.95, bottom=0.07, top=0.95, hspace=0.03)
+
+        self.canvas=FigureCanvasTkAgg(self.fig,master=root)
+        self.canvas.get_tk_widget().grid(row=1,column=0, columnspan=5)
+        self.canvas.draw()
         
         toolbarFrame = tk.Frame(master=root)
         toolbarFrame.grid(row=0,column=0, sticky='SW', columnspan=3)
-        toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
+        toolbar = NavigationToolbar2Tk(self.canvas, toolbarFrame)
 
 
         self.figtitle = tk.Entry(master=root)
@@ -116,7 +119,10 @@ class Application(tk.Frame):
         self.savebutton.pack(side=tk.RIGHT)
         tt(self.savebutton, 'Save the plot')
 
-        self.after(100, self.plot, canvas, ax)
+        ser.flushInput()
+        ser.readline() # clear data and wait end of string
+
+        self.after(100, self.plot)
 
     def en_update(self):
         self.update = not self.update
@@ -135,16 +141,16 @@ class Application(tk.Frame):
         plt.savefig(filename)
         os.startfile(filename)
 
-    def plot(self,canvas,ax):
+    def plot(self):
         data = update_data()
         if (self.update):
-            ax.clear()
-            ax.plot(data[:,0], data[:,1])
-            ax.set_ylim(0, 300)
-            ax.grid(b=True, axis='both', which='major')
-            ax.set_title(dt_string + ' ' + self.figtitle.get())
-            canvas.draw()
-        self.after(1000, self.plot, canvas, ax)
+            self.a0.clear()
+            self.a0.plot(data[:,0], data[:,1], color='blue')
+            self.a0.set_ylim(0, 300)
+            self.a0.grid(b=True, axis='both', which='major')
+            self.a0.set_title(dt_string + ' ' + self.figtitle.get())
+            self.canvas.draw()
+        self.after(900, self.plot)
         #here set axes
 
 def on_closing():
