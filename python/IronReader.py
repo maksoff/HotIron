@@ -94,12 +94,16 @@ def update_data():
                             big_points = []
                             wait_point = False
                         else:
-                            big_points.append([data[-1, 0], data[-1, 1]])
+                            t = data[-1, 0] - big_points[0][0] if big_points else 0
+                            d = data[-1, 0] - big_points[-1][0] if big_points else 0
+                            big_points.append([data[-1, 0], data[-1, 1], int(d), int(t)])
                             wait_point = True
                     if wait_point:
                         if abs(data[-1, 1] - data[-1, 2]) < 4:
                             wait_point = False
-                            big_points.append([data[-1, 0], data[-1, 1]])
+                            t = data[-1, 0] - big_points[0][0] if big_points else 0
+                            d = data[-1, 0] - big_points[-1][0] if big_points else 0
+                            big_points.append([data[-1, 0], data[-1, 1], int(d), int(t)])
                 last_sp = data[-1, 2]
                                                         
     return data
@@ -165,9 +169,9 @@ class Application(tk.Frame):
     def en_update(self):
         self.update = not self.update
         if self.update:
-            self.plotbutton.config(text = 'pause', fg='red')
+            self.plotbutton.config(text = 'pause', fg='red', relief=tk.RAISED)
         else:
-            self.plotbutton.config(text = 'pause', fg = 'blue')
+            self.plotbutton.config(text = 'pause', fg = 'blue', relief=tk.SUNKEN)
 
     def clear(self):
         if not self.update:
@@ -193,6 +197,14 @@ class Application(tk.Frame):
             self.a0.grid(b=True, axis='both', which='minor', linewidth=0.3, linestyle=':')
             self.a0.set_ylabel('Temperature')
             self.a0.set_title(dt_string + ' ' + self.figtitle.get())
+
+            if self.annvar.get():
+                    self.a0.annotate(" {:.2f}°".format(data[-1,1]),
+                                     (data[-1,0], data[-1, 1]),
+                                     xytext=(data[-1,0], data[-1, 1]+15),
+                                     backgroundcolor='white')
+                    for x, y, d, t in big_points:
+                            self.a0.annotate("{}/{}s".format(d, t), (x, y), xytext=(x, y - 10), rotation=-20)
 
             self.a0.yaxis.set_major_locator(MultipleLocator(50))
             self.a0.yaxis.set_minor_locator(MultipleLocator(10))
