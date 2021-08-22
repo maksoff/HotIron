@@ -118,7 +118,7 @@ class Application(tk.Frame):
         
 
     def createWidgets(self):
-        self.fig, (self.a0, self.a1) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        self.fig, (self.a0, self.a1) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [2.5, 1]})
         self.fig.set_size_inches(12, 7)
         self.fig.set_dpi(100)
         self.fig.subplots_adjust(left=0.07, right=0.95, bottom=0.07, top=0.95, hspace=0.03)
@@ -148,9 +148,13 @@ class Application(tk.Frame):
         self.clearbutton.pack(side=tk.RIGHT)
         tt(self.clearbutton, 'Received data will be deleted')
         
-        self.savebutton=tk.Button(butframe, text="save", command=self.save)
+        self.savebutton=tk.Button(butframe, text="save .png", command=self.save)
         self.savebutton.pack(side=tk.RIGHT)
-        tt(self.savebutton, 'Save the plot')
+        tt(self.savebutton, 'Save the plot to .png file')
+        
+        self.savecsv=tk.Button(butframe, text="save .csv", command=self.savecsv)
+        self.savecsv.pack(side=tk.RIGHT)
+        tt(self.savecsv, 'Save data to .csv file')
 
         self.checkvar = tk.IntVar()
         check = tk.Checkbutton(butframe, variable=self.checkvar, text='x')
@@ -183,6 +187,17 @@ class Application(tk.Frame):
         plt.savefig(filename)
         os.startfile(filename)
 
+    def savecsv(self):
+        filename = dt_file+'_' + re.sub(r'[\\/*?:"<>| ]','_',self.figtitle.get()) + '.csv'
+        np.savetxt(filename, data, delimiter='; ',
+                   header='Tick; Temperature; Setpoint; Power; P; I; D',
+                   fmt='%d; %.2f; %d; %d; %d; %d; %d')
+        self.savecsv.config(relief=tk.SUNKEN, text='saved')
+        self.after(1000, self.csvsaved)
+
+    def csvsaved(self):
+        self.savecsv.config(relief=tk.RAISED, text="save .csv")   
+        
     def plot(self):
         data = update_data()
         if (self.update):
@@ -191,8 +206,8 @@ class Application(tk.Frame):
             self.a0.plot(data[:,0], data[:,2], ':', color='red', label='Target T')
             if big_points and self.checkvar.get():
                 self.a0.plot([x[0] for x in big_points], [x[1] for x in big_points], 'kx')
-            self.a0.set_ylim(0, 300)
-            self.a0.legend(loc=1)
+            self.a0.set_ylim(0, 280)
+            self.a0.legend() # loc=1
             self.a0.grid(b=True, axis='both', which='major')
             self.a0.grid(b=True, axis='both', which='minor', linewidth=0.3, linestyle=':')
             self.a0.set_ylabel('Temperature')
@@ -217,7 +232,7 @@ class Application(tk.Frame):
             self.a1.set_ylim(-30, 105)
             self.a1.grid(b=True, axis='both', which='major', linestyle='-')
             self.a1.set_ylabel('Power')
-            self.a1.legend(loc=1)
+            self.a1.legend() # loc=1
                         
             self.a1.set_xlabel('Time')
             
