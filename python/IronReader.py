@@ -61,8 +61,13 @@ def clear_data():
     dt_string = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
     dt_file = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+update_points = True
+wait_point = False
+last_sp = 0
+big_points = []
+
 def update_data():
-    global data, start_tick
+    global data, start_tick, update_points, wait_point, last_sp, big_points
     s = ser.readline().decode()[:-2]
     print(s)
     if data is None:
@@ -70,9 +75,26 @@ def update_data():
         data = np.array([parse_data(s)])
         start_tick = data[0,0]
         data[0,0] = 0
+        last_sp = data[-1, 2]
+        wait_point = False
     else:
         data = np.append(data, [parse_data(s)], axis=0)
         data[-1,0] -= start_tick
+        if update_points:
+            if data[-1, 2] != last_sp:
+                if abs(data[-1, 2] - last_sp) < 10:
+                    update_points = False
+                    big_points = []
+                    wait_point = False
+                else:
+                    big_points.append([data[-1, 0], data[-1, 1]])
+                    wait_point = True
+            if wait_point:
+                if abs(data[-1, 1] - data[-1, 2]) < 5:
+                    wait_point = False
+                    big_points.append([data[-1, 0], data[-1, 1]])
+        last_sp = data[-1, 2]
+                                                        
     return data
 
 
@@ -147,6 +169,8 @@ class Application(tk.Frame):
             self.a0.clear()
             self.a0.plot(data[:,0], data[:,1], color='blue', label='Measured T')
             self.a0.plot(data[:,0], data[:,2], ':', color='red', label='Target T')
+            if big_points:
+                self.a0.plot([x[0] for x in big_points], [x[1] for x in big_points], 'kx')
             self.a0.set_ylim(0, 300)
             self.a0.legend(loc=1)
             self.a0.grid(b=True, axis='both', which='major')
