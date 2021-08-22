@@ -61,6 +61,10 @@ def clear_data():
     big_points = []
     dt_string = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
     dt_file = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    
+    ser.flushInput()
+    ser.readline() # clear data and wait end of string
+
 
 update_points = True
 wait_point = False
@@ -71,42 +75,32 @@ mark_all_points = True
 
 def update_data():
     global data, start_tick, update_points, wait_point, last_sp, big_points
-    s = ser.readline().decode()[:-2]
-##    try:
-##        s = ser.readline().decode()[:-2]
-##    except:
-##        try: # try to reconnect
-##            ser.close()
-##            ser = serial.Serial(port, 115200, timeout=2)
-##        except:
-##            ...
-##        return data
-        
-    print(s)
-    if data is None:
-        clear_data() #update time
-        data = np.array([parse_data(s)])
-        start_tick = data[0,0]
-        data[0,0] = 0
-        last_sp = data[-1, 2]
-        wait_point = False
-    else:
-        data = np.append(data, [parse_data(s)], axis=0)
-        data[-1,0] -= start_tick
-        if mark_all_points or update_points: 
-            if data[-1, 2] != last_sp:
-                if (not mark_all_points) and (abs(data[-1, 2] - last_sp) < 10):
-                    update_points = False
-                    big_points = []
-                    wait_point = False
-                else:
-                    big_points.append([data[-1, 0], data[-1, 1]])
-                    wait_point = True
-            if wait_point:
-                if abs(data[-1, 1] - data[-1, 2]) < 4:
-                    wait_point = False
-                    big_points.append([data[-1, 0], data[-1, 1]])
-        last_sp = data[-1, 2]
+    while ser.in_waiting or data is None:
+            s = ser.readline().decode()[:-2]
+            print(s)
+            if data is None:
+                data = np.array([parse_data(s)])
+                start_tick = data[0,0]
+                data[0,0] = 0
+                last_sp = data[-1, 2]
+                wait_point = False
+            else:
+                data = np.append(data, [parse_data(s)], axis=0)
+                data[-1,0] -= start_tick
+                if mark_all_points or update_points: 
+                    if data[-1, 2] != last_sp:
+                        if (not mark_all_points) and (abs(data[-1, 2] - last_sp) < 10):
+                            update_points = False
+                            big_points = []
+                            wait_point = False
+                        else:
+                            big_points.append([data[-1, 0], data[-1, 1]])
+                            wait_point = True
+                    if wait_point:
+                        if abs(data[-1, 1] - data[-1, 2]) < 4:
+                            wait_point = False
+                            big_points.append([data[-1, 0], data[-1, 1]])
+                last_sp = data[-1, 2]
                                                         
     return data
 
@@ -155,12 +149,16 @@ class Application(tk.Frame):
         tt(self.savebutton, 'Save the plot')
 
         self.checkvar = tk.IntVar()
-        check = tk.Checkbutton(butframe, variable=self.checkvar)
+        check = tk.Checkbutton(butframe, variable=self.checkvar, text='x')
         check.pack(side=tk.RIGHT)
         tt(check, 'Mark steps on graph')
 
-        ser.flushInput()
-        ser.readline() # clear data and wait end of string
+        self.annvar = tk.IntVar()
+        ann = tk.Checkbutton(butframe, variable=self.annvar, text='annotation')
+        ann.pack(side=tk.RIGHT)
+        tt(ann, 'Annotate steps')
+
+        clear_data()
 
         self.after(100, self.plot)
 
