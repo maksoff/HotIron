@@ -56,8 +56,9 @@ def parse_data(line):
     return [float(x) for x in line.replace(';', '').replace(':', '').split(' ') if not x[0].isalpha()]
 
 def clear_data():
-    global data, dt_string, dt_file
+    global data, dt_string, dt_file, big_points
     data = None
+    big_points = []
     dt_string = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
     dt_file = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -66,9 +67,21 @@ wait_point = False
 last_sp = 0
 big_points = []
 
+mark_all_points = True
+
 def update_data():
     global data, start_tick, update_points, wait_point, last_sp, big_points
     s = ser.readline().decode()[:-2]
+##    try:
+##        s = ser.readline().decode()[:-2]
+##    except:
+##        try: # try to reconnect
+##            ser.close()
+##            ser = serial.Serial(port, 115200, timeout=2)
+##        except:
+##            ...
+##        return data
+        
     print(s)
     if data is None:
         clear_data() #update time
@@ -80,9 +93,9 @@ def update_data():
     else:
         data = np.append(data, [parse_data(s)], axis=0)
         data[-1,0] -= start_tick
-        if update_points:
+        if mark_all_points or update_points: 
             if data[-1, 2] != last_sp:
-                if abs(data[-1, 2] - last_sp) < 10:
+                if (not mark_all_points) and (abs(data[-1, 2] - last_sp) < 10):
                     update_points = False
                     big_points = []
                     wait_point = False
@@ -90,7 +103,7 @@ def update_data():
                     big_points.append([data[-1, 0], data[-1, 1]])
                     wait_point = True
             if wait_point:
-                if abs(data[-1, 1] - data[-1, 2]) < 5:
+                if abs(data[-1, 1] - data[-1, 2]) < 4:
                     wait_point = False
                     big_points.append([data[-1, 0], data[-1, 1]])
         last_sp = data[-1, 2]
@@ -126,7 +139,7 @@ class Application(tk.Frame):
         tt(self.figtitle, 'Graph title' )
 
         butframe = tk.Frame(root)
-        butframe.grid(row=0, column =3, columnspan=2, sticky='E')
+        butframe.grid(row=0, column =4, columnspan=1)
 
         self.plotbutton=tk.Button(butframe, text="pause", fg='red', command=self.en_update)
         self.plotbutton.pack(side=tk.RIGHT)
@@ -140,6 +153,11 @@ class Application(tk.Frame):
         self.savebutton=tk.Button(butframe, text="save", command=self.save)
         self.savebutton.pack(side=tk.RIGHT)
         tt(self.savebutton, 'Save the plot')
+
+        self.checkvar = tk.IntVar()
+        check = tk.Checkbutton(butframe, variable=self.checkvar)
+        check.pack(side=tk.RIGHT)
+        tt(check, 'Mark steps on graph')
 
         ser.flushInput()
         ser.readline() # clear data and wait end of string
@@ -169,7 +187,7 @@ class Application(tk.Frame):
             self.a0.clear()
             self.a0.plot(data[:,0], data[:,1], color='blue', label='Measured T')
             self.a0.plot(data[:,0], data[:,2], ':', color='red', label='Target T')
-            if big_points:
+            if big_points and self.checkvar.get():
                 self.a0.plot([x[0] for x in big_points], [x[1] for x in big_points], 'kx')
             self.a0.set_ylim(0, 300)
             self.a0.legend(loc=1)
