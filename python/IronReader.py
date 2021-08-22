@@ -165,6 +165,12 @@ class Application(tk.Frame):
         ann = tk.Checkbutton(butframe, variable=self.annvar, text='annotation')
         ann.pack(side=tk.RIGHT)
         tt(ann, 'Annotate steps')
+        
+        self.tempvar = tk.IntVar()
+        temperature = tk.Checkbutton(butframe, variable=self.tempvar, text='T')
+        temperature.pack(side=tk.RIGHT)
+        temperature.select()
+        tt(temperature, 'Show actual temperature')
 
         clear_data()
 
@@ -183,20 +189,27 @@ class Application(tk.Frame):
         clear_data()
 
     def save(self):
+        self.savebutton.config(relief=tk.SUNKEN, text='png saved')
         filename = dt_file+'_' + re.sub(r'[\\/*?:"<>| ]','_',self.figtitle.get()) + '.png'
         plt.savefig(filename)
         os.startfile(filename)
+        self.after(1000, self.pngsaved)
 
     def savecsv(self):
         filename = dt_file+'_' + re.sub(r'[\\/*?:"<>| ]','_',self.figtitle.get()) + '.csv'
         np.savetxt(filename, data, delimiter='; ',
                    header='Tick; Temperature; Setpoint; Power; P; I; D',
                    fmt='%d; %.2f; %d; %d; %d; %d; %d')
-        self.savecsv.config(relief=tk.SUNKEN, text='saved')
+        self.savecsv.config(relief=tk.SUNKEN, text='csv saved')
         self.after(1000, self.csvsaved)
 
     def csvsaved(self):
-        self.savecsv.config(relief=tk.RAISED, text="save .csv")   
+        self.savecsv.config(relief=tk.RAISED, text="save .csv")
+
+        
+    def pngsaved(self):
+        self.savebutton.config(relief=tk.RAISED, text="save .png")
+
         
     def plot(self):
         data = update_data()
@@ -212,14 +225,17 @@ class Application(tk.Frame):
             self.a0.grid(b=True, axis='both', which='minor', linewidth=0.3, linestyle=':')
             self.a0.set_ylabel('Temperature')
             self.a0.set_title(dt_string + ' ' + self.figtitle.get())
+            
 
-            if self.annvar.get():
+            if self.tempvar.get():
                     self.a0.annotate(" {:.2f}°".format(data[-1,1]),
                                      (data[-1,0], data[-1, 1]),
                                      xytext=(data[-1,0], data[-1, 1]+15),
                                      backgroundcolor='white')
+
+            if self.annvar.get():
                     for x, y, d, t in big_points:
-                            self.a0.annotate("{}/{}s".format(d, t), (x, y), xytext=(x, y - 10), rotation=-20)
+                            self.a0.annotate("{}/{}s".format(d, t), (x, y), xytext=(x, y - 10), rotation=-30)
 
             self.a0.yaxis.set_major_locator(MultipleLocator(50))
             self.a0.yaxis.set_minor_locator(MultipleLocator(10))
